@@ -1,0 +1,490 @@
+:root {
+  --ground: #f2f4f7;
+  --surface: #ffffff;
+  --raised: #eeeeee;
+  --border: #e6e6e6;
+  --control: #d4d4d4;
+  --text: #0a0a0a;
+  --muted: #6b6b6b;
+  --primary: #141414;
+  --primary-ink: #ffffff;
+  --hue: #1d5fbf;
+  --hue-wash: #d9e6f8;
+  --positive: #2e7d32;
+  --notice-bg: #fffbeb;
+  --notice-ink: #92400e;
+  --notice-border: #fde68a;
+  --font: "Geist", "IBM Plex Sans KR", system-ui, sans-serif;
+  --fs-title: 24px;
+  --fs-section: 16px;
+  --fs-body: 14px;
+  --radius-card: 8px;
+  --radius-control: 6px;
+  --gap: 12px;
+  --card-pad: 24px;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  font-weight: 400;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+button,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--hue);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: #d5e2f6;
+  color: var(--text);
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.shell {
+  min-height: 100svh;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 48px;
+  background: var(--ground);
+  border-bottom: 1px solid var(--border);
+}
+
+.frame {
+  width: min(1120px, calc(100% - 40px));
+  margin-inline: auto;
+}
+
+.bar {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gap);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: var(--fs-body);
+  font-weight: 500;
+}
+
+.mark {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+
+.scope {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--fs-body);
+  white-space: nowrap;
+}
+
+.canvas {
+  padding: 28px 0 48px;
+}
+
+.title-block {
+  margin-bottom: var(--gap);
+}
+
+h1 {
+  font-size: var(--fs-title);
+  line-height: 1.3;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+h2 {
+  font-size: var(--fs-section);
+  line-height: 1.4;
+  font-weight: 500;
+  margin-bottom: var(--gap);
+}
+
+.summary {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: var(--fs-body);
+  line-height: 22px;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: var(--card-pad);
+  min-width: 0;
+}
+
+.panel.current {
+  position: relative;
+}
+
+.panel.current::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 12px;
+  bottom: 12px;
+  width: 3px;
+  background: var(--hue);
+  border-radius: 2px;
+}
+
+/*
+  Centred column, max 1120px.
+  At 1440px the side margins are (1440 - 1120) / 2 = 160px.
+  From 900px the work row is two columns with one 12px gutter:
+  1.45fr + 1fr of (1120 - 12) = 655px + 453px.
+  655 + 12 + 453 = 1120.
+  Below 900px the columns stack so neither pane is under about 340px.
+*/
+.work {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--gap);
+  align-items: start;
+  margin-bottom: var(--gap);
+}
+
+.description {
+  margin-top: 32px;
+  max-width: 36rem;
+  font-size: var(--fs-section);
+  line-height: 1.75;
+}
+
+.step-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap);
+  margin-top: 36px;
+}
+
+.nav-pair {
+  display: flex;
+  gap: var(--gap);
+}
+
+.progress-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--gap);
+  margin-bottom: 8px;
+}
+
+.progress-head h2 {
+  margin-bottom: 0;
+}
+
+.percent {
+  font-size: var(--fs-section);
+  font-weight: 500;
+}
+
+.track {
+  height: 8px;
+  background: var(--raised);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  width: 100%;
+  background: var(--hue);
+  border-radius: inherit;
+  transform: scaleX(var(--p));
+  transform-origin: left center;
+}
+
+.bar-ends {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--gap);
+  margin-top: 6px;
+  color: var(--muted);
+}
+
+.all-done {
+  margin-top: var(--gap);
+  font-weight: 500;
+}
+
+.step-list {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+}
+
+.step-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--gap);
+  align-items: center;
+  min-height: 44px;
+  padding: 0 8px 0 8px;
+  border-radius: var(--radius-control);
+}
+
+.step-list li[aria-current='step'] {
+  background: var(--raised);
+  padding-left: 5px;
+  border-left: 3px solid var(--hue);
+}
+
+.step-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.step-check input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  flex: none;
+  accent-color: var(--primary);
+}
+
+.step-name {
+  font-size: var(--fs-section);
+  line-height: 1.5;
+}
+
+.step-list li[aria-current='step'] .step-name {
+  font-weight: 500;
+}
+
+.step-state {
+  color: var(--muted);
+}
+
+.step-state.done {
+  color: var(--positive);
+  font-weight: 500;
+}
+
+.instruction {
+  font-size: var(--fs-section);
+  line-height: 1.85;
+}
+
+.req {
+  padding: 0 1px;
+  background: var(--hue-wash);
+  border-bottom: 2px solid var(--hue);
+  border-radius: 2px;
+  font-weight: 500;
+  color: var(--text);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.req-legend {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  column-gap: 16px;
+  row-gap: 8px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.req-legend li {
+  display: contents;
+}
+
+.req-label {
+  font-weight: 500;
+}
+
+.req-phrase {
+  color: var(--text);
+}
+
+.task-form label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: var(--fs-body);
+  font-weight: 500;
+}
+
+textarea {
+  display: block;
+  width: 100%;
+  min-height: 220px;
+  padding: 12px 14px;
+  border: 1px solid var(--control);
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  line-height: 1.7;
+  resize: vertical;
+}
+
+.hint,
+.notice {
+  margin-top: var(--gap);
+}
+
+.hint {
+  color: var(--muted);
+}
+
+.notice {
+  padding: 12px 14px;
+  background: var(--notice-bg);
+  border: 1px solid var(--notice-border);
+  border-radius: var(--radius-control);
+  color: var(--notice-ink);
+}
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+  margin-top: 16px;
+}
+
+.btn {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  background: transparent;
+  font-size: var(--fs-body);
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.btn.primary {
+  background: var(--primary);
+  color: var(--primary-ink);
+}
+
+.btn.primary:hover:not(:disabled) {
+  background: #2a2a2a;
+}
+
+.btn.ghost {
+  background: var(--surface);
+  border-color: var(--control);
+  color: var(--text);
+}
+
+.btn.ghost:hover:not(:disabled) {
+  background: #f6f6f6;
+}
+
+.btn:disabled {
+  background: var(--raised);
+  border-color: transparent;
+  color: #3d3d3d;
+  cursor: not-allowed;
+}
+
+@media (min-width: 900px) {
+  .work {
+    grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  }
+
+  textarea {
+    min-height: clamp(220px, calc(100svh - 420px), 460px);
+  }
+}
+
+@media (max-width: 640px) {
+  .form-actions,
+  .step-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-actions .btn,
+  .step-actions > .btn {
+    width: 100%;
+  }
+
+  .nav-pair .btn {
+    flex: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .btn {
+    transition: background-color 150ms var(--ease-out), border-color 150ms var(--ease-out);
+  }
+
+  .fill {
+    transition: transform 200ms var(--ease-out);
+  }
+
+  .btn:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  .step-copy.is-swap {
+    animation: step-in 200ms var(--ease-out);
+  }
+}
+
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
