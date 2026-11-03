@@ -1,12 +1,13 @@
-import { segmentInstruction } from '../taskModel.js'
+import { deadlineNote, formatRows, segmentInstruction, signalPhrases } from '../taskModel.js'
 
 export default function RequirementView({ task }) {
-  const { segments, missing } = segmentInstruction(
-    task.original_instruction,
-    task.requirements,
-  )
-
+  const phrases = signalPhrases(task)
+  const { segments } = segmentInstruction(task.original_instruction, phrases)
   const marked = segments.filter((segment) => segment.type === 'requirement')
+  const content = task.requirements?.content || []
+  const rows = formatRows(task)
+  const deadline = task.requirements?.deadline
+  const lateNote = deadlineNote(deadline)
 
   return (
     <section className="panel" aria-labelledby="instruction-heading">
@@ -23,7 +24,7 @@ export default function RequirementView({ task }) {
         )}
       </p>
       {marked.length > 0 ? (
-        <ul className="req-legend" aria-label="표시된 요구사항">
+        <ul className="req-legend" aria-label="지시문에서 표시된 구절">
           {marked.map((segment) => (
             <li key={segment.id}>
               <span className="req-label">{segment.label}</span>
@@ -32,16 +33,33 @@ export default function RequirementView({ task }) {
           ))}
         </ul>
       ) : null}
-      {missing.length > 0 ? (
-        <ul className="req-legend">
-          {missing.map((requirement) => (
-            <li key={requirement.id}>
-              <span className="req-label">{requirement.label}</span>
-              <span className="req-phrase">{requirement.text}</span>
-            </li>
+
+      <div className="req-group">
+        <h3>내용</h3>
+        <ul>
+          {content.map((item) => (
+            <li key={item}>{item}</li>
           ))}
         </ul>
-      ) : null}
+      </div>
+
+      <div className="req-group">
+        <h3>형식</h3>
+        <dl className="spec">
+          {rows.map((row) => (
+            <div key={row.id}>
+              <dt>{row.label}</dt>
+              <dd>{row.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+
+      <div className="req-group">
+        <h3>마감</h3>
+        {deadline?.display ? <p className="deadline">{deadline.display}</p> : null}
+        {lateNote ? <p className="hint">{lateNote}</p> : null}
+      </div>
     </section>
   )
 }
