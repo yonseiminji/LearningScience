@@ -103,7 +103,14 @@ export default function StepCard({
             const state = itemDone ? '완료' : current ? '진행 중' : '대기'
             return (
               <li key={item.id} aria-current={current ? 'step' : undefined}>
-                <span className="step-name">{item.title}</span>
+                <label className="step-check">
+                  <input
+                    type="checkbox"
+                    checked={itemDone}
+                    onChange={() => onToggleComplete(item.id)}
+                  />
+                  <span className="step-name">{item.title}</span>
+                </label>
                 <span className={itemDone ? 'step-state done' : 'step-state'}>{state}</span>
               </li>
             )

@@ -6,6 +6,8 @@ export default function RequirementView({ task }) {
     task.requirements,
   )
 
+  const marked = segments.filter((segment) => segment.type === 'requirement')
+
   return (
     <section className="panel" aria-labelledby="instruction-heading">
       <h2 id="instruction-heading">과제 지시문</h2>
@@ -14,19 +16,28 @@ export default function RequirementView({ task }) {
           segment.type === 'text' ? (
             <span key={`text-${index}`}>{segment.text}</span>
           ) : (
-            <span key={segment.id} className="req">
+            <mark key={segment.id} className="req">
               {segment.text}
-              <span className="req-label"> ({segment.label})</span>
-            </span>
+            </mark>
           ),
         )}
       </p>
+      {marked.length > 0 ? (
+        <ul className="req-legend" aria-label="표시된 요구사항">
+          {marked.map((segment) => (
+            <li key={segment.id}>
+              <span className="req-label">{segment.label}</span>
+              <span className="req-phrase">{segment.text}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
       {missing.length > 0 ? (
-        <ul className="missing-reqs">
+        <ul className="req-legend">
           {missing.map((requirement) => (
             <li key={requirement.id}>
               <span className="req-label">{requirement.label}</span>
-              <span>{requirement.text}</span>
+              <span className="req-phrase">{requirement.text}</span>
             </li>
           ))}
         </ul>

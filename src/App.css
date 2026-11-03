@@ -9,7 +9,7 @@
   --primary: #141414;
   --primary-ink: #ffffff;
   --hue: #1d5fbf;
-  --hue-wash: #e7eef8;
+  --hue-wash: #d9e6f8;
   --positive: #2e7d32;
   --notice-bg: #fffbeb;
   --notice-ink: #92400e;
@@ -21,7 +21,7 @@
   --radius-card: 8px;
   --radius-control: 6px;
   --gap: 12px;
-  --card-pad: 20px;
+  --card-pad: 24px;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -42,7 +42,7 @@ body {
   color: var(--text);
   font-family: var(--font);
   font-size: var(--fs-body);
-  line-height: 22px;
+  line-height: 1.6;
   font-weight: 400;
   word-break: keep-all;
   overflow-wrap: break-word;
@@ -192,10 +192,10 @@ h2 {
 }
 
 .description {
-  margin-top: 16px;
-  max-width: 38rem;
+  margin-top: 32px;
+  max-width: 36rem;
   font-size: var(--fs-section);
-  line-height: 1.7;
+  line-height: 1.75;
 }
 
 .step-actions {
@@ -203,7 +203,7 @@ h2 {
   flex-wrap: wrap;
   align-items: center;
   gap: var(--gap);
-  margin-top: 20px;
+  margin-top: 36px;
 }
 
 .nav-pair {
@@ -237,9 +237,11 @@ h2 {
 
 .fill {
   height: 100%;
-  width: calc(var(--p) * 100%);
+  width: 100%;
   background: var(--hue);
   border-radius: inherit;
+  transform: scaleX(var(--p));
+  transform-origin: left center;
 }
 
 .bar-ends {
@@ -257,7 +259,7 @@ h2 {
 
 .step-list {
   list-style: none;
-  margin: 12px 0 0;
+  margin: 16px 0 0;
   padding: 0;
 }
 
@@ -265,14 +267,37 @@ h2 {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--gap);
-  align-items: baseline;
-  min-height: 36px;
-  padding: 6px 8px;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 8px 0 8px;
   border-radius: var(--radius-control);
 }
 
 .step-list li[aria-current='step'] {
   background: var(--raised);
+  padding-left: 5px;
+  border-left: 3px solid var(--hue);
+}
+
+.step-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.step-check input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  flex: none;
+  accent-color: var(--primary);
+}
+
+.step-name {
+  font-size: var(--fs-section);
+  line-height: 1.5;
 }
 
 .step-list li[aria-current='step'] .step-name {
@@ -290,30 +315,40 @@ h2 {
 
 .instruction {
   font-size: var(--fs-section);
-  line-height: 1.75;
+  line-height: 1.85;
 }
 
 .req {
+  padding: 0 1px;
   background: var(--hue-wash);
-  border-radius: 3px;
+  border-bottom: 2px solid var(--hue);
+  border-radius: 2px;
+  font-weight: 500;
+  color: var(--text);
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
+}
+
+.req-legend {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  column-gap: 16px;
+  row-gap: 8px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.req-legend li {
+  display: contents;
 }
 
 .req-label {
   font-weight: 500;
 }
 
-.missing-reqs {
-  list-style: none;
-  margin: 16px 0 0;
-  padding: 0;
-}
-
-.missing-reqs li {
-  display: flex;
-  gap: 8px;
-  padding: 6px 0;
+.req-phrase {
+  color: var(--text);
 }
 
 .task-form label {
@@ -427,6 +462,10 @@ textarea {
 @media (prefers-reduced-motion: no-preference) {
   .btn {
     transition: background-color 150ms var(--ease-out), border-color 150ms var(--ease-out);
+  }
+
+  .fill {
+    transition: transform 200ms var(--ease-out);
   }
 
   .btn:active:not(:disabled) {
