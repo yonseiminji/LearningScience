@@ -3,6 +3,82 @@ export function isSampleInstruction(input, task) {
   return input.trim() === task.original_instruction.trim()
 }
 
+const FORMAT_LABELS = {
+  length: '분량',
+  font_size: '글자 크기',
+  font_family: '글꼴',
+}
+
+/**
+ * Phrases drawn from the task payload that can be marked in the instruction.
+ * A phrase is only marked later if it actually occurs in the source text.
+ */
+export function signalPhrases(task) {
+  const requirements = task.requirements || {}
+  const phrases = []
+
+  if (Array.isArray(requirements.content)) {
+    requirements.content.forEach((text, index) => {
+      if (typeof text === 'string' && text) {
+        phrases.push({ id: `content-${index}`, text, label: '내용' })
+      }
+    })
+  }
+
+  if (requirements.format && typeof requirements.format === 'object') {
+    for (const [key, text] of Object.entries(requirements.format)) {
+      if (typeof text === 'string' && text) {
+        phrases.push({
+          id: `format-${key}`,
+          text,
+          label: FORMAT_LABELS[key] || key,
+        })
+      }
+    }
+  }
+
+  if (typeof requirements.deadline?.display === 'string' && requirements.deadline.display) {
+    phrases.push({
+      id: 'deadline',
+      text: requirements.deadline.display,
+      label: '마감',
+    })
+  }
+
+  return phrases
+}
+
+/** Formatting rows for the requirement section. Labels are UI names; values come from the task. */
+export function formatRows(task) {
+  const format = task.requirements?.format || {}
+  return Object.entries(format)
+    .filter(([, value]) => typeof value === 'string' && value)
+    .map(([key, value]) => ({
+      id: key,
+      label: FORMAT_LABELS[key] || key,
+      value,
+    }))
+}
+
+/** Short note derived from the deadline flag. Empty when the payload does not say. */
+export function deadlineNote(deadline) {
+  if (!deadline || typeof deadline.late_submission_allowed !== 'boolean') return ''
+  return deadline.late_submission_allowed
+    ? '늦은 제출이 가능합니다.'
+    : '늦은 제출은 받지 않습니다.'
+}
+
+export function stepsForLevel(task, level) {
+  return task.support_levels?.[level]?.steps ?? []
+}
+
+/** Action text of a prerequisite step, when the payload names one. */
+export function prerequisiteAction(steps, step) {
+  if (!step?.prerequisite) return ''
+  const prior = steps.find((item) => item.id === step.prerequisite)
+  return prior?.action || ''
+}
+
 /**
  * Split the instruction on requirement phrases from the task payload.
  * Labels travel with the phrase so highlighting is not colour alone.
@@ -15,7 +91,7 @@ export function segmentInstruction(instruction, requirements) {
       index: instruction.indexOf(requirement.text),
     }))
     .filter((requirement) => requirement.index >= 0)
-    .sort((a, b) => a.index - b.index)
+    .sort((a, b) => a.index - b.index || b.text.length - a.text.length)
 
   const segments = []
   let cursor = 0

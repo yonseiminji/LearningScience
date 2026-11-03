@@ -1,39 +1,179 @@
 {
-  "task_id": "demo-001",
-  "original_instruction": "인지부하 이론의 핵심 개념을 조사하고, 대학 학습 상황에서 나타나는 사례를 선정하여 이론을 적용한 보고서를 작성하세요.",
-  "summary": "인지부하 이론을 실제 학습 사례에 적용하는 보고서 작성",
-  "requirements": [
-    {
-      "id": "r1",
-      "text": "핵심 개념을 조사",
-      "label": "개념 조사"
+  "task_id": "learning-science-midterm",
+  "title": "학습과학 중간보고서 제출",
+  "original_instruction": "인지부하 이론을 조사하고, 관련한 자신의 학습사례를 예시를 들어 A4 2장 보고서로 작성해오세요. 글자 크기는 10pt, 고딕체를 써주세요. 마감일은 10월 16일 23:59까지고, 늦은 제출은 받지 않으니 주의해주세요.\n\n- 작성 시 자신의 경험이 구체적으로 드러나게 써주세요.\n- 인용 시 적절한 인용 표기법을 따라주세요.",
+  "summary": "인지부하 이론을 조사하고 자신의 구체적인 학습 경험과 연결하여 A4 2장 보고서를 작성합니다.",
+  "requirements": {
+    "content": [
+      "인지부하 이론 조사",
+      "자신의 구체적인 학습 경험 제시",
+      "이론과 학습 경험 연결",
+      "적절한 인용 표기법 사용"
+    ],
+    "format": {
+      "length": "A4 2장",
+      "font_size": "10pt",
+      "font_family": "고딕체"
     },
-    {
-      "id": "r2",
-      "text": "사례를 선정",
-      "label": "사례 선정"
-    },
-    {
-      "id": "r3",
-      "text": "보고서를 작성",
-      "label": "보고서 작성"
+    "deadline": {
+      "display": "10월 16일 23:59",
+      "year_specified": false,
+      "late_submission_allowed": false
     }
-  ],
-  "steps": [
-    {
-      "id": "s1",
-      "title": "핵심 개념 조사",
-      "description": "인지부하 이론의 주요 개념을 찾아 간단히 정리하세요."
+  },
+  "support_levels": {
+    "standard": {
+      "label": "기본 단계",
+      "has_more_steps": false,
+      "steps": [
+        {
+          "id": "s1",
+          "action": "인지부하 이론 조사하기",
+          "completion_criteria": "핵심 개념과 참고자료 정리"
+        },
+        {
+          "id": "s2",
+          "action": "자신의 학습 경험 선정 및 분석하기",
+          "completion_criteria": "구체적인 경험과 이론의 관련성 정리"
+        },
+        {
+          "id": "s3",
+          "action": "보고서 작성하기",
+          "completion_criteria": "이론과 경험을 연결한 A4 2장 보고서 초안 작성"
+        },
+        {
+          "id": "s4",
+          "action": "보고서 검토 및 제출하기",
+          "completion_criteria": "내용·형식·인용 점검 후 마감 전 제출"
+        }
+      ]
     },
-    {
-      "id": "s2",
-      "title": "학습 사례 선정",
-      "description": "대학 학습 상황에서 인지부하가 발생하는 사례를 한 가지 선택하세요."
+    "detailed": {
+      "label": "세부 단계",
+      "has_more_steps": false,
+      "steps": [
+        {
+          "id": "d1",
+          "action": "인지부하 이론 관련 자료 찾기",
+          "completion_criteria": "관련 자료 1개 이상 확보"
+        },
+        {
+          "id": "d2",
+          "action": "인지부하 이론의 핵심 개념 정리하기",
+          "completion_criteria": "주요 개념과 설명 작성"
+        },
+        {
+          "id": "d3",
+          "action": "자신의 학습 경험 한 가지 선택하기",
+          "completion_criteria": "실제 경험 1개 선정"
+        },
+        {
+          "id": "d4",
+          "action": "학습 경험과 이론의 관련성 분석하기",
+          "completion_criteria": "경험과 인지부하 개념의 연결점 작성"
+        },
+        {
+          "id": "d5",
+          "action": "보고서 초안 작성하기",
+          "completion_criteria": "이론 설명과 경험 분석을 포함한 초안 작성"
+        },
+        {
+          "id": "d6",
+          "action": "보고서 형식과 인용 검토하기",
+          "completion_criteria": "A4 2장, 10pt, 고딕체, 인용 표기 확인"
+        },
+        {
+          "id": "d7",
+          "action": "완성한 보고서 제출하기",
+          "completion_criteria": "10월 16일 23:59 이전 제출 확인"
+        }
+      ]
     },
-    {
-      "id": "s3",
-      "title": "보고서 작성",
-      "description": "조사한 이론을 선정한 사례에 적용하여 보고서를 작성하세요."
+    "micro": {
+      "label": "아주 작은 단계",
+      "has_more_steps": false,
+      "steps": [
+        {
+          "id": "m1",
+          "action": "과제 지시문을 열고 제출 조건 확인하기",
+          "completion_criteria": "분량, 글꼴, 글자 크기, 마감일 확인"
+        },
+        {
+          "id": "m2",
+          "action": "자료 검색 페이지 열기",
+          "completion_criteria": "검색 페이지가 화면에 표시됨"
+        },
+        {
+          "id": "m3",
+          "action": "'인지부하 이론'을 검색하기",
+          "completion_criteria": "검색 결과 확인"
+        },
+        {
+          "id": "m4",
+          "action": "관련 자료 한 개 열기",
+          "completion_criteria": "자료 내용 확인"
+        },
+        {
+          "id": "m5",
+          "action": "자료 제목과 출처 기록하기",
+          "completion_criteria": "참고자료 정보 저장"
+        },
+        {
+          "id": "m6",
+          "action": "인지부하 이론의 정의를 한 문장으로 정리하기",
+          "completion_criteria": "설명 문장 1개 작성"
+        },
+        {
+          "id": "m7",
+          "action": "자신이 공부하면서 어려웠던 상황 한 가지 떠올리기",
+          "completion_criteria": "학습 상황 1개 선정"
+        },
+        {
+          "id": "m8",
+          "action": "그 상황에서 무엇이 어려웠는지 한 문장으로 작성하기",
+          "completion_criteria": "구체적인 어려움 1개 기록"
+        },
+        {
+          "id": "m9",
+          "action": "자신의 경험과 연결되는 인지부하 개념 찾기",
+          "completion_criteria": "관련 개념 1개 선정"
+        },
+        {
+          "id": "m10",
+          "action": "보고서 파일을 만들고 제목 입력하기",
+          "completion_criteria": "보고서 파일 및 제목 작성"
+        },
+        {
+          "id": "m11",
+          "action": "조사한 이론을 설명하는 문단 작성하기",
+          "completion_criteria": "이론 설명 문단 작성"
+        },
+        {
+          "id": "m12",
+          "action": "자신의 학습 경험을 설명하는 문단 작성하기",
+          "completion_criteria": "구체적인 경험 문단 작성"
+        },
+        {
+          "id": "m13",
+          "action": "이론과 경험의 관계를 설명하는 문단 작성하기",
+          "completion_criteria": "이론 적용 문단 작성"
+        },
+        {
+          "id": "m14",
+          "action": "보고서 분량과 글자 형식 확인하기",
+          "completion_criteria": "A4 2장, 10pt, 고딕체 확인"
+        },
+        {
+          "id": "m15",
+          "action": "인용과 참고문헌 표기 확인하기",
+          "completion_criteria": "사용한 자료의 인용 표기 점검"
+        },
+        {
+          "id": "m16",
+          "action": "보고서 제출하기",
+          "completion_criteria": "10월 16일 23:59 이전 제출 확인"
+        }
+      ]
     }
-  ]
+  }
 }

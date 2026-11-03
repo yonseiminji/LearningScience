@@ -5,8 +5,8 @@ A small academic prototype that helps a university student read one assignment, 
 The screen is built around three learning-science ideas:
 
 - **Signaling.** Requirement phrases in the original instruction are marked, and each mark carries a text label.
-- **Segmenting.** The assignment is a short sequence of steps.
-- **Progressive disclosure.** Only the active step shows its description. Completion is kept while moving between steps.
+- **Segmenting.** The same assignment can be shown as broad, detailed, or very small actions.
+- **Progressive disclosure.** After analysis, the learner chooses a step size. Only the active step shows its completion criterion. Completion stays with that step size.
 
 There is no backend, database, account, or language model. The only assignment the demo can analyze is the sample in `src/data/mock_task.json`.
 
@@ -83,14 +83,17 @@ src/
     TaskInput.jsx
     RequirementView.jsx
     StepCard.jsx
+    SupportLevelDialog.jsx
 ```
 
-`src/data/mock_task.json` is the only source of assignment content. `src/taskModel.js` matches the sample, splits requirement phrases, and computes progress from completed steps. A later API response can replace the JSON without rewriting the components.
+`src/data/mock_task.json` is the only source of assignment content. It holds one assignment, grouped requirements, and three support levels. `src/taskModel.js` matches the sample, marks phrases that occur in the instruction, and computes progress from completed steps. Completion is stored separately for each level, because the step ids are not mapped across levels. A later API response can replace the JSON without rewriting the components.
 
 ## What the demo does
 
-1. The instruction field opens with the sample assignment.
-2. **과제 분석하기** shows the prepared analysis.
+1. The instruction field opens with the sample assignment, 학습과학 중간보고서 제출.
+2. **과제 분석하기** opens a dialog: 과제를 시작하기에 어떤 상태인가요? The three choices are standard, detailed, and micro.
 3. If the text is not the sample, the screen explains that this demo cannot analyze it and does not invent a result.
-4. **이전** and **다음** move between steps. **이 단계 완료** toggles completion. The percentage counts completed steps, not the open step.
-5. Changing steps uses a short move. `prefers-reduced-motion: reduce` leaves the content in place with no travel.
+4. The chosen level shows that level’s steps. Each step has an action and a completion criterion. **이전** and **다음** move between steps and do not mark a step complete. **이 단계 완료** toggles completion. The percentage counts completed steps.
+5. **단계 크기 바꾸기** switches level without clearing the other levels’ checkmarks.
+6. Content, formatting, and the deadline stay visible for every level.
+7. Changing steps uses a short move. `prefers-reduced-motion: reduce` leaves the content in place with no travel.

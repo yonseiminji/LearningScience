@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import mockTask from './data/mock_task.json'
-import { isSampleInstruction } from './taskModel.js'
+import { isSampleInstruction, stepsForLevel } from './taskModel.js'
 import TaskInput from './components/TaskInput.jsx'
 import RequirementView from './components/RequirementView.jsx'
 import StepCard from './components/StepCard.jsx'
+import SupportLevelDialog from './components/SupportLevelDialog.jsx'
 
 const MISMATCH_MESSAGE =
   '이 데모는 샘플 과제만 분석할 수 있습니다. 입력한 문장이 샘플과 달라 분석 결과를 보여 드리지 않습니다.'
@@ -11,17 +12,38 @@ const MISMATCH_MESSAGE =
 export default function App() {
   const [draft, setDraft] = useState(mockTask.original_instruction)
   const [status, setStatus] = useState('editing')
-  const [activeIndex, setActiveIndex] = useState(0)
-  const [completedIds, setCompletedIds] = useState([])
+  const [supportLevel, setSupportLevel] = useState(null)
+  const [indexByLevel, setIndexByLevel] = useState({
+    standard: 0,
+    detailed: 0,
+    micro: 0,
+  })
+  const [completedByLevel, setCompletedByLevel] = useState({
+    standard: [],
+    detailed: [],
+    micro: [],
+  })
+  const [levelDialogOpen, setLevelDialogOpen] = useState(false)
 
   function analyze() {
     if (!isSampleInstruction(draft, mockTask)) {
       setStatus('mismatch')
+      setLevelDialogOpen(false)
       return
     }
+    setStatus('choosing')
+    setLevelDialogOpen(true)
+  }
+
+  function selectLevel(level) {
+    setSupportLevel(level)
     setStatus('ready')
-    setActiveIndex(0)
-    setCompletedIds([])
+    setLevelDialogOpen(false)
+  }
+
+  function closeLevelDialog() {
+    setLevelDialogOpen(false)
+    if (status === 'choosing') setStatus('editing')
   }
 
   function restoreSample() {
@@ -29,11 +51,26 @@ export default function App() {
     setStatus('editing')
   }
 
-  function toggleComplete(id) {
-    setCompletedIds((current) =>
-      current.includes(id) ? current.filter((stepId) => stepId !== id) : [...current, id],
-    )
+  function setActiveIndex(nextIndex) {
+    setIndexByLevel((current) => ({ ...current, [supportLevel]: nextIndex }))
   }
+
+  function toggleComplete(id) {
+    setCompletedByLevel((current) => {
+      const list = current[supportLevel]
+      const next = list.includes(id) ? list.filter((stepId) => stepId !== id) : [...list, id]
+      return { ...current, [supportLevel]: next }
+    })
+  }
+
+  const steps = supportLevel ? stepsForLevel(mockTask, supportLevel) : []
+  const activeIndex = supportLevel
+    ? Math.min(indexByLevel[supportLevel] ?? 0, Math.max(steps.length - 1, 0))
+    : 0
+  const completedIds = supportLevel ? completedByLevel[supportLevel] : []
+  const levelData = supportLevel ? mockTask.support_levels[supportLevel] : null
+  const showPlanner = status === 'ready' && supportLevel && steps.length > 0
+  const showDialog = levelDialogOpen && (status === 'choosing' || status === 'ready')
 
   return (
     <div className="shell">
@@ -57,18 +94,23 @@ export default function App() {
 
       <main id="main" className="canvas">
         <div className="frame">
-          {status === 'ready' ? (
+          {showPlanner ? (
             <>
+              <div className="goal-band">
+                <p className="goal-title">{mockTask.title}</p>
+                <p className="summary">{mockTask.summary}</p>
+              </div>
               <StepCard
-                steps={mockTask.steps}
-                summary={mockTask.summary}
+                steps={steps}
                 activeIndex={activeIndex}
                 completedIds={completedIds}
-                onPrevious={() => setActiveIndex((index) => Math.max(0, index - 1))}
-                onNext={() =>
-                  setActiveIndex((index) => Math.min(mockTask.steps.length - 1, index + 1))
-                }
+                supportLabel={levelData.label}
+                hasMoreSteps={levelData.has_more_steps === true}
+                onPrevious={() => setActiveIndex(Math.max(0, activeIndex - 1))}
+                onNext={() => setActiveIndex(Math.min(steps.length - 1, activeIndex + 1))}
+                onSelect={setActiveIndex}
                 onToggleComplete={toggleComplete}
+                onChangeLevel={() => setLevelDialogOpen(true)}
               />
               <RequirementView task={mockTask} />
             </>
@@ -94,6 +136,14 @@ export default function App() {
           )}
         </div>
       </main>
+      {showDialog ? (
+        <SupportLevelDialog
+          levels={mockTask.support_levels}
+          selected={supportLevel}
+          onSelect={selectLevel}
+          onCancel={closeLevelDialog}
+        />
+      ) : null}
     </div>
   )
 }

@@ -191,11 +191,26 @@ h2 {
   margin-bottom: var(--gap);
 }
 
+.goal-band {
+  margin-bottom: 20px;
+}
+
+.goal-title {
+  margin: 0;
+  font-size: var(--fs-section);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
 .description {
   margin-top: 32px;
   max-width: 36rem;
   font-size: var(--fs-section);
   line-height: 1.75;
+}
+
+.description .req-label {
+  margin-right: 8px;
 }
 
 .step-actions {
@@ -221,6 +236,17 @@ h2 {
 
 .progress-head h2 {
   margin-bottom: 0;
+}
+
+.level-line {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: var(--fs-body);
+}
+
+.level-change {
+  width: 100%;
+  margin-top: 12px;
 }
 
 .percent {
@@ -259,17 +285,19 @@ h2 {
 
 .step-list {
   list-style: none;
+  max-height: min(420px, 50svh);
   margin: 16px 0 0;
   padding: 0;
+  overflow: auto;
 }
 
 .step-list li {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   gap: var(--gap);
-  align-items: center;
-  min-height: 44px;
-  padding: 0 8px 0 8px;
+  align-items: flex-start;
+  min-height: 56px;
+  padding: 8px;
   border-radius: var(--radius-control);
 }
 
@@ -282,9 +310,36 @@ h2 {
 .step-check {
   display: flex;
   align-items: center;
-  gap: 10px;
   min-height: 44px;
   cursor: pointer;
+}
+
+.step-jump {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.step-criteria {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: var(--fs-body);
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.more-note {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: var(--fs-body);
 }
 
 .step-check input {
@@ -305,6 +360,7 @@ h2 {
 }
 
 .step-state {
+  padding-top: 4px;
   color: var(--muted);
 }
 
@@ -316,6 +372,7 @@ h2 {
 .instruction {
   font-size: var(--fs-section);
   line-height: 1.85;
+  white-space: pre-wrap;
 }
 
 .req {
@@ -349,6 +406,147 @@ h2 {
 
 .req-phrase {
   color: var(--text);
+}
+
+.req-group {
+  margin-top: 24px;
+}
+
+.req-group h3 {
+  margin: 0 0 8px;
+  font-size: var(--fs-section);
+  font-weight: 500;
+}
+
+.req-group ul {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.req-group li {
+  margin: 4px 0;
+}
+
+.spec {
+  display: grid;
+  row-gap: 8px;
+  margin: 0;
+}
+
+.spec div {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 12px;
+}
+
+.spec dt {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.spec dd {
+  margin: 0;
+}
+
+.deadline {
+  margin: 0;
+  font-size: var(--fs-section);
+  font-weight: 500;
+}
+
+.level-dialog {
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100svh - 32px);
+  margin: auto;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+.level-dialog::backdrop {
+  background: rgba(10, 10, 10, 0.45);
+}
+
+.level-dialog h2 {
+  margin: 0 0 8px;
+  font-size: var(--fs-title);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.35;
+}
+
+.level-note {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: var(--fs-body);
+}
+
+.level-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.level-option {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  min-height: 76px;
+  padding: 12px 16px;
+  border: 1px solid var(--control);
+  border-radius: 8px;
+  background: var(--surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.level-option[aria-pressed='true'] {
+  border-color: var(--text);
+  border-left-width: 3px;
+  background: var(--raised);
+}
+
+.level-icon {
+  width: 24px;
+  height: 24px;
+  flex: none;
+}
+
+.choice-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.choice-label {
+  font-size: var(--fs-section);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.choice-meta,
+.choice-state {
+  font-size: var(--fs-body);
+}
+
+.choice-meta {
+  color: var(--muted);
+}
+
+.choice-state {
+  margin-left: auto;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .task-form label {
