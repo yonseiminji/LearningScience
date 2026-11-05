@@ -308,16 +308,32 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
     grid-template-columns: minmax(0, 1.4fr) minmax(240px, 0.8fr);
   }
 
-  /* 내비게이션 + 로고 중앙 정렬 */
+  /* 상단 바를 3개 영역으로 분리 */
   .bar {
-    justify-content: center;
-    position: relative;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 16px;
+    position: static;
   }
 
-  /* 시간표 등록 버튼은 오른쪽에 유지 */
+  /* 메뉴는 왼쪽 */
+  .nav {
+    grid-column: 1;
+    justify-self: end;
+  }
+
+  /* 차곡차곡 로고는 정중앙 */
+  .logo {
+    grid-column: 2;
+    justify-self: center;
+  }
+
+  /* 시간표 등록은 오른쪽 */
   .register {
-    position: absolute;
-    right: 0;
+    grid-column: 3;
+    justify-self: end;
+    position: static;
     margin-left: 0;
   }
 }
