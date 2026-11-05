@@ -23,11 +23,11 @@ export default function GuideView({
   return (
     <div className="guide">
       <button type="button" className="btn ghost" onClick={onBack}>
-        할 일 보드로
+        돌아가기
       </button>
       <p className="card-course">{subject?.name}</p>
       <h1>{assignment.title}</h1>
-      {assignment.demoOnly ? <p className="hint">데모용 가상 자료입니다. 입력은 정답 채점을 하지 않습니다.</p> : null}
+      {assignment.demoOnly ? <p className="hint">데모용 가상 자료입니다.</p> : null}
       <div className="due-row">
         <ChagokBlocks done={counts.done} total={counts.total} />
         <span className="num">
