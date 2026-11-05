@@ -142,7 +142,7 @@ export default function App() {
               <>
                 <section className="hero">
                   <h1>차곡차곡: 느린학습자를 위한 학습 플래너</h1>
-                  <p className="hero-tip">큰 과제도 작은 단계로 나누면 시작하기 쉬워져요.</p>
+                  <p className="hero-tip">큰 과제도 작은 단계로 나누면 시작하기 쉬워져요. ((여기에 넣을 슬로건 추천 받아요오...))</p>
                   <p className="hint">{data.notes[0]}</p>
                 </section>
                 <SubjectBoard stepCompletion={stepCompletion} onToggleStep={toggleStep} onOpen={openGuide} />
@@ -193,7 +193,7 @@ export default function App() {
         <dialog className="level-dialog" open aria-labelledby="register-title">
           <h2 id="register-title">시간표 등록</h2>
           <p>
-            이 화면은 데모입니다. 수업을 등록해도 저장되지 않고, 학교 시간표와 연결되지 않습니다. 아래 목록은 바뀌지 않습니다.
+            이 화면은 데모입니다. 데모로 등록된 데이터는 다음과 같습니다 :).
           </p>
           <ul className="check-list">
             {data.demoSchedule.map((item) => (
