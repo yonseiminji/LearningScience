@@ -5,10 +5,10 @@ The LearningScience prototype, reorganized as one web app under the 차곡차곡
 The assignment guide still follows three learning-science ideas:
 
 - **Signaling.** Requirement phrases in the original instruction are marked, and each mark carries a text label.
-- **Segmenting.** The same assignment can be shown as broad, detailed, or very small actions.
-- **Progressive disclosure.** After analysis, the learner chooses a step size. Only the active step shows its completion criterion. Completion stays with that step size.
+- **Segmenting.** Each assignment is already split into the steps supplied in the mock file.
+- **Progressive disclosure.** The guide shows one active step. The step list stays visible so the learner can open another step directly.
 
-There is no backend, database, account, or language model. The only assignment the demo can analyze is the sample in `src/data/mock_task.json`. Other board tasks are predefined checkpoints. The weekly timetable is read-only mock data.
+There is no backend, database, account, or language model. Assignment cards, steps, deadlines, and the weekly timetable come from `src/data/assignments.mock.json`. The sociology and educational-psychology instructions are marked as demo data in that file.
 
 User-facing copy and the mock assignment are in Korean. Code and this document are in English.
 
@@ -16,10 +16,9 @@ User-facing copy and the mock assignment are in Korean. Code and this document a
 
 The interface follows the app-screen workflow of the [Taste Skill](https://github.com/Leonxlnx/taste-skill) (`design-taste-frontend`), not the landing-page workflow, and uses the 차곡차곡 palette from the reference prototype.
 
-- Ground `#faf5ee`, cards white, ink `#3e3029`, actions `#8a5a3c`.
-- The wordmark and 곰곰이 sit in the header. The mascot does not sit on task cards.
-- 차곡 블록 are small squares, filled as steps are checked.
-- The side wing is deep purple with light text, and holds 이번주, 가장 많이 이야기한 수업, and 최근에 배운 것.
+- Ground `#f9f4ef`, ink `#020826`, actions `#716040`, side wing `#125042`.
+- The wordmark stays in the header. 곰곰이 opens the class chat from the side wing.
+- 차곡 블록 are small squares, one per step, filled as steps are checked.
 - Text is Chiron GoRound TC, the face shipped with the reference prototype (SIL OFL 1.1).
 
 ## Install the Taste Skill
@@ -71,31 +70,25 @@ src/
   main.jsx
   App.jsx
   App.css
-  taskModel.js
-  studyModel.js
-  data/mock_task.json
-  data/study.json
+  assignmentModel.js
+  data/assignments.mock.json
   components/
-    TaskInput.jsx
-    RequirementView.jsx
-    StepCard.jsx
-    SupportLevelDialog.jsx
-    TaskBoard.jsx
+    SubjectBoard.jsx
+    GuideView.jsx
     TodoPage.jsx
     Timetable.jsx
     SideWing.jsx
+    ChatRoom.jsx
     ChagokBlocks.jsx
 ```
 
-`src/data/mock_task.json` holds the one assignment the analyzer understands, with grouped requirements and three support levels. `src/data/study.json` holds the weekly classes, the other checkpoint lists, and the side-wing notes taken from the reference prototype. Completion for the analyzed assignment stays separate per support level.
+`src/data/assignments.mock.json` is the only assignment source. It is the supplied file, unchanged. Completion and typed responses live in React state, keyed by the step and criterion ids in that file.
 
 ## What the demo does
 
-1. Home opens on the to-do board and answers 지금 무엇을 해야 하지?
-2. **나의 할 일** lists checkpoints. Checking one updates that task’s 차곡 블록 on the home board.
-3. **과제 안내 열기** keeps the original analysis flow. **과제 분석하기** asks 과제를 시작하기에 어떤 상태인가요? and then shows standard, detailed, or micro steps.
-4. If the instruction is not the sample, the screen says this demo cannot analyze it.
-5. **이전** and **다음** move between steps and do not mark a step complete. **이 단계 완료** toggles completion.
-6. **시간표** is a read-only week grid. There is no timetable editor, class chat, mail helper, or separate understanding-check screen.
-7. The side wing shows 이번주, 가장 많이 이야기한 수업, and 최근에 배운 것.
-8. `prefers-reduced-motion: reduce` leaves step changes in place with no travel.
+1. The first screen is the hero. Scrolling reveals the three subject cards.
+2. Each card shows the deadline as 마감 MM월 DD일 HH:mm, a computed D-day, step checkboxes, and **자세히 보기**.
+3. In the guide, recording every criterion for a step, or clicking **이 단계 완료**, completes that step and moves to the next one. There are no 이전 or 다음 buttons.
+4. **시간표 등록** explains that registration is not saved. Class blocks open that subject’s 할 일.
+5. 곰곰이 opens a class chat labeled as prepared examples, not a live model.
+6. `prefers-reduced-motion: reduce` shows the board and steps without the travel.

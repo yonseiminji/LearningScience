@@ -1,0 +1,663 @@
+{
+  "schemaVersion": "1.0.0",
+  "dataType": "demo-assignment-guidance",
+  "locale": "ko-KR",
+  "timezone": "Asia/Seoul",
+  "notes": [
+    "모든 날짜·사회학/교육심리학 과제 지시문은 데모용 가상 데이터입니다.",
+    "학습과학 과제 원문은 제공된 기존 대화의 조건(인지부하 이론 조사, 자기 학습사례, A4 2장, 10pt)을 반영합니다.",
+    "기존 Mock JSON 4·5의 파일과 스키마가 확인되지 않아 별도 공통 스키마로 작성했습니다. 원본과 통합 시 필드 매핑이 필요합니다.",
+    "progress, D-day, blockCount 등은 런타임에서 계산하고 저장 데이터와 중복 관리하지 않습니다."
+  ],
+  "subjects": [
+    {
+      "id": "learning-science",
+      "name": "학습과학",
+      "icon": "BookOpen",
+      "colorToken": "brown"
+    },
+    {
+      "id": "sociology",
+      "name": "사회학",
+      "icon": "Users",
+      "colorToken": "plum"
+    },
+    {
+      "id": "educational-psychology",
+      "name": "교육심리학",
+      "icon": "Brain",
+      "colorToken": "sage"
+    }
+  ],
+  "assignments": [
+    {
+      "id": "ls-cognitive-load-01",
+      "subjectId": "learning-science",
+      "title": "인지부하 이론과 나의 학습 사례 보고서",
+      "dueAt": "2026-11-12T23:59:00+09:00",
+      "demoOnly": true,
+      "instructionOriginal": "[학습과학 중간보고서 제출]\n인지부하 이론을 조사하고, 관련한 자신의 학습사례를 예시를 들어 A4 2장 보고서로 작성해오세요. 글자 크기는 10pt",
+      "instructions": [
+        "인지부하 이론을 조사할 것",
+        "이론과 관련된 자신의 학습사례를 구체적으로 제시할 것",
+        "A4 2장 분량으로 작성할 것",
+        "글자 크기 10pt를 적용할 것"
+      ],
+      "requirements": [
+        {
+          "id": "ls-r1",
+          "label": "이론 조사",
+          "text": "인지부하 이론의 핵심 개념을 조사한다.",
+          "highlight": "인지부하 이론",
+          "kind": "content"
+        },
+        {
+          "id": "ls-r2",
+          "label": "개인 사례",
+          "text": "자신의 학습사례를 이론과 연결해 설명한다.",
+          "highlight": "자신의 학습사례",
+          "kind": "content"
+        },
+        {
+          "id": "ls-r3",
+          "label": "분량",
+          "text": "보고서는 A4 2장이다.",
+          "highlight": "A4 2장",
+          "kind": "format"
+        },
+        {
+          "id": "ls-r4",
+          "label": "글자 크기",
+          "text": "글자 크기는 10pt이다.",
+          "highlight": "10pt",
+          "kind": "format"
+        }
+      ],
+      "steps": [
+        {
+          "id": "ls-s1",
+          "title": "인지부하 이론 자료 찾기",
+          "description": "이론의 기본 개념을 확인할 수 있는 자료를 확보해요.",
+          "prerequisiteTip": "먼저 인지부하가 학습 중 작업기억의 제한과 관련된다는 점을 떠올려 보세요.",
+          "completionCriteria": [
+            {
+              "id": "ls-c1",
+              "text": "관련 자료 1개 이상 확보",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 인지부하 이론을 설명한 리뷰 논문 1편을 찾았어요.",
+              "inputType": "text",
+              "required": false
+            },
+            {
+              "id": "ls-c2",
+              "text": "핵심 개념 2개 이상 메모",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 내재적 인지부하와 외재적 인지부하를 정리했어요.",
+              "inputType": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "ls-s2",
+          "title": "내 학습 경험 고르기",
+          "description": "실제로 겪은 학습 장면 하나를 선택해요.",
+          "prerequisiteTip": "사례에는 상황·어려움·그때 했던 행동을 포함하면 설명하기 쉬워요.",
+          "completionCriteria": [
+            {
+              "id": "ls-c3",
+              "text": "구체적인 개인 학습사례 1개 선정",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 온라인 강의에서 자막과 슬라이드를 동시에 볼 때의 경험을 골랐어요.",
+              "inputType": "text",
+              "required": false
+            },
+            {
+              "id": "ls-c4",
+              "text": "사례와 이론의 연결 설명",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 정보가 여러 곳에 흩어져 있어 불필요한 탐색이 늘었다고 적었어요.",
+              "inputType": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "ls-s3",
+          "title": "보고서 초안 작성하기",
+          "description": "이론 설명과 개인 사례를 연결하는 글을 작성해요.",
+          "prerequisiteTip": "개념을 나열하는 데 그치지 않고 사례의 어떤 장면이 개념에 해당하는지 밝혀 보세요.",
+          "completionCriteria": [
+            {
+              "id": "ls-c5",
+              "text": "이론 설명 단락 작성",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 이론의 기본 개념과 종류를 한 단락으로 정리했어요.",
+              "inputType": "text",
+              "required": false
+            },
+            {
+              "id": "ls-c6",
+              "text": "사례 분석 단락 작성",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 선택한 경험이 어떤 인지부하와 관련되는지 설명했어요.",
+              "inputType": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "ls-s4",
+          "title": "형식과 내용 최종 점검",
+          "description": "제출 조건을 다시 확인해요.",
+          "prerequisiteTip": "최종 점검은 내용 조건과 형식 조건을 나누어 확인하면 놓치는 부분이 줄어들어요.",
+          "completionCriteria": [
+            {
+              "id": "ls-c7",
+              "text": "A4 2장 분량 확인",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 문서가 A4 두 페이지인지 확인했어요.",
+              "inputType": "text",
+              "required": false
+            },
+            {
+              "id": "ls-c8",
+              "text": "글자 크기 10pt 확인",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 본문 글자 크기를 10pt로 설정했어요.",
+              "inputType": "text",
+              "required": false
+            },
+            {
+              "id": "ls-c9",
+              "text": "이론과 자기 경험이 모두 포함되었는지 확인",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 이론 설명과 제 경험 분석이 모두 들어가 있어요.",
+              "inputType": "text",
+              "required": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "soc-survey-01",
+      "subjectId": "sociology",
+      "title": "대학생의 디지털 소통 문화 관찰 보고서",
+      "dueAt": "2026-11-16T18:00:00+09:00",
+      "demoOnly": true,
+      "instructionOriginal": "[사회학 과제: 일상 속 사회현상 관찰 보고서]\n대학생의 디지털 소통 문화에서 관찰할 수 있는 사회현상 1가지를 선택하고, 일상 관찰 사례 2개를 수집하세요. 사례를 사회학 개념 2개 이상과 연결하여 A4 3쪽 이내의 보고서로 작성해 제출하세요. 보고서에는 주제 선정 이유, 사례 설명, 개념 적용, 결론을 포함하고 참고자료 2개 이상을 제시하세요. 마감은 11월 16일 18:00입니다.",
+      "instructions": [
+        "디지털 소통 문화 관련 사회현상 1개 선정",
+        "일상 관찰 사례 2개 수집",
+        "사회학 개념 2개 이상 적용",
+        "주제 선정 이유·사례 설명·개념 적용·결론 포함",
+        "참고자료 2개 이상 제시",
+        "A4 3쪽 이내"
+      ],
+      "requirements": [
+        {
+          "id": "soc-r1",
+          "label": "현상 선정",
+          "text": "디지털 소통 문화와 관련한 사회현상 1가지를 선택한다.",
+          "highlight": "사회현상 1가지",
+          "kind": "content"
+        },
+        {
+          "id": "soc-r2",
+          "label": "사례 수",
+          "text": "일상 관찰 사례 2개를 제시한다.",
+          "highlight": "사례 2개",
+          "kind": "content"
+        },
+        {
+          "id": "soc-r3",
+          "label": "개념 적용",
+          "text": "사회학 개념 2개 이상과 연결한다.",
+          "highlight": "사회학 개념 2개 이상",
+          "kind": "content"
+        },
+        {
+          "id": "soc-r4",
+          "label": "구성",
+          "text": "주제 선정 이유, 사례 설명, 개념 적용, 결론을 포함한다.",
+          "highlight": "주제 선정 이유, 사례 설명, 개념 적용, 결론",
+          "kind": "structure"
+        },
+        {
+          "id": "soc-r5",
+          "label": "참고자료",
+          "text": "참고자료 2개 이상을 제시한다.",
+          "highlight": "참고자료 2개 이상",
+          "kind": "source"
+        },
+        {
+          "id": "soc-r6",
+          "label": "분량",
+          "text": "A4 3쪽 이내로 작성한다.",
+          "highlight": "A4 3쪽 이내",
+          "kind": "format"
+        }
+      ],
+      "steps": [
+        {
+          "id": "soc-s1",
+          "title": "관찰할 사회현상 정하기",
+          "description": "일상에서 실제로 볼 수 있는 현상을 좁혀요.",
+          "prerequisiteTip": "사회현상은 개인의 행동을 넘어 반복되는 규범이나 관계와 연결될 수 있어요.",
+          "completionCriteria": [
+            {
+              "id": "soc-c1",
+              "text": "사회현상 1가지 선정",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 단체 채팅방에서 메시지를 읽고도 답하지 않는 관행을 선택했어요.",
+              "inputType": "text",
+              "required": false
+            },
+            {
+              "id": "soc-c2",
+              "text": "주제 선정 이유 1~2문장 작성",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 친구 관계에서 답장 속도가 기대와 압력으로 작용한다고 느꼈어요.",
+              "inputType": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "soc-s2",
+          "title": "관찰 사례 모으기",
+          "description": "개인을 특정하지 않는 방식으로 일상 사례를 기록해요.",
+          "prerequisiteTip": "이름·연락처 등 개인정보를 넣지 말고 상황 중심으로 관찰을 기술해요.",
+          "completionCriteria": [
+            {
+              "id": "soc-c3",
+              "text": "관찰 사례 2개 확보",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 팀 프로젝트 채팅방과 동아리 채팅방의 응답 규칙을 기록했어요.",
+              "inputType": "text",
+              "required": false
+            },
+            {
+              "id": "soc-c4",
+              "text": "사례별 상황과 행동 정리",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 누가, 어떤 상황에서, 어떤 반응을 했는지 익명으로 정리했어요.",
+              "inputType": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "soc-s3",
+          "title": "사회학 개념으로 분석하기",
+          "description": "서로 다른 두 개념을 사례와 연결해요.",
+          "prerequisiteTip": "개념의 정의를 먼저 짚은 다음 사례의 어떤 행동이 연결되는지 적어 보세요.",
+          "completionCriteria": [
+            {
+              "id": "soc-c5",
+              "text": "관련 사회학 개념 2개 선정",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 사회규범과 역할기대를 선택했어요.",
+              "inputType": "text",
+              "required": false
+            },
+            {
+              "id": "soc-c6",
+              "text": "각 개념이 사례를 설명하는 이유 작성",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 빠른 답장 기대가 비공식적 규범으로 작용한다고 설명했어요.",
+              "inputType": "text",
+              "required": false
+            },
+            {
+              "id": "soc-c7",
+              "text": "참고자료 2개 이상 확보",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 강의자료 1개와 학술 자료 1개를 확인했어요.",
+              "inputType": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "soc-s4",
+          "title": "보고서 작성 및 점검",
+          "description": "요구된 네 부분을 빠짐없이 구성해요.",
+          "prerequisiteTip": "결론은 사례를 다시 열거하기보다 분석을 통해 알게 된 점을 요약해 보세요.",
+          "completionCriteria": [
+            {
+              "id": "soc-c8",
+              "text": "주제 선정 이유·사례·개념 적용·결론 포함",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 네 항목을 소제목으로 구분해 작성했어요.",
+              "inputType": "text",
+              "required": false
+            },
+            {
+              "id": "soc-c9",
+              "text": "A4 3쪽 이내 확인",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) A4 2쪽 반으로 작성했어요.",
+              "inputType": "text",
+              "required": false
+            },
+            {
+              "id": "soc-c10",
+              "text": "출처와 익명 처리 확인",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 참고자료 2개를 기재하고 개인을 식별할 수 있는 정보는 삭제했어요.",
+              "inputType": "text",
+              "required": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ep-feedback-01",
+      "subjectId": "educational-psychology",
+      "title": "학습동기 이론을 활용한 학습 지원 전략 제안서",
+      "dueAt": "2026-11-20T23:59:00+09:00",
+      "demoOnly": true,
+      "instructionOriginal": "[교육심리학 개인 과제]\n자기결정성이론 또는 기대-가치이론 중 하나를 선택하여 핵심 개념을 설명하세요. 학습 의욕이 낮은 대학생의 가상 사례를 1개 구성하고, 선택한 이론을 적용해 학습 지원 전략 3가지를 제안하세요. 각 전략은 이론적 근거와 예상 효과를 포함해야 합니다. A4 2~3쪽, 참고문헌 2개 이상을 포함하여 11월 20일 23:59까지 제출하세요.",
+      "instructions": [
+        "자기결정성이론 또는 기대-가치이론 중 하나 선택",
+        "선택한 이론의 핵심 개념 설명",
+        "학습 의욕이 낮은 대학생 가상 사례 1개 구성",
+        "이론 기반 학습 지원 전략 3가지 제안",
+        "각 전략의 이론적 근거와 예상 효과 포함",
+        "A4 2~3쪽 작성",
+        "참고문헌 2개 이상 제시"
+      ],
+      "requirements": [
+        {
+          "id": "ep-r1",
+          "label": "이론 선택",
+          "text": "자기결정성이론 또는 기대-가치이론 중 한 가지를 선택한다.",
+          "highlight": "한 가지",
+          "kind": "content"
+        },
+        {
+          "id": "ep-r2",
+          "label": "개념 설명",
+          "text": "선택한 이론의 핵심 개념을 설명한다.",
+          "highlight": "핵심 개념",
+          "kind": "content"
+        },
+        {
+          "id": "ep-r3",
+          "label": "사례",
+          "text": "학습 의욕이 낮은 대학생의 가상 사례 1개를 구성한다.",
+          "highlight": "가상 사례 1개",
+          "kind": "content"
+        },
+        {
+          "id": "ep-r4",
+          "label": "지원 전략",
+          "text": "학습 지원 전략 3가지와 각 전략의 근거 및 예상 효과를 제안한다.",
+          "highlight": "전략 3가지",
+          "kind": "content"
+        },
+        {
+          "id": "ep-r5",
+          "label": "분량",
+          "text": "A4 2~3쪽으로 작성한다.",
+          "highlight": "A4 2~3쪽",
+          "kind": "format"
+        },
+        {
+          "id": "ep-r6",
+          "label": "출처",
+          "text": "참고문헌 2개 이상을 포함한다.",
+          "highlight": "참고문헌 2개 이상",
+          "kind": "source"
+        }
+      ],
+      "steps": [
+        {
+          "id": "ep-s1",
+          "title": "동기 이론 선택하고 이해하기",
+          "description": "한 가지 이론을 고르고 핵심 개념을 정리해요.",
+          "prerequisiteTip": "이론 선택은 하나만 하면 돼요. 여러 이론을 동시에 설명할 필요는 없어요.",
+          "completionCriteria": [
+            {
+              "id": "ep-c1",
+              "text": "이론 1개 선택",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 자기결정성이론을 선택했어요.",
+              "inputType": "text",
+              "required": false
+            },
+            {
+              "id": "ep-c2",
+              "text": "핵심 개념 2개 이상 정리",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 자율성과 유능성의 의미를 정리했어요.",
+              "inputType": "text",
+              "required": false
+            },
+            {
+              "id": "ep-c3",
+              "text": "참고문헌 후보 2개 확보",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 강의 교재와 이론 관련 학술 논문을 찾았어요.",
+              "inputType": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "ep-s2",
+          "title": "가상 학습자 사례 만들기",
+          "description": "동기 저하 상황을 구체적으로 묘사해요.",
+          "prerequisiteTip": "가상 사례는 진단이 아니라 이론 적용 연습을 위한 설정이에요.",
+          "completionCriteria": [
+            {
+              "id": "ep-c4",
+              "text": "가상 대학생 사례 1개 작성",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 과제 실패 경험으로 수업 참여를 피하는 학생을 설정했어요.",
+              "inputType": "text",
+              "required": false
+            },
+            {
+              "id": "ep-c5",
+              "text": "사례에서 이론과 연결되는 요인 표시",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 유능성 욕구가 낮아지는 장면을 표시했어요.",
+              "inputType": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "ep-s3",
+          "title": "학습 지원 전략 3가지 제안하기",
+          "description": "각 전략에 이유와 기대되는 변화를 연결해요.",
+          "prerequisiteTip": "전략의 효과는 확정적 사실이 아니라 이론에 근거한 예상으로 표현해 보세요.",
+          "completionCriteria": [
+            {
+              "id": "ep-c6",
+              "text": "서로 다른 지원 전략 3가지 작성",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 선택권 제공, 작은 성공 경험 설계, 구체적 피드백을 제안했어요.",
+              "inputType": "text",
+              "required": false
+            },
+            {
+              "id": "ep-c7",
+              "text": "세 전략 각각의 이론적 근거 작성",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 선택권 제공은 자율성 지원과 연결된다고 적었어요.",
+              "inputType": "text",
+              "required": false
+            },
+            {
+              "id": "ep-c8",
+              "text": "세 전략 각각의 예상 효과 작성",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 과제 시작에 대한 부담을 줄일 수 있다고 예상했어요.",
+              "inputType": "text",
+              "required": false
+            }
+          ]
+        },
+        {
+          "id": "ep-s4",
+          "title": "제안서 구조와 형식 점검",
+          "description": "필요한 내용과 제출 형식을 확인해요.",
+          "prerequisiteTip": "제출 전에 요구조건을 체크리스트와 한 항목씩 대조해 보세요.",
+          "completionCriteria": [
+            {
+              "id": "ep-c9",
+              "text": "이론·사례·전략 3가지 포함 확인",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 각 부분을 소제목으로 나눠 빠짐없이 넣었어요.",
+              "inputType": "text",
+              "required": false
+            },
+            {
+              "id": "ep-c10",
+              "text": "A4 2~3쪽 분량 확인",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 본문이 A4 3쪽 이내인지 확인했어요.",
+              "inputType": "text",
+              "required": false
+            },
+            {
+              "id": "ep-c11",
+              "text": "참고문헌 2개 이상 명시",
+              "inputLabel": "완료되었나요?",
+              "placeholder": "예) 읽은 자료 2개의 서지정보를 적었어요.",
+              "inputType": "text",
+              "required": false
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "demoSchedule": [
+    {
+      "id": "class-ls-mon",
+      "subjectId": "learning-science",
+      "dayOfWeek": 1,
+      "start": "10:00",
+      "end": "11:15",
+      "room": "교육관 302호"
+    },
+    {
+      "id": "class-soc-tue",
+      "subjectId": "sociology",
+      "dayOfWeek": 2,
+      "start": "13:00",
+      "end": "14:15",
+      "room": "사회과학관 205호"
+    },
+    {
+      "id": "class-ep-wed",
+      "subjectId": "educational-psychology",
+      "dayOfWeek": 3,
+      "start": "15:00",
+      "end": "16:15",
+      "room": "교육관 401호"
+    },
+    {
+      "id": "class-ls-thu",
+      "subjectId": "learning-science",
+      "dayOfWeek": 4,
+      "start": "10:00",
+      "end": "11:15",
+      "room": "교육관 302호"
+    },
+    {
+      "id": "class-soc-fri",
+      "subjectId": "sociology",
+      "dayOfWeek": 5,
+      "start": "09:00",
+      "end": "10:15",
+      "room": "사회과학관 205호"
+    }
+  ],
+  "initialProgress": {
+    "stepCompletion": {
+      "ls-s1": false,
+      "ls-s2": false,
+      "ls-s3": false,
+      "ls-s4": false,
+      "soc-s1": false,
+      "soc-s2": false,
+      "soc-s3": false,
+      "soc-s4": false,
+      "ep-s1": false,
+      "ep-s2": false,
+      "ep-s3": false,
+      "ep-s4": false
+    },
+    "criterionCompletion": {
+      "ls-c1": false,
+      "ls-c2": false,
+      "ls-c3": false,
+      "ls-c4": false,
+      "ls-c5": false,
+      "ls-c6": false,
+      "ls-c7": false,
+      "ls-c8": false,
+      "ls-c9": false,
+      "soc-c1": false,
+      "soc-c2": false,
+      "soc-c3": false,
+      "soc-c4": false,
+      "soc-c5": false,
+      "soc-c6": false,
+      "soc-c7": false,
+      "soc-c8": false,
+      "soc-c9": false,
+      "soc-c10": false,
+      "ep-c1": false,
+      "ep-c2": false,
+      "ep-c3": false,
+      "ep-c4": false,
+      "ep-c5": false,
+      "ep-c6": false,
+      "ep-c7": false,
+      "ep-c8": false,
+      "ep-c9": false,
+      "ep-c10": false,
+      "ep-c11": false
+    },
+    "criterionResponses": {
+      "ls-c1": "",
+      "ls-c2": "",
+      "ls-c3": "",
+      "ls-c4": "",
+      "ls-c5": "",
+      "ls-c6": "",
+      "ls-c7": "",
+      "ls-c8": "",
+      "ls-c9": "",
+      "soc-c1": "",
+      "soc-c2": "",
+      "soc-c3": "",
+      "soc-c4": "",
+      "soc-c5": "",
+      "soc-c6": "",
+      "soc-c7": "",
+      "soc-c8": "",
+      "soc-c9": "",
+      "soc-c10": "",
+      "ep-c1": "",
+      "ep-c2": "",
+      "ep-c3": "",
+      "ep-c4": "",
+      "ep-c5": "",
+      "ep-c6": "",
+      "ep-c7": "",
+      "ep-c8": "",
+      "ep-c9": "",
+      "ep-c10": "",
+      "ep-c11": ""
+    }
+  }
+}
