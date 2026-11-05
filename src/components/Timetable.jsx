@@ -12,7 +12,7 @@ export default function Timetable({ onOpenSubject }) {
   return (
     <div className="timetable">
       <h1>시간표</h1>
-      <p className="summary">수업을 누르면 그 과목의 할 일로 이동합니다. 등록은 데모이며 저장되지 않습니다.</p>
+      <p className="summary">수업을 누르면 그 과목의 할 일로 이동합니다.</p>
       <div className="cal-scroll">
         <div className="cal" role="table" aria-label="주간 수업 시간표">
           <div className="cal-head" role="row">
