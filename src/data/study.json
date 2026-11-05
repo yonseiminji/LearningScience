@@ -1,0 +1,96 @@
+{
+  "courses": [
+    {
+      "id": "learning-science",
+      "name": "학습과학",
+      "professor": "김지현",
+      "room": "교육과학관 401",
+      "day_index": 1,
+      "day_label": "월",
+      "start": "10:00",
+      "end": "11:30",
+      "tone": 1
+    },
+    {
+      "id": "edu-psych",
+      "name": "교육심리학",
+      "professor": "이서연",
+      "room": "교육과학관 302",
+      "day_index": 2,
+      "day_label": "화",
+      "start": "16:00",
+      "end": "17:15",
+      "tone": 2
+    },
+    {
+      "id": "sociology",
+      "name": "사회학의 이해",
+      "professor": "박준호",
+      "room": "외솔관 210",
+      "day_index": 2,
+      "day_label": "화",
+      "start": "19:00",
+      "end": "20:15",
+      "tone": 3
+    },
+    {
+      "id": "media-writing",
+      "name": "미디어와 글쓰기",
+      "professor": "정하늘",
+      "room": "위당관 105",
+      "day_index": 3,
+      "day_label": "수",
+      "start": "10:30",
+      "end": "11:45",
+      "tone": 4
+    },
+    {
+      "id": "stats",
+      "name": "통계로 보는 세상",
+      "professor": "최민준",
+      "room": "과학관 201",
+      "day_index": 4,
+      "day_label": "목",
+      "start": "13:00",
+      "end": "14:15",
+      "tone": 5
+    }
+  ],
+  "simple_tasks": [
+    {
+      "id": "edu-psych-report",
+      "course_id": "edu-psych",
+      "title": "기말 리포트",
+      "due_offset_days": 9,
+      "facts": [
+        { "label": "무엇을", "text": "학습 이론을 내 경험에 적용" },
+        { "label": "분량", "text": "A4 3~4장" }
+      ],
+      "steps": [
+        { "id": "p1", "action": "리포트 공지를 다시 읽어요", "done": true },
+        { "id": "p2", "action": "이론 하나를 골라요" },
+        { "id": "p3", "action": "내 경험 하나를 적어요" },
+        { "id": "p4", "action": "초안을 써요" }
+      ]
+    },
+    {
+      "id": "sociology-talk",
+      "course_id": "sociology",
+      "title": "조별 발표 준비",
+      "due_offset_days": 2,
+      "facts": [],
+      "steps": [
+        { "id": "t1", "action": "발표 순서를 정해요" },
+        { "id": "t2", "action": "내 부분 슬라이드 3장을 만들어요" },
+        { "id": "t3", "action": "소리 내어 한 번 연습해요" }
+      ]
+    }
+  ],
+  "wing": {
+    "most_talked_course_id": "edu-psych",
+    "learned": [
+      { "word": "작업기억", "course_id": "edu-psych" },
+      { "word": "사회화", "course_id": "sociology" }
+    ]
+  }
+}
