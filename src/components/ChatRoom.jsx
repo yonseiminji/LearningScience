@@ -42,7 +42,7 @@ export default function ChatRoom({ subjectId, onSubject, onTalk, onClose }) {
         ))}
       </div>
       <div className="chat-log" aria-live="polite">
-        {log.length === 0 ? <p className="hint">버튼을 고르거나 짧게 적어 보세요.</p> : null}
+        {log.length === 0 ? <p className="hint">어떤 도움이 필요하신가요?</p> : null}
         {log.map((item, index) => (
           <p key={`${item.role}-${index}`} className={item.role === 'me' ? 'chat-me' : 'chat-bear'}>
             {item.text}
