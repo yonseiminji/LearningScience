@@ -1,32 +1,26 @@
-# Learning Support Prototype
+# 차곡차곡
 
-A small academic prototype that helps a university student read one assignment, see its requirements, and work through it one step at a time.
+The LearningScience prototype, reorganized as one web app under the 차곡차곡 name. A student sees what to do now, opens an assignment, and works through checkpoints. The same completion state feeds the 차곡 블록 on the board.
 
-The screen is built around three learning-science ideas:
+The assignment guide still follows three learning-science ideas:
 
 - **Signaling.** Requirement phrases in the original instruction are marked, and each mark carries a text label.
 - **Segmenting.** The same assignment can be shown as broad, detailed, or very small actions.
 - **Progressive disclosure.** After analysis, the learner chooses a step size. Only the active step shows its completion criterion. Completion stays with that step size.
 
-There is no backend, database, account, or language model. The only assignment the demo can analyze is the sample in `src/data/mock_task.json`.
+There is no backend, database, account, or language model. The only assignment the demo can analyze is the sample in `src/data/mock_task.json`. Other board tasks are predefined checkpoints. The weekly timetable is read-only mock data.
 
 User-facing copy and the mock assignment are in Korean. Code and this document are in English.
 
 ## Visual direction
 
-The interface follows the app-screen workflow of the [Taste Skill](https://github.com/Leonxlnx/taste-skill) (`design-taste-frontend`), not the landing-page workflow.
+The interface follows the app-screen workflow of the [Taste Skill](https://github.com/Leonxlnx/taste-skill) (`design-taste-frontend`), not the landing-page workflow, and uses the 차곡차곡 palette from the reference prototype.
 
-Dealt style: **Achromatic ledger** (light, seed `1024251793`).
-
-- Chrome stays ink. The primary action is near-black.
-- The ground is a blue-grey study tone (`#f2f4f7`). Cards stay white.
-- One hue, `#1d5fbf`, marks the current step and the progress fill.
-- The product’s own mark is a margin bracket beside the name **학습 길잡이**.
-- The shell has no sidebar. This prototype has a single screen, so extra navigation would be invented.
-
-The dealt “tabbed object detail” pattern assumed charts and summary figures. This assignment has neither, so the screen is a study view: the current step, progress, and the marked instruction.
-
-Geist is the text face named by the sheet. IBM Plex Sans KR sits behind it in the same stack so Hangul, which Geist does not cover, still renders in a grotesk.
+- Ground `#faf5ee`, cards white, ink `#3e3029`, actions `#8a5a3c`.
+- The wordmark and 곰곰이 sit in the header. The mascot does not sit on task cards.
+- 차곡 블록 are small squares, filled as steps are checked.
+- The side wing is deep purple with light text, and holds 이번주, 가장 많이 이야기한 수업, and 최근에 배운 것.
+- Text is Chiron GoRound TC, the face shipped with the reference prototype (SIL OFL 1.1).
 
 ## Install the Taste Skill
 
@@ -78,22 +72,30 @@ src/
   App.jsx
   App.css
   taskModel.js
+  studyModel.js
   data/mock_task.json
+  data/study.json
   components/
     TaskInput.jsx
     RequirementView.jsx
     StepCard.jsx
     SupportLevelDialog.jsx
+    TaskBoard.jsx
+    TodoPage.jsx
+    Timetable.jsx
+    SideWing.jsx
+    ChagokBlocks.jsx
 ```
 
-`src/data/mock_task.json` is the only source of assignment content. It holds one assignment, grouped requirements, and three support levels. `src/taskModel.js` matches the sample, marks phrases that occur in the instruction, and computes progress from completed steps. Completion is stored separately for each level, because the step ids are not mapped across levels. A later API response can replace the JSON without rewriting the components.
+`src/data/mock_task.json` holds the one assignment the analyzer understands, with grouped requirements and three support levels. `src/data/study.json` holds the weekly classes, the other checkpoint lists, and the side-wing notes taken from the reference prototype. Completion for the analyzed assignment stays separate per support level.
 
 ## What the demo does
 
-1. The instruction field opens with the sample assignment, 학습과학 중간보고서 제출.
-2. **과제 분석하기** opens a dialog: 과제를 시작하기에 어떤 상태인가요? The three choices are standard, detailed, and micro.
-3. If the text is not the sample, the screen explains that this demo cannot analyze it and does not invent a result.
-4. The chosen level shows that level’s steps. Each step has an action and a completion criterion. **이전** and **다음** move between steps and do not mark a step complete. **이 단계 완료** toggles completion. The percentage counts completed steps.
-5. **단계 크기 바꾸기** switches level without clearing the other levels’ checkmarks.
-6. Content, formatting, and the deadline stay visible for every level.
-7. Changing steps uses a short move. `prefers-reduced-motion: reduce` leaves the content in place with no travel.
+1. Home opens on the to-do board and answers 지금 무엇을 해야 하지?
+2. **나의 할 일** lists checkpoints. Checking one updates that task’s 차곡 블록 on the home board.
+3. **과제 안내 열기** keeps the original analysis flow. **과제 분석하기** asks 과제를 시작하기에 어떤 상태인가요? and then shows standard, detailed, or micro steps.
+4. If the instruction is not the sample, the screen says this demo cannot analyze it.
+5. **이전** and **다음** move between steps and do not mark a step complete. **이 단계 완료** toggles completion.
+6. **시간표** is a read-only week grid. There is no timetable editor, class chat, mail helper, or separate understanding-check screen.
+7. The side wing shows 이번주, 가장 많이 이야기한 수업, and 최근에 배운 것.
+8. `prefers-reduced-motion: reduce` leaves step changes in place with no travel.

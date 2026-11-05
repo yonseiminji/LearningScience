@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { completedCount, completionPercent, prerequisiteAction } from '../taskModel.js'
+import ChagokBlocks from './ChagokBlocks.jsx'
 
 export default function StepCard({
   steps,
@@ -107,6 +108,7 @@ export default function StepCard({
           <span>완료 {done}단계</span>
           <span>전체 {total}단계</span>
         </div>
+        <ChagokBlocks done={done} total={total} />
         {percent === 100 ? <p className="all-done">모든 단계를 마쳤습니다.</p> : null}
         <button type="button" className="btn ghost level-change" onClick={onChangeLevel}>
           단계 크기 바꾸기
