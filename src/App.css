@@ -296,11 +296,25 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 }
 
 @media (min-width: 900px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 280px;
+  }
+
+  .subject-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .work {
+    grid-template-columns: minmax(0, 1.4fr) minmax(240px, 0.8fr);
+  }
+
+  /* 내비게이션 + 로고 중앙 정렬 */
   .bar {
     justify-content: center;
     position: relative;
   }
 
+  /* 시간표 등록 버튼은 오른쪽에 유지 */
   .register {
     position: absolute;
     right: 0;
