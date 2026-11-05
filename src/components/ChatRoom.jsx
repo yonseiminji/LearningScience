@@ -21,7 +21,6 @@ export default function ChatRoom({ subjectId, onSubject, onTalk, onClose }) {
         <img src="/brand/gomgomi.webp" alt="" />
         <div>
           <h2 id="chat-title">수업별 이야기 방</h2>
-          <p>곰곰이의 말은 미리 준비된 예시입니다.</p>
         </div>
         <button type="button" className="btn ghost" onClick={onClose}>
           닫기
