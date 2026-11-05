@@ -1,142 +1,137 @@
-import { useState } from 'react'
-import mockTask from './data/mock_task.json'
-import { isSampleInstruction, stepsForLevel } from './taskModel.js'
-import {
-  analyzedStatus,
-  initialSimpleDone,
-  nextDeadline,
-  seoulToday,
-  simpleTasksWithStatus,
-  study,
-  weekProgress,
-} from './studyModel.js'
-import TaskInput from './components/TaskInput.jsx'
-import RequirementView from './components/RequirementView.jsx'
-import StepCard from './components/StepCard.jsx'
-import SupportLevelDialog from './components/SupportLevelDialog.jsx'
-import SideWing from './components/SideWing.jsx'
-import TaskBoard from './components/TaskBoard.jsx'
+import { useMemo, useState } from 'react'
+import { CalendarDays, House, Plus, SquarePen } from 'lucide-react'
+import { data, assignmentForSubject, firstOpenStep, overallCounts, nextOpenAssignment } from './assignmentModel.js'
+import SubjectBoard from './components/SubjectBoard.jsx'
 import TodoPage from './components/TodoPage.jsx'
 import Timetable from './components/Timetable.jsx'
-
-const MISMATCH_MESSAGE =
-  '이 데모는 샘플 과제만 분석할 수 있습니다. 입력한 문장이 샘플과 달라 분석 결과를 보여 드리지 않습니다.'
+import GuideView from './components/GuideView.jsx'
+import SideWing from './components/SideWing.jsx'
+import ChatRoom from './components/ChatRoom.jsx'
 
 const NAV = [
-  { id: 'home', label: '홈' },
-  { id: 'tasks', label: '나의 할 일' },
-  { id: 'timetable', label: '시간표' },
+  { id: 'home', label: '홈', icon: House },
+  { id: 'tasks', label: '나의 할 일', icon: SquarePen },
+  { id: 'timetable', label: '시간표', icon: CalendarDays },
 ]
 
 export default function App() {
   const [view, setView] = useState('home')
-  const [openTaskId, setOpenTaskId] = useState(null)
-  const [draft, setDraft] = useState(mockTask.original_instruction)
-  const [status, setStatus] = useState('editing')
-  const [supportLevel, setSupportLevel] = useState(null)
-  const [indexByLevel, setIndexByLevel] = useState({
-    standard: 0,
-    detailed: 0,
-    micro: 0,
-  })
-  const [completedByLevel, setCompletedByLevel] = useState({
-    standard: [],
-    detailed: [],
-    micro: [],
-  })
-  const [simpleDone, setSimpleDone] = useState(initialSimpleDone)
-  const [levelDialogOpen, setLevelDialogOpen] = useState(false)
+  const [focusSubjectId, setFocusSubjectId] = useState(null)
+  const [guideSubjectId, setGuideSubjectId] = useState(data.subjects[0].id)
+  const [activeStepId, setActiveStepId] = useState(null)
+  const [registerOpen, setRegisterOpen] = useState(false)
+  const [chatOpen, setChatOpen] = useState(false)
+  const [chatSubjectId, setChatSubjectId] = useState(data.subjects[0].id)
+  const [talkCounts, setTalkCounts] = useState({})
+  const [recentIds, setRecentIds] = useState([])
+  const [stepCompletion, setStepCompletion] = useState(() => ({ ...data.initialProgress.stepCompletion }))
+  const [criterionCompletion, setCriterionCompletion] = useState(() => ({
+    ...data.initialProgress.criterionCompletion,
+  }))
+  const [criterionResponses, setCriterionResponses] = useState(() => ({
+    ...data.initialProgress.criterionResponses,
+  }))
 
-  const today = seoulToday()
-  const simpleTasks = simpleTasksWithStatus(simpleDone, today)
-  const steps = supportLevel ? stepsForLevel(mockTask, supportLevel) : []
-  const activeIndex = supportLevel
-    ? Math.min(indexByLevel[supportLevel] ?? 0, Math.max(steps.length - 1, 0))
-    : 0
-  const completedIds = supportLevel ? completedByLevel[supportLevel] : []
-  const levelData = supportLevel ? mockTask.support_levels[supportLevel] : null
-  const analyzed = analyzedStatus(mockTask, supportLevel, completedIds)
-  const showPlanner = status === 'ready' && supportLevel && steps.length > 0
-  const showDialog = levelDialogOpen && (status === 'choosing' || status === 'ready')
+  const counts = overallCounts(stepCompletion)
+  const nextAssignment = nextOpenAssignment(stepCompletion)
+  const guideAssignment = assignmentForSubject(guideSubjectId)
+  const guideSubject = data.subjects.find((subject) => subject.id === guideSubjectId)
+  const currentStepId = activeStepId || firstOpenStep(guideAssignment, stepCompletion)?.id
 
-  function analyze() {
-    if (!isSampleInstruction(draft, mockTask)) {
-      setStatus('mismatch')
-      setLevelDialogOpen(false)
-      return
+  const talkedId = useMemo(() => {
+    let best = ''
+    let score = 0
+    for (const [id, count] of Object.entries(talkCounts)) {
+      if (count > score) {
+        score = count
+        best = id
+      }
     }
-    setStatus('choosing')
-    setLevelDialogOpen(true)
-  }
+    return best
+  }, [talkCounts])
 
-  function selectLevel(level) {
-    setSupportLevel(level)
-    setStatus('ready')
-    setLevelDialogOpen(false)
-  }
+  const recentTitles = recentIds
+    .map((id) => data.assignments.flatMap((assignment) => assignment.steps).find((step) => step.id === id)?.title)
+    .filter(Boolean)
 
-  function closeLevelDialog() {
-    setLevelDialogOpen(false)
-    if (status === 'choosing') setStatus('editing')
-  }
-
-  function restoreSample() {
-    setDraft(mockTask.original_instruction)
-    setStatus('editing')
-  }
-
-  function setActiveIndex(nextIndex) {
-    setIndexByLevel((current) => ({ ...current, [supportLevel]: nextIndex }))
-  }
-
-  function toggleAnalyzed(id) {
-    setCompletedByLevel((current) => {
-      const list = current[supportLevel]
-      const next = list.includes(id) ? list.filter((stepId) => stepId !== id) : [...list, id]
-      return { ...current, [supportLevel]: next }
+  function markStep(assignment, stepId, complete) {
+    const step = assignment.steps.find((item) => item.id === stepId)
+    if (!step) return
+    setStepCompletion((current) => ({ ...current, [stepId]: complete }))
+    setRecentIds((current) => {
+      const without = current.filter((id) => id !== stepId)
+      return complete ? [stepId, ...without].slice(0, 5) : without
     })
-  }
-
-  function toggleSimple(taskId, stepId) {
-    setSimpleDone((current) => {
-      const list = current[taskId] || []
-      const next = list.includes(stepId) ? list.filter((id) => id !== stepId) : [...list, stepId]
-      return { ...current, [taskId]: next }
+    setCriterionCompletion((current) => {
+      const next = { ...current }
+      for (const criterion of step.completionCriteria) next[criterion.id] = complete
+      return next
     })
+    if (complete) {
+      const index = assignment.steps.findIndex((item) => item.id === stepId)
+      const following = assignment.steps.slice(index + 1).find((item) => item.id !== stepId && !stepCompletion[item.id])
+      if (following && view === 'guide' && assignment.subjectId === guideSubjectId) {
+        setActiveStepId(following.id)
+      }
+    }
   }
 
-  function toggleOpen(id, forceOpen) {
-    setOpenTaskId((current) => {
-      if (forceOpen) return id
-      return current === id ? null : id
-    })
+  function toggleStep(assignment, stepId) {
+    markStep(assignment, stepId, !stepCompletion[stepId])
   }
 
-  function openGuide() {
+  function openGuide(subjectId) {
+    const assignment = assignmentForSubject(subjectId)
+    setGuideSubjectId(subjectId)
+    setActiveStepId(firstOpenStep(assignment, stepCompletion)?.id || null)
     setView('guide')
+  }
+
+  function openSubjectTasks(subjectId) {
+    setFocusSubjectId(subjectId)
+    setView('tasks')
+  }
+
+  function submitCriterion(step, criterionId, raw) {
+    const text = raw.trim()
+    if (!text) return
+    const nextCriteria = { ...criterionCompletion, [criterionId]: true }
+    setCriterionResponses((current) => ({ ...current, [criterionId]: text }))
+    setCriterionCompletion(nextCriteria)
+    if (step.completionCriteria.every((criterion) => nextCriteria[criterion.id])) {
+      markStep(guideAssignment, step.id, true)
+    }
   }
 
   return (
     <div className="shell">
       <header className="topbar">
         <div className="frame bar">
-          <div className="brand">
-            <img className="logo" src="/brand/logo.webp" alt="차곡차곡" />
-            <img className="mascot" src="/brand/gomgomi.webp" alt="곰곰이" />
-          </div>
           <nav className="nav" aria-label="주요 메뉴">
-            {NAV.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className="nav-btn"
-                aria-current={view === item.id ? 'page' : undefined}
-                onClick={() => setView(item.id)}
-              >
-                {item.label}
-              </button>
-            ))}
+            {NAV.map((item) => {
+              const Icon = item.icon
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  className="nav-btn"
+                  aria-current={view === item.id ? 'page' : undefined}
+                  onClick={() => {
+                    setFocusSubjectId(null)
+                    setView(item.id)
+                  }}
+                >
+                  <Icon aria-hidden="true" size={18} />
+                  {item.label}
+                </button>
+              )
+            })}
           </nav>
+          <img className="logo" src="/brand/logo.webp" alt="차곡차곡" />
+          <button type="button" className="btn primary register" onClick={() => setRegisterOpen(true)}>
+            <Plus aria-hidden="true" size={18} />
+            시간표 등록
+          </button>
         </div>
       </header>
 
@@ -144,130 +139,85 @@ export default function App() {
         <div className="frame layout">
           <div className="main-col">
             {view === 'home' ? (
-              <TaskBoard
-                analyzedTask={mockTask}
-                analyzed={analyzed}
-                simpleTasks={simpleTasks}
-                openTaskId={openTaskId}
-                onToggleOpen={toggleOpen}
-                onToggleSimple={toggleSimple}
-                onOpenGuide={openGuide}
-              />
+              <>
+                <section className="hero">
+                  <h1>차곡차곡: 느린학습자를 위한 학습 플래너</h1>
+                  <p className="hero-tip">큰 과제도 작은 단계로 나누면 시작하기 쉬워져요.</p>
+                  <p className="hint">{data.notes[0]}</p>
+                </section>
+                <SubjectBoard stepCompletion={stepCompletion} onToggleStep={toggleStep} onOpen={openGuide} />
+              </>
             ) : null}
             {view === 'tasks' ? (
               <TodoPage
-                analyzed={analyzed}
-                completedIds={completedIds}
-                simpleTasks={simpleTasks}
-                onToggleSimple={toggleSimple}
-                onToggleAnalyzed={toggleAnalyzed}
-                onOpenGuide={openGuide}
+                stepCompletion={stepCompletion}
+                focusSubjectId={focusSubjectId}
+                onToggleStep={toggleStep}
+                onOpen={openGuide}
               />
             ) : null}
-            {view === 'timetable' ? <Timetable /> : null}
-            {view === 'guide' ? (
-              <Guide
-                showPlanner={showPlanner}
-                draft={draft}
-                status={status}
-                steps={steps}
-                activeIndex={activeIndex}
-                completedIds={completedIds}
-                levelData={levelData}
-                onDraft={(value) => {
-                  setDraft(value)
-                  if (status === 'mismatch') setStatus('editing')
-                }}
-                onAnalyze={analyze}
-                onRestore={restoreSample}
-                onPrevious={() => setActiveIndex(Math.max(0, activeIndex - 1))}
-                onNext={() => setActiveIndex(Math.min(steps.length - 1, activeIndex + 1))}
-                onSelect={setActiveIndex}
-                onToggleComplete={toggleAnalyzed}
-                onChangeLevel={() => setLevelDialogOpen(true)}
+            {view === 'timetable' ? <Timetable onOpenSubject={openSubjectTasks} /> : null}
+            {view === 'guide' && guideAssignment ? (
+              <GuideView
+                assignment={guideAssignment}
+                subject={guideSubject}
+                stepCompletion={stepCompletion}
+                criterionCompletion={criterionCompletion}
+                criterionResponses={criterionResponses}
+                activeStepId={currentStepId}
+                onSelectStep={setActiveStepId}
+                onChangeResponse={(id, value) =>
+                  setCriterionResponses((current) => ({ ...current, [id]: value }))
+                }
+                onSubmitCriterion={submitCriterion}
+                onCompleteStep={(assignment, stepId) => markStep(assignment, stepId, true)}
                 onBack={() => setView('home')}
               />
             ) : null}
           </div>
           <SideWing
-            wing={study.wing}
-            week={weekProgress(simpleTasks, analyzed)}
-            nextTask={nextDeadline(simpleTasks)}
+            counts={counts}
+            nextAssignment={nextAssignment}
+            talkedName={talkedId}
+            recentTitles={recentTitles}
+            onOpenChat={() => {
+              const id = view === 'guide' ? guideSubjectId : focusSubjectId
+              if (id) setChatSubjectId(id)
+              setChatOpen(true)
+            }}
           />
         </div>
       </main>
-      {showDialog ? (
-        <SupportLevelDialog
-          levels={mockTask.support_levels}
-          selected={supportLevel}
-          onSelect={selectLevel}
-          onCancel={closeLevelDialog}
+
+      {registerOpen ? (
+        <dialog className="level-dialog" open aria-labelledby="register-title">
+          <h2 id="register-title">시간표 등록</h2>
+          <p>
+            이 화면은 데모입니다. 수업을 등록해도 저장되지 않고, 학교 시간표와 연결되지 않습니다. 아래 목록은 바뀌지 않습니다.
+          </p>
+          <ul className="check-list">
+            {data.demoSchedule.map((item) => (
+              <li key={item.id}>
+                {data.subjects.find((subject) => subject.id === item.subjectId)?.name} · {item.start}–{item.end} · {item.room}
+              </li>
+            ))}
+          </ul>
+          <button type="button" className="btn primary" onClick={() => setRegisterOpen(false)}>
+            닫기
+          </button>
+        </dialog>
+      ) : null}
+
+      {chatOpen ? (
+        <ChatRoom
+          subjectId={chatSubjectId}
+          onSubject={setChatSubjectId}
+          onTalk={(subjectId) =>
+            setTalkCounts((current) => ({ ...current, [subjectId]: (current[subjectId] || 0) + 1 }))
+          }
+          onClose={() => setChatOpen(false)}
         />
       ) : null}
-    </div>
-  )
-}
-
-function Guide({
-  showPlanner,
-  draft,
-  status,
-  steps,
-  activeIndex,
-  completedIds,
-  levelData,
-  onDraft,
-  onAnalyze,
-  onRestore,
-  onPrevious,
-  onNext,
-  onSelect,
-  onToggleComplete,
-  onChangeLevel,
-  onBack,
-}) {
-  return (
-    <div className="guide">
-      <button type="button" className="btn ghost" onClick={onBack}>
-        할 일 보드로
-      </button>
-      {showPlanner ? (
-        <>
-          <div className="goal-band">
-            <p className="goal-title">{mockTask.title}</p>
-            <p className="summary">{mockTask.summary}</p>
-          </div>
-          <StepCard
-            steps={steps}
-            activeIndex={activeIndex}
-            completedIds={completedIds}
-            supportLabel={levelData.label}
-            hasMoreSteps={levelData.has_more_steps === true}
-            onPrevious={onPrevious}
-            onNext={onNext}
-            onSelect={onSelect}
-            onToggleComplete={onToggleComplete}
-            onChangeLevel={onChangeLevel}
-          />
-          <RequirementView task={mockTask} />
-        </>
-      ) : (
-        <>
-          <div className="title-block">
-            <h1>과제 안내</h1>
-            <p className="summary">{mockTask.title}</p>
-          </div>
-          <section className="panel" aria-label="과제 지시문 입력">
-            <TaskInput
-              value={draft}
-              onChange={onDraft}
-              onAnalyze={onAnalyze}
-              onRestore={onRestore}
-              message={status === 'mismatch' ? MISMATCH_MESSAGE : ''}
-            />
-          </section>
-        </>
-      )}
     </div>
   )
 }
