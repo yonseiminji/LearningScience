@@ -18,8 +18,8 @@ export default function SubjectBoard({ stepCompletion, onToggleStep, onOpen }) {
       transition={reduce ? { duration: 0 } : { duration: 0.45, ease: [0.2, 0, 0, 1] }}
     >
       <h2 id="now-heading" className="board-title">
-        지금 무엇을 해야 하지?
         <House aria-hidden="true" />
+        지금 무엇을 해야 하지?
       </h2>
       <div className="subject-grid">
         {data.subjects.map((subject) => {
