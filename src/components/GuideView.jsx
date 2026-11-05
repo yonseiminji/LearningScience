@@ -69,7 +69,7 @@ export default function GuideView({
             >
               <h2>{step.title}</h2>
               <p>{step.description}</p>
-              {step.prerequisiteTip ? <p className="hint">먼저: {step.prerequisiteTip}</p> : null}
+              {step.prerequisiteTip ? <p className="hint"> {step.prerequisiteTip}</p> : null}
               {step.completionCriteria.map((criterion) => {
                 const done = Boolean(criterionCompletion[criterion.id])
                 return (
@@ -84,7 +84,6 @@ export default function GuideView({
                     <p className="criterion-text">
                       <span className="req-label">완료 기준</span> {criterion.text}
                     </p>
-                    <label htmlFor={criterion.id}>{criterion.inputLabel}</label>
                     <input
                       id={criterion.id}
                       type="text"
