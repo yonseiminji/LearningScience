@@ -241,14 +241,59 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
   background: var(--surface);
   color: var(--ink);
 }
-.chat-head, .chat-form, .chat-choices, .chat-subjects { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.chat-head img { width: 40px; height: 40px; }
-.chat-head p { margin: 0; color: var(--muted); font-size: var(--fs-body); }
-.chat-log { display: grid; gap: 8px; margin: 12px 0; }
-.chat-me, .chat-bear { margin: 0; padding: 10px 12px; border-radius: 12px; }
-.chat-me { background: var(--chip); }
-.chat-bear { background: #e7f0ec; }
-.chat-form input { flex: 1; min-width: 160px; }
+
+.chat-head,
+.chat-form,
+.chat-choices,
+.chat-subjects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+/*revised here*/
+/* 닫기 버튼을 오른쪽 끝으로 */
+.chat-head > button {
+  margin-left: auto;
+}
+
+/* 곰곰이 이미지 */
+.chat-head img {
+  width: 40px;
+  height: 40px;
+}
+
+/* 선택지와 입력창 사이 여백 */
+.chat-choices {
+  margin-bottom: 20px;
+}
+
+.chat-log {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.chat-me,
+.chat-bear {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+.chat-me {
+  background: var(--chip);
+}
+
+.chat-bear {
+  background: #e7f0ec;
+}
+
+.chat-form input {
+  flex: 1;
+  min-width: 160px;
+}
 
 @media (min-width: 900px) {
   .layout { grid-template-columns: minmax(0, 1fr) 280px; }
