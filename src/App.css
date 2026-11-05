@@ -320,7 +320,7 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
   /* 메뉴는 왼쪽 */
   .nav {
     grid-column: 1;
-    justify-self: end;
+    justify-self: start;
   }
 
   /* 차곡차곡 로고는 정중앙 */
