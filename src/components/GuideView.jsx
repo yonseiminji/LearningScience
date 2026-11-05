@@ -92,7 +92,7 @@ export default function GuideView({
                       onChange={(event) => onChangeResponse(criterion.id, event.target.value)}
                     />
                     <button type="submit" className="btn ghost">
-                      {done ? '기록됨' : '이 기준 기록'}
+                      {done ? '기록됨' : '내 진행 상황 저장하기'}
                     </button>
                   </form>
                 )
