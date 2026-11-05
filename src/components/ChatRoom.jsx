@@ -10,7 +10,19 @@ export default function ChatRoom({ subjectId, onSubject, onTalk, onClose }) {
   const [draft, setDraft] = useState('')
 
   function reply(text) {
-    const answer = `${subject.name} 이야기방은 미리 준비된 예시예요. 실시간 답변이 아닙니다. ${assignment ? `「${assignment.title}」 과제는 할 일 단계에서 직접 적어요.` : ''}`
+    const answers = {
+      '학습과학':
+        '먼저 인지부하 이론의 기본 개념을 살펴보세요. 그다음, 공부하면서 어렵거나 복잡하다고 느꼈던 경험을 하나 떠올려 보세요.',
+      
+      '사회학':
+        '먼저 일상에서 나타나는 사회적 현상을 관찰해 보세요. 사람들이 어떻게 상호작용하는지 살펴보고, 인상 깊었던 사례를 기록해 보세요.',
+      
+      '교육심리학':
+        '먼저 학습 동기와 관련된 이론을 살펴보세요. 그다음, 학습 의욕이 높아지거나 낮아졌던 경험을 떠올리고 이론과 연결해 보세요.'
+    }
+
+const answer = answers[subject.name] ??
+  '어떤 부분이 어려운지 알려주세요. 함께 하나씩 살펴볼게요.'
     setLog((current) => [...current, { role: 'me', text }, { role: 'bear', text: answer }])
     onTalk(subject.id)
   }
