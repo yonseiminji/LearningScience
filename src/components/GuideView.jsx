@@ -27,7 +27,6 @@ export default function GuideView({
       </button>
       <p className="card-course">{subject?.name}</p>
       <h1>{assignment.title}</h1>
-      {assignment.demoOnly ? <p className="hint">데모용 가상 자료입니다.</p> : null}
       <div className="due-row">
         <ChagokBlocks done={counts.done} total={counts.total} />
         <span className="num">
