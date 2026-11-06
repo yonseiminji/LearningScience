@@ -15,7 +15,7 @@ export default function ChagokBlocks({ done, total }) {
             aria-hidden="true"
             initial={reduce || !filled ? false : { y: -10, opacity: 0.35 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={reduce ? { duration: 0 } : { type: 'spring', duration: 0.4, bounce: 0.12 }}
+            transition={reduce ? { duration: 0 } : { duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
           />
         )
       })}
