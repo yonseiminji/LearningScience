@@ -35,6 +35,15 @@ export function ddayLabel(iso, today = seoulToday()) {
   return `D-${diff}`
 }
 
+// D-day chip turns coral when the due date is 7 days away or closer
+export function dueChipClass(iso, today = seoulToday()) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || '')
+  if (!match) return 'due-chip'
+  const due = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
+  const diff = Math.round((due.getTime() - today.getTime()) / 86400000)
+  return diff <= 7 ? 'due-chip is-soon' : 'due-chip'
+}
+
 export function stepCounts(assignment, stepCompletion) {
   const total = assignment?.steps.length || 0
   const done = assignment?.steps.filter((step) => stepCompletion[step.id]).length || 0

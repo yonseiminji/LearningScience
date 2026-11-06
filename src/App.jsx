@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { CalendarDays, House, Plus, SquarePen } from 'lucide-react'
-import { data, assignmentForSubject, firstOpenStep, overallCounts, nextOpenAssignment } from './assignmentModel.js'
+import { data, assignmentForSubject, firstOpenStep, overallCounts } from './assignmentModel.js'
 import SubjectBoard from './components/SubjectBoard.jsx'
 import TodoPage from './components/TodoPage.jsx'
 import Timetable from './components/Timetable.jsx'
@@ -22,8 +22,6 @@ export default function App() {
   const [registerOpen, setRegisterOpen] = useState(false)
   const [chatOpen, setChatOpen] = useState(false)
   const [chatSubjectId, setChatSubjectId] = useState(data.subjects[0].id)
-  const [talkCounts, setTalkCounts] = useState({})
-  const [recentIds, setRecentIds] = useState([])
   const [stepCompletion, setStepCompletion] = useState(() => ({ ...data.initialProgress.stepCompletion }))
   const [criterionCompletion, setCriterionCompletion] = useState(() => ({
     ...data.initialProgress.criterionCompletion,
@@ -33,35 +31,14 @@ export default function App() {
   }))
 
   const counts = overallCounts(stepCompletion)
-  const nextAssignment = nextOpenAssignment(stepCompletion)
   const guideAssignment = assignmentForSubject(guideSubjectId)
   const guideSubject = data.subjects.find((subject) => subject.id === guideSubjectId)
   const currentStepId = activeStepId || firstOpenStep(guideAssignment, stepCompletion)?.id
-
-  const talkedId = useMemo(() => {
-    let best = ''
-    let score = 0
-    for (const [id, count] of Object.entries(talkCounts)) {
-      if (count > score) {
-        score = count
-        best = id
-      }
-    }
-    return best
-  }, [talkCounts])
-
-  const recentTitles = recentIds
-    .map((id) => data.assignments.flatMap((assignment) => assignment.steps).find((step) => step.id === id)?.title)
-    .filter(Boolean)
 
   function markStep(assignment, stepId, complete) {
     const step = assignment.steps.find((item) => item.id === stepId)
     if (!step) return
     setStepCompletion((current) => ({ ...current, [stepId]: complete }))
-    setRecentIds((current) => {
-      const without = current.filter((id) => id !== stepId)
-      return complete ? [stepId, ...without].slice(0, 5) : without
-    })
     setCriterionCompletion((current) => {
       const next = { ...current }
       for (const criterion of step.completionCriteria) next[criterion.id] = complete
@@ -92,6 +69,16 @@ export default function App() {
     setView('tasks')
   }
 
+  function openTasks() {
+    setFocusSubjectId(null)
+    setView('tasks')
+  }
+
+  function openChat(subjectId) {
+    if (subjectId) setChatSubjectId(subjectId)
+    setChatOpen(true)
+  }
+
   function submitCriterion(step, criterionId, raw) {
     const text = raw.trim()
     if (!text) return
@@ -104,7 +91,7 @@ export default function App() {
   }
 
   return (
-    <div className="shell">
+    <div className={view === 'guide' ? 'shell is-guide' : 'shell'}>
       <header className="topbar">
         <div className="frame bar">
           <nav className="nav" aria-label="주요 메뉴">
@@ -127,7 +114,6 @@ export default function App() {
               )
             })}
           </nav>
-          <img className="logo" src="/brand/logo.webp" alt="차곡차곡" />
           <button type="button" className="btn primary register" onClick={() => setRegisterOpen(true)}>
             <Plus aria-hidden="true" size={18} />
             시간표 등록
@@ -141,11 +127,11 @@ export default function App() {
             {view === 'home' ? (
               <>
                 <section className="hero">
-                  <h1>차곡차곡: 느린학습자를 위한 학습 플래너</h1>
-                  <p className="hero-tip">큰 과제도 작은 단계로 나누면 시작하기 쉬워져요. ((여기에 넣을 슬로건 추천 받아요오...))</p>
+                  <h1 className="sr-only">차곡차곡: 느린학습자를 위한 학습 플래너</h1>
+                  <img className="hero-banner" src="/brand/hero-banner.webp" alt="곰곰이와 함께 한 단계씩 공부를 정리해요" />
                   <p className="hint">{data.notes[0]}</p>
                 </section>
-                <SubjectBoard stepCompletion={stepCompletion} onToggleStep={toggleStep} onOpen={openGuide} />
+                <SubjectBoard stepCompletion={stepCompletion} onOpen={openGuide} />
               </>
             ) : null}
             {view === 'tasks' ? (
@@ -172,28 +158,25 @@ export default function App() {
                 onSubmitCriterion={submitCriterion}
                 onCompleteStep={(assignment, stepId) => markStep(assignment, stepId, true)}
                 onBack={() => setView('home')}
+                onAskHelp={() => openChat(guideSubjectId)}
               />
             ) : null}
           </div>
           <SideWing
             counts={counts}
-            nextAssignment={nextAssignment}
-            talkedName={talkedId}
-            recentTitles={recentTitles}
-            onOpenChat={() => {
-              const id = view === 'guide' ? guideSubjectId : focusSubjectId
-              if (id) setChatSubjectId(id)
-              setChatOpen(true)
-            }}
+            stepCompletion={stepCompletion}
+            onOpenTasks={openTasks}
+            onOpenChat={() => openChat(view === 'guide' ? guideSubjectId : focusSubjectId)}
           />
         </div>
       </main>
 
+      {registerOpen || chatOpen ? <div className="scrim" aria-hidden="true" /> : null}
       {registerOpen ? (
         <dialog className="level-dialog" open aria-labelledby="register-title">
           <h2 id="register-title">시간표 등록</h2>
           <p>
-            이 화면은 데모입니다. 데모로 등록된 데이터는 다음과 같습니다 :).
+            이 화면은 데모예요. 데모로 등록된 수업은 다음과 같아요.
           </p>
           <ul className="check-list">
             {data.demoSchedule.map((item) => (
@@ -212,9 +195,8 @@ export default function App() {
         <ChatRoom
           subjectId={chatSubjectId}
           onSubject={setChatSubjectId}
-          onTalk={(subjectId) =>
-            setTalkCounts((current) => ({ ...current, [subjectId]: (current[subjectId] || 0) + 1 }))
-          }
+          stepCompletion={stepCompletion}
+          criterionCompletion={criterionCompletion}
           onClose={() => setChatOpen(false)}
         />
       ) : null}

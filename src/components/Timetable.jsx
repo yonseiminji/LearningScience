@@ -1,27 +1,34 @@
-import { data, DAY_END, DAY_START, WEEKDAYS, clockMinutes, subjectById } from '../assignmentModel.js'
+import { data, DAY_END, DAY_START, WEEKDAYS, clockMinutes, seoulToday, subjectById } from '../assignmentModel.js'
 
 const HOUR = 52
+// show only the hours that have classes: from DAY_START to the hour after the last class ends
+const lastEnd = Math.max(...data.demoSchedule.map((item) => clockMinutes(item.end)))
+const VIEW_END = Math.min(DAY_END, Math.ceil(lastEnd / 60) * 60)
 const hours = []
-for (let minute = DAY_START; minute < DAY_END; minute += 60) {
+for (let minute = DAY_START; minute < VIEW_END; minute += 60) {
   hours.push(`${String(minute / 60).padStart(2, '0')}:00`)
 }
 
 export default function Timetable({ onOpenSubject }) {
-  const span = DAY_END - DAY_START
+  const span = VIEW_END - DAY_START
+  const todayIndex = seoulToday().getDay()
 
   return (
     <div className="timetable">
-      <h1>시간표</h1>
-      <p className="summary">수업을 누르면 그 과목의 할 일로 이동합니다.</p>
+      <div className="tt-head">
+        <h1>시간표</h1>
+        <p className="summary">수업을 누르면 그 과목의 할 일로 이동해요</p>
+      </div>
       <div className="cal-scroll">
         <div className="cal" role="table" aria-label="주간 수업 시간표">
           <div className="cal-head" role="row">
             <div className="cal-time-head" role="columnheader">
-              시간
+              <span className="sr-only">시간</span>
             </div>
             {WEEKDAYS.map((day) => (
-              <div key={day.index} className="cal-day" role="columnheader">
+              <div key={day.index} className={day.index === todayIndex ? 'cal-day is-today' : 'cal-day'} role="columnheader">
                 {day.label}
+                {day.index === todayIndex ? <span className="today-chip">오늘</span> : null}
               </div>
             ))}
           </div>
@@ -34,7 +41,12 @@ export default function Timetable({ onOpenSubject }) {
               ))}
             </div>
             {WEEKDAYS.map((day) => (
-              <div key={day.index} className="cal-col" role="cell" style={{ height: (span / 60) * HOUR }}>
+              <div
+                key={day.index}
+                className={day.index === todayIndex ? 'cal-col is-today' : 'cal-col'}
+                role="cell"
+                style={{ height: (span / 60) * HOUR }}
+              >
                 {hours.map((label, index) => (
                   <span key={label} className="cal-rule" style={{ top: index * HOUR }} />
                 ))}
@@ -49,7 +61,7 @@ export default function Timetable({ onOpenSubject }) {
                         key={item.id}
                         type="button"
                         className={`class-block tone-${subject?.colorToken || 'brown'}`}
-                        style={{ top, height }}
+                        style={{ top: top + 2, height: height - 4 }}
                         onClick={() => onOpenSubject(item.subjectId)}
                       >
                         <span className="class-name">{subject?.name}</span>
