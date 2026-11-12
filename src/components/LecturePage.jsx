@@ -69,8 +69,8 @@ export default function LecturePage({
           복습 및 개인 공부
         </h2>
         <p className="section-lead">
-          ‘강의 이해 지원’에 올린 강의 기록으로 공부해요. 아래 내용은 모두 <b>시연용</b>이고, 실제 AI 분석이나 요약이
-          아니에요.
+          ‘강의 이해 지원’에 올린 강의 기록으로 공부해요. 문제와 설명은 고른 구간의 <b>강의 원문만</b> 근거로 만들고,
+          근거가 모자라면 만들지 않아요.
         </p>
         <ReviewStudyPage courseId={subject?.id} materials={materials} showHeading={false} />
       </section>

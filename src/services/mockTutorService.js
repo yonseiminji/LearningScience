@@ -1,91 +1,126 @@
-import { retrieveChunks } from '../utils/chunkSearch.js';
+// The fallback, for when the Tutor API is not reachable.
+//
+// These questions were written and checked by hand against the demo lecture —
+// §5 of the spec allows pre-reviewed questions as a stand-in. They are not
+// generated, and nothing here claims they were: every result carries
+// provider: 'mock', and the panel says on screen which one answered.
+//
+// Answers sit in this module rather than in the rendered props, so they are
+// not in the page a learner is looking at. They are still in the bundle: that
+// is the honest limit of a client-side fallback, and the reason the real path
+// marks on the server.
 
-// Demo-only provider: no API calls and no claim of AI-generated analysis.
-const DEMO_TERMS = [
-  {
-    term: '외재적 인지부하',
-    easyExplanation: '학습 내용이 아니라 복잡한 자료 제시 방식 때문에 추가로 생기는 부담이에요.',
-    example: '한 슬라이드에 글과 그림이 너무 많아 어디부터 봐야 할지 모르겠는 상황이에요.',
-    analogy: '안내판이 너무 복잡해 길을 찾기 더 어려워지는 것과 비슷해요.',
-    visualPrompt: '외재적 인지부하를 설명하는 간단한 교육용 비교 도식을 제작해 주세요. 복잡한 자료와 정돈된 자료를 나란히 보여주고 차이를 짧은 한국어로 설명해 주세요.',
-  },
-  {
-    term: '작업기억',
-    easyExplanation: '지금 보고 듣는 정보를 잠깐 기억하면서 생각하는 데 쓰는 기억이에요.',
-    example: '암산하는 동안 숫자를 머릿속에 잠시 붙잡아 두는 상황이에요.',
-    analogy: '크기가 제한된 책상 위에서 자료를 펼쳐놓고 처리하는 것과 비슷해요.',
-    visualPrompt: '작업기억의 제한된 용량을 보여주는 간단한 교육용 도식을 만들어 주세요. 제한된 크기의 책상 위에 정보가 놓이는 모습으로 표현해 주세요.',
-  },
-  {
-    term: '내재적 인지부하',
-    easyExplanation: '배울 내용 자체가 복잡해서 생기는 학습 부담이에요.',
-    example: '처음 배우는 여러 수학 개념을 동시에 연결해야 하는 상황이에요.',
-    analogy: '어려운 퍼즐을 맞출 때 조각들 사이 관계를 계속 생각해야 하는 것과 비슷해요.',
-    visualPrompt: '내재적 인지부하를 개념들 사이 연결이 많은 퍼즐로 설명하는 교육용 그림 안내를 만들어 주세요.',
-  },
-];
+import { retrieveChunks } from '../utils/chunkSearch.js'
+import { gradeAnswer } from './grade.js'
 
-const wrap = (materialId, mode, data) => ({ schemaVersion: 1, materialId, mode, status: 'ready', data, provider: 'mock' });
+const VETTED = [
+  {
+    key: 'working-memory-limit',
+    find: '작업기억',
+    type: 'ox',
+    questionText: '작업기억은 한 번에 담을 수 있는 양에 제한이 있다.',
+    answer: 'O',
+    explanation: '강의 원문은 작업기억의 용량에 제한이 있다고 설명해요.',
+  },
+  {
+    key: 'working-memory-blank',
+    find: '작업기억',
+    type: 'blank',
+    questionText: '학습 정보를 잠시 유지하고 처리하는 기억을 무엇이라고 하나요?',
+    answer: '작업기억',
+    acceptableAnswers: ['작업 기억'],
+    explanation: '작업기억은 정보를 잠시 유지하고 처리하는 인지 체계예요.',
+  },
+  {
+    key: 'extrinsic-load',
+    find: '외재적 인지부하',
+    type: 'ox',
+    questionText: '외재적 인지부하는 자료를 제시하는 방식과 관련될 수 있다.',
+    answer: 'O',
+    explanation: '자료를 불필요하게 복잡하게 제시하면 외재적 인지부하가 커질 수 있어요.',
+  },
+]
+
+const quizzes = new Map()
+
+function pick(chunks) {
+  const out = []
+  for (const item of VETTED) {
+    const found = retrieveChunks(chunks, item.find, 1)[0]
+    if (!found) continue
+    out.push({
+      questionId: `mock-${item.key}`,
+      type: item.type,
+      questionText: item.questionText,
+      answer: item.answer,
+      acceptableAnswers: item.acceptableAnswers || [],
+      sourceChunkIds: [found.chunkId],
+      evidenceText: found.text.slice(0, 160),
+      explanation: item.explanation,
+    })
+  }
+  return out
+}
 
 export const mockTutorService = {
-  async generate({ material, mode, attempts = [] }) {
-    if (!material?.materialId || !Array.isArray(material.chunks)) throw new Error('강의 자료를 찾을 수 없어요.');
-    const { materialId, chunks } = material;
-    if (!chunks.length) throw new Error('강의 자료에 읽을 수 있는 텍스트가 없어요.');
+  provider: 'mock',
 
-    if (mode === 'summary') {
-      return wrap(materialId, mode, {
-        overview: '시연용 미리보기입니다. 아래는 업로드한 강의 원문에서 발췌한 문단이며, 실제 AI 요약이 아닙니다.',
-        keyPoints: chunks.slice(0, 6).map((chunk, i) => ({
-          id: `point-${i + 1}`,
-          title: `강의 문단 ${i + 1}`,
-          explanation: chunk.text.length > 180 ? `${chunk.text.slice(0, 180)}…` : chunk.text,
-          sourceChunkIds: [chunk.chunkId],
-        })),
-      });
+  async createQuiz({ material, chunkIds = [] }) {
+    const pool = chunkIds.length
+      ? material.chunks.filter((chunk) => chunkIds.includes(chunk.chunkId))
+      : material.chunks
+    const questions = pick(pool)
+    if (questions.length === 0) {
+      const error = new Error('이 구간에 맞는 시연용 문제가 없어요. 다른 구간을 골라 보세요.')
+      error.code = 'no-demo-questions'
+      throw error
     }
-
-    if (mode === 'concepts') {
-      const concepts = DEMO_TERMS.flatMap((item, i) => {
-        const matches = retrieveChunks(chunks, item.term, 2);
-        return matches.length ? [{
-          conceptId: `concept-${i + 1}`,
-          ...item,
-          sourceChunkIds: matches.map(c => c.chunkId),
-        }] : [];
-      });
-      return wrap(materialId, mode, { concepts, isDemoExplanation: true });
+    const quizId = `mock-quiz-${Date.now().toString(36)}`
+    quizzes.set(quizId, questions)
+    return {
+      provider: 'mock',
+      quizId,
+      materialId: material.materialId,
+      droppedCount: 0,
+      questions: questions.map(({ questionId, type, questionText, sourceChunkIds, evidenceText }) => ({
+        questionId,
+        type,
+        questionText,
+        sourceChunkIds,
+        evidenceText,
+      })),
     }
-
-    if (mode === 'quiz') {
-      const questions = [];
-      const extrinsic = retrieveChunks(chunks, '외재적 인지부하', 1)[0];
-      const working = retrieveChunks(chunks, '작업기억', 1)[0];
-      if (extrinsic) questions.push({
-        questionId: 'q-extrinsic', type: 'ox', question: '외재적 인지부하는 자료를 제시하는 방식과 관련될 수 있다.',
-        options: ['O', 'X'], correctAnswer: 'O', acceptedAnswers: ['O'],
-        explanation: '자료를 불필요하게 복잡하게 제시하면 외재적 인지부하가 증가할 수 있어요.',
-        relatedConceptIds: ['concept-1'], sourceChunkIds: [extrinsic.chunkId],
-      });
-      if (working) questions.push({
-        questionId: 'q-working', type: 'blank', question: '학습 정보를 일시적으로 유지하고 처리하는 기억은 ____이에요.',
-        options: [], correctAnswer: '작업기억', acceptedAnswers: ['작업기억', '작업 기억'],
-        explanation: '작업기억은 정보를 잠시 유지하고 처리하는 인지 체계예요.',
-        relatedConceptIds: ['concept-2'], sourceChunkIds: [working.chunkId],
-      });
-      return wrap(materialId, mode, { questions, isDemoQuiz: true });
-    }
-
-    if (mode === 'review') {
-      const quiz = await mockTutorService.generate({ material, mode: 'quiz' });
-      const questions = quiz.data.questions;
-      const reviewItems = attempts.filter(a => a.isCorrect === false).flatMap(attempt => {
-        const q = questions.find(item => item.questionId === attempt.questionId);
-        return q ? [{ questionId: q.questionId, term: q.question, feedback: q.explanation,
-          sourceChunkIds: q.sourceChunkIds, suggestedAction: 'review_source' }] : [];
-      });
-      return wrap(materialId, mode, { reviewItems });
-    }
-    throw new Error('지원하지 않는 학습 기능이에요.');
   },
-};
+
+  async submitAnswer({ quizId, questionId, userAnswer }) {
+    const question = (quizzes.get(quizId) || []).find((item) => item.questionId === questionId)
+    if (!question) throw new Error('문제를 찾지 못했어요. 문제를 다시 만들어 주세요.')
+    const isCorrect = gradeAnswer(question, userAnswer)
+    return {
+      provider: 'mock',
+      quizId,
+      questionId,
+      userAnswer,
+      result: isCorrect ? 'correct' : 'incorrect',
+      correctAnswer: question.answer,
+      acceptableAnswers: question.acceptableAnswers,
+      explanation: question.explanation,
+      sourceChunkIds: question.sourceChunkIds,
+      evidenceText: question.evidenceText,
+    }
+  },
+
+  // No model, so no explanation is written. The lecture text is shown instead,
+  // which is what the support is ultimately pointing at anyway.
+  async requestSupport({ supportType, chunks = [] }) {
+    return {
+      provider: 'mock',
+      supportType,
+      status: 'insufficient_evidence',
+      response:
+        'Tutor가 연결되지 않아 설명을 만들지 못했어요. 아래 강의 원문을 다시 읽어 보면서 어디가 막히는지 짚어 보세요.',
+      sourceChunkIds: chunks.map((chunk) => chunk.chunkId),
+      sourceText: '',
+    }
+  },
+}

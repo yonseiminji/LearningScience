@@ -145,40 +145,55 @@ Two cases, each with a screenshot of the service's front page: 처음 사용해�
 
 Each accepted file becomes `{ lectureId, fileId, fileName, fileSize, text, uploadedAt }` — the shape a later retrieval step would index. Nothing is sent anywhere: the text is read with the File API, held in React state, and lost on reload. There is no embedding, no vector search, and no model call.
 
-## 복습 및 개인 공부 (v2.3)
+## 복습 및 개인 공부 (v2.3) — Tutor Agent
 
-The third section of 강의탭 used to say 준비 중. It now runs on the TXT files the learner already uploaded to 강의 이해 지원 — **one uploader, two sections**. `materialsFor()` in `src/lectureNotes.js` is the adapter: it turns a stored note into the `{ materialId, courseId, fileName, content, chunks }` the module expects, splitting the text into paragraph chunks on the way.
+강의탭's third section runs on the TXT files 강의 이해 지원 already holds — **one uploader, two sections**. `materialsFor()` in `src/lectureNotes.js` adapts a stored note into the material the review screens read, splitting the text into paragraph chunks on the way.
 
-Pick a lecture record, then one of four ways in:
+A sitting runs in that order:
+
+| 카드 | 하는 일 |
+| --- | --- |
+| 강의 내용 확인하기 | 강의 원문 확인하기 — 문단 그대로, 요약 없음 |
+| 강의 구간 선택하기 | 공부할 내용 선택하기 — 문제의 근거가 될 구간 고르기 |
+| 이해 여부 점검하기 | AI가 만든 OX·빈칸 문제 풀기 — 한 번에 한 문제 |
+| 부족한 부분 다시 학습하기 | 어려운 부분을 선택하고 원문 다시 보기 |
+
+### Tutor Agent — Google Gemini
+
+The model is called from the server and only from the server. `api/tutor/` holds three Vercel Functions:
 
 | | |
 | --- | --- |
-| 강의 내용 확인하기 | 원문과 발췌 문단 |
-| 핵심 내용 파악하기 | 어려운 용어를 쉬운 말로 |
-| 이해 여부 점검하기 | OX·빈칸 문제 |
-| 부족한 부분 다시 학습하기 | 틀린 문제와 그 근거가 된 원문 |
+| `POST /api/tutor/quiz` | 고른 구간으로 문제 생성 · 응답 검증 · 정답은 서버 보관 |
+| `POST /api/tutor/answer` | 채점 · 이 시점에 정답 공개 |
+| `POST /api/tutor/support` | 어려움 유형별 프롬프트 · 청크 검색 · 결과 검증 |
 
-Every claim carries the paragraph it came from, quoted underneath, so a learner can check it against the lecture rather than taking it on trust.
+`GEMINI_API_KEY` and `GEMINI_MODEL` live in Vercel's environment (see `.env.example`); the browser never holds a key and never calls Google. The model name is not in the code, so a cheaper Flash model is an environment change rather than a deploy. Structured output (`responseSchema`) makes the model answer in shape, and each endpoint has its own prompt and schema.
 
-### 시연 범위 — 지금 할 수 없는 것
+### 근거 없는 문항은 쓰지 않는다
 
-The module ships as a demo and says so on screen. These limits are real and none of them is papered over:
+A shape that parses is not a question worth asking. `/api/tutor/quiz` drops any question that fails these, and tells the panel how many it dropped:
 
-- **실제 OpenAI API, AI 요약, 의미 검색은 없습니다.** 요약은 원문 문단을 발췌한 것이고, 화면에도 그렇게 적혀 있습니다.
-- 용어 설명과 문제는 미리 적어 둔 **학습과학 용어 몇 개**에만 반응합니다. 아무 강의 TXT나 이해하지는 못합니다.
-- 퀴즈 정답이 클라이언트 코드에 있어 **평가 용도로 쓸 수 없습니다.**
-- 오답 기록은 화면 상태일 뿐 저장되지 않습니다.
-- 청크 검색은 **단순 키워드 일치**입니다.
-- `apiTutorService`가 호출할 `/api/tutor` 서버는 아직 없습니다.
-- 수업별 접근 제한, 인증, 외부 전송 동의와 삭제 정책은 실제 사용 전에 구현해야 합니다.
+- `sourceChunkIds` must name chunks that were actually sent
+- `evidenceText` must appear **word for word** in one of them
+- an OX answer must be `O` or `X`
+- a blank's answer must appear in its own evidence sentence
 
-A TXT that is deleted takes its analysis and its wrong answers with it — keeping them would answer questions about a lecture the learner no longer has. `materialId` is unique per upload, so re-uploading the same file starts clean.
+**정답은 문제와 함께 나가지 않습니다.** The browser receives `questionId`, `type`, `questionText`, `sourceChunkIds`, `evidenceText` — nothing else. `/api/tutor/answer` marks, and the right answer is sent only after the learner's is in. Blank answers are normalised for spacing, case and a trailing 이에요/예요, and nothing looser: string similarity would mark a wrong answer right.
 
-`docs/tutor-demo/` holds the sample lecture TXT files to upload while demonstrating, and `docs/Commu_SysPrompt.txt` the communication prompt.
+학습 지원 is held to the same line. The three difficulties — `term` · `comparison` · `question` — get different prompts, and all three are told to answer only from the lecture text and to return `insufficient_evidence` when it does not cover the question. `question` support must not give the answer away, because the learner is going to retry. Tutor's words and the lecture's are shown in separate blocks so they are never read as one voice.
 
-### LLM으로 바꿀 자리
+### Tutor가 닿지 않을 때
 
-`src/services/tutorService.js` — one line points at the mock. An API provider returning the same `{ schemaVersion, materialId, mode, status, data, provider }` changes nothing above it; `ReviewStudyPage` already refuses a response whose `materialId`, `mode` or `schemaVersion` does not match what it asked for.
+Deployed without functions — a plain `vite dev`, a preview without the key — the service falls back to **hand-checked demo questions** (allowed by §5), and the panel says so: `Tutor가 연결되지 않아 미리 검토해 둔 시연용 문제를 보여 주고 있어요. AI가 만든 문제가 아니에요.` Every result carries `provider`, so a screen can never pass one off as the other. The fallback marks in the browser, which is why the real path marks on the server.
+
+### 청크와 녹음 시각
+
+Chunks keep their order and their character span in the original file. Recording times are kept **only when the file has them** — the demo transcripts carry `[00:00~02:19] 교수자` headers, and a file without them gets no time fields at all. There is no audio and no alignment data, so no playback is offered. Retrieval is keyword matching over the text; no results means insufficient evidence, not a guess.
+
+### 아직 없는 것
+
+No vector database or embedding search. No whole-lecture summary and no free term explanation — both were removed. No free-form chat with the Tutor. The quiz store is in memory on one serverless instance, so a quiz expires after an hour or if the instance recycles; the panel says so rather than marking wrongly. Rate limiting is per instance too. Authentication, consent and deletion policy for real student material are a separate matter from this version.
 
 ## 소통 준비하기 (v2.2)
 

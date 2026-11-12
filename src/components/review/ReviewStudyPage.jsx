@@ -1,91 +1,207 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { tutorService } from '../../services/tutorService.js';
-import MaterialSelector from './MaterialSelector.jsx';
-import ReviewModeGrid from './ReviewModeGrid.jsx';
-import LectureSummary from './LectureSummary.jsx';
-import ConceptExplorer from './ConceptExplorer.jsx';
-import QuizPanel from './QuizPanel.jsx';
-import WeakPointReview from './WeakPointReview.jsx';
-import './reviewStudy.css';
+import { useEffect, useMemo, useRef, useState } from 'react'
+import MaterialSelector from './MaterialSelector.jsx'
+import ReviewModeGrid from './ReviewModeGrid.jsx'
+import LectureChunks from './LectureChunks.jsx'
+import ChunkSelector from './ChunkSelector.jsx'
+import QuizPanel from './QuizPanel.jsx'
+import SupportPanel from './SupportPanel.jsx'
+import { tutorService } from '../../services/tutorService.js'
+import { chunksByIds, retrieveChunks } from '../../utils/chunkSearch.js'
+import './reviewStudy.css'
 
+// 복습 및 개인 공부.
+//
+// A sitting runs: read the lecture → choose a stretch of it → answer questions
+// about that stretch → go back to whatever did not stick. The Tutor only ever
+// sees the paragraphs the learner picked, and every answer it gives points
+// back at them.
+//
+// Errors are held apart from the work: a failed request shows a message and
+// leaves the quiz, the answers given so far and the selection exactly where
+// they were.
 export default function ReviewStudyPage({ courseId, materials = [], showHeading = true }) {
-  const [materialId, setMaterialId] = useState('');
-  const [activeMode, setActiveMode] = useState(null);
-  const [results, setResults] = useState({});
-  const [quizAttempts, setQuizAttempts] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const requestId = useRef(0);
-  const availableMaterials = useMemo(() => materials.filter(m => m.courseId === courseId), [materials, courseId]);
-  const selectedMaterial = availableMaterials.find(m => m.materialId === materialId);
+  const [materialId, setMaterialId] = useState('')
+  const [mode, setMode] = useState(null)
+  const [selectedChunkIds, setSelectedChunkIds] = useState([])
+  const [quiz, setQuiz] = useState(null)
+  const [results, setResults] = useState({})
+  const [support, setSupport] = useState(null)
+  const [busy, setBusy] = useState(null) // null | 'quiz' | 'answer' | 'support'
+  const [error, setError] = useState(null)
+  const requestId = useRef(0)
 
-  useEffect(() => { requestId.current += 1; setMaterialId(''); setActiveMode(null); setError(null); setLoading(false); }, [courseId]);
-  useEffect(() => {
-    if (materialId && !availableMaterials.some(m => m.materialId === materialId)) {
-      requestId.current += 1; setMaterialId(''); setActiveMode(null); setLoading(false);
-    }
-  }, [availableMaterials, materialId]);
+  const available = useMemo(() => materials.filter((item) => item.courseId === courseId), [materials, courseId])
+  const material = available.find((item) => item.materialId === materialId) || null
+  const chunks = material?.chunks || []
 
-  // A TXT that was removed takes its analysis and its wrong answers with it:
-  // keeping them would answer questions about a lecture the learner no longer
-  // has. Keyed by materialId, which is unique per upload, so re-uploading the
-  // same file starts clean.
-  useEffect(() => {
-    const live = new Set(materials.map(m => m.materialId));
-    setResults(prev => {
-      const next = Object.fromEntries(Object.entries(prev).filter(([key]) => live.has(key.split(':')[0])));
-      return Object.keys(next).length === Object.keys(prev).length ? prev : next;
-    });
-    setQuizAttempts(prev => {
-      const next = Object.fromEntries(Object.entries(prev).filter(([key]) => live.has(key)));
-      return Object.keys(next).length === Object.keys(prev).length ? prev : next;
-    });
-  }, [materials]);
-
-  async function selectMode(mode, { force = false } = {}) {
-    if (!selectedMaterial) return;
-    const id = ++requestId.current;
-    const currentMaterialId = selectedMaterial.materialId;
-    const cacheKey = `${currentMaterialId}:${mode}`;
-    setActiveMode(mode); setError(null);
-    if (!force && results[cacheKey] && mode !== 'review') { setLoading(false); return; }
-    setLoading(true);
-    try {
-      const result = await tutorService.generate({
-        material: selectedMaterial, mode, attempts: quizAttempts[currentMaterialId] || [],
-      });
-      if (id !== requestId.current) return;
-      if (result.materialId !== currentMaterialId || result.mode !== mode || result.schemaVersion !== 1) {
-        throw new Error('응답 데이터가 선택한 자료와 일치하지 않아요.');
-      }
-      setResults(prev => ({ ...prev, [cacheKey]: result }));
-    } catch (e) {
-      if (id === requestId.current) setError(e.message || '학습 결과를 불러오지 못했어요.');
-    } finally { if (id === requestId.current) setLoading(false); }
+  // a different subject, or a file that is gone, means a different lecture:
+  // its questions and answers go with it
+  function resetStudy() {
+    requestId.current += 1
+    setMode(null)
+    setSelectedChunkIds([])
+    setQuiz(null)
+    setResults({})
+    setSupport(null)
+    setBusy(null)
+    setError(null)
   }
 
-  const currentResult = results[`${materialId}:${activeMode}`];
-  const visibleResult = currentResult?.materialId === materialId && currentResult?.mode === activeMode ? currentResult : null;
-  const changeMaterial = (id) => {
-    requestId.current += 1; setMaterialId(id); setActiveMode(null); setLoading(false); setError(null);
-  };
-  return <section className="review-study">
-    {showHeading && <h2>복습 및 개인 공부</h2>}
-    <MaterialSelector materials={availableMaterials} value={materialId} onChange={changeMaterial}/>
-    {selectedMaterial && <>
-      <h3>무엇을 공부할까요?</h3>
-      <ReviewModeGrid activeMode={activeMode} onSelect={selectMode}/>
-      {loading && <p role="status">학습 내용을 준비하고 있어요...</p>}
-      {error && <p role="alert" className="review-error">{error}</p>}
-      {!loading && !error && visibleResult && <>
-        {activeMode === 'summary' && <LectureSummary key={materialId} material={selectedMaterial} result={visibleResult.data}/>}
-        {activeMode === 'concepts' && <ConceptExplorer key={materialId} result={visibleResult.data} chunks={selectedMaterial.chunks}/>}
-        {activeMode === 'quiz' && <QuizPanel materialId={materialId} questions={visibleResult.data.questions} onComplete={attempts => {
-          setQuizAttempts(prev => ({ ...prev, [materialId]: attempts }));
-          setResults(prev => { const next = { ...prev }; delete next[`${materialId}:review`]; return next; });
-        }}/>}
-        {activeMode === 'review' && <WeakPointReview result={visibleResult.data} chunks={selectedMaterial.chunks} onRetry={() => selectMode('quiz')}/>}
-      </>}
-    </>}
-  </section>;
+  useEffect(() => {
+    setMaterialId('')
+    resetStudy()
+  }, [courseId])
+
+  useEffect(() => {
+    if (materialId && !available.some((item) => item.materialId === materialId)) {
+      setMaterialId('')
+      resetStudy()
+    }
+  }, [available, materialId])
+
+  function changeMaterial(id) {
+    setMaterialId(id)
+    resetStudy()
+  }
+
+  async function run(kind, work) {
+    const id = ++requestId.current
+    setBusy(kind)
+    setError(null)
+    try {
+      const value = await work()
+      if (id === requestId.current) return value
+      return null
+    } catch (failure) {
+      // the learner's answers stay; only the message changes
+      if (id === requestId.current) setError(failure.message || '요청을 처리하지 못했어요.')
+      return null
+    } finally {
+      if (id === requestId.current) setBusy(null)
+    }
+  }
+
+  async function makeQuiz() {
+    if (!material || selectedChunkIds.length === 0) return
+    const data = await run('quiz', () => tutorService.createQuiz({ material, chunkIds: selectedChunkIds }))
+    if (!data) return
+    setQuiz(data)
+    setResults({})
+    setSupport(null)
+    setMode('quiz')
+  }
+
+  async function submitAnswer(question, userAnswer) {
+    if (!quiz) return
+    const data = await run('answer', () =>
+      tutorService.submitAnswer({ quizId: quiz.quizId, questionId: question.questionId, userAnswer }),
+    )
+    if (!data) return
+    setResults((prev) => ({ ...prev, [question.questionId]: data }))
+  }
+
+  async function requestSupport(question, result, supportType) {
+    // the paragraphs the question was built from come first; a keyword search
+    // only fills in when there are none
+    const sourced = chunksByIds(chunks, question.sourceChunkIds)
+    const retrieved = sourced.length > 0 ? sourced : retrieveChunks(chunks, question.questionText, 3)
+    if (retrieved.length === 0) {
+      setError('이 문제와 이어지는 강의 원문을 찾지 못했어요.')
+      return
+    }
+    const data = await run('support', () =>
+      tutorService.requestSupport({
+        questionId: question.questionId,
+        questionText: question.questionText,
+        userAnswer: result?.userAnswer || '',
+        isCorrect: result?.result === 'correct',
+        supportType,
+        chunks: retrieved,
+      }),
+    )
+    if (!data) return
+    setSupport({ ...data, questionId: question.questionId })
+  }
+
+  function retryQuestion() {
+    if (!support) return
+    setResults((prev) => {
+      const next = { ...prev }
+      delete next[support.questionId]
+      return next
+    })
+    setSupport(null)
+    setMode('quiz')
+  }
+
+  const disabledModes = []
+  if (selectedChunkIds.length === 0 && !quiz) disabledModes.push('quiz')
+  if (!quiz) disabledModes.push('support')
+
+  return (
+    <section className="review-study">
+      {showHeading ? <h2>복습 및 개인 공부</h2> : null}
+      <MaterialSelector materials={available} value={materialId} onChange={changeMaterial} />
+
+      {material ? (
+        <>
+          <h3>무엇을 공부할까요?</h3>
+          <ReviewModeGrid
+            activeMode={mode}
+            disabledModes={disabledModes}
+            onSelect={(next) => {
+              setError(null)
+              if (next === 'quiz' && !quiz) {
+                makeQuiz()
+                return
+              }
+              setMode(next)
+            }}
+          />
+
+          {busy === 'quiz' ? <p role="status">고른 구간으로 문제를 만들고 있어요…</p> : null}
+          {error ? (
+            <p role="alert" className="review-error">
+              {error}
+            </p>
+          ) : null}
+
+          {mode === 'source' ? <LectureChunks material={material} /> : null}
+
+          {mode === 'select' ? (
+            <ChunkSelector
+              material={material}
+              selectedIds={selectedChunkIds}
+              onChange={setSelectedChunkIds}
+              onContinue={makeQuiz}
+            />
+          ) : null}
+
+          {mode === 'quiz' && quiz ? (
+            <QuizPanel
+              quiz={quiz}
+              chunks={chunks}
+              results={results}
+              provider={quiz.provider}
+              busy={busy === 'answer'}
+              onSubmit={submitAnswer}
+              onFinish={() => setMode('support')}
+            />
+          ) : null}
+
+          {mode === 'support' ? (
+            <SupportPanel
+              quiz={quiz}
+              results={results}
+              chunks={chunks}
+              support={support}
+              busy={busy === 'support'}
+              onRequest={requestSupport}
+              onRetry={retryQuestion}
+            />
+          ) : null}
+        </>
+      ) : null}
+    </section>
+  )
 }
