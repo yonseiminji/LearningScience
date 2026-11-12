@@ -119,9 +119,24 @@ export default function App() {
     setView('tasks')
   }
 
+  // one 곰곰이 window at a time
   function openChat(subjectId) {
     if (subjectId) setChatSubjectId(subjectId)
+    setPlanPanelOpen(false)
+    setReplanEntry(null)
     setChatOpen(true)
+  }
+
+  function openPlanPanel() {
+    setChatOpen(false)
+    setReplanEntry(null)
+    setPlanPanelOpen(true)
+  }
+
+  function openReplanPanel(entry) {
+    setChatOpen(false)
+    setPlanPanelOpen(false)
+    setReplanEntry(entry)
   }
 
   function submitCriterion(step, criterionId, raw) {
@@ -202,6 +217,7 @@ export default function App() {
                 focusSubjectId={focusSubjectId}
                 onToggleStep={toggleStep}
                 onOpen={openGuide}
+                onStartPlan={openPlanPanel}
               />
             ) : null}
             {view === 'timetable' ? <Timetable onOpenSubject={openSubjectTasks} /> : null}
@@ -224,14 +240,8 @@ export default function App() {
             counts={counts}
             stepCompletion={stepCompletion}
             planEntries={planEntries}
-            onStartPlan={() => {
-              setReplanEntry(null)
-              setPlanPanelOpen(true)
-            }}
-            onReplan={(entry) => {
-              setPlanPanelOpen(false)
-              setReplanEntry(entry)
-            }}
+            onStartPlan={openPlanPanel}
+            onReplan={openReplanPanel}
             onOpenTasks={openTasks}
             onOpenChat={() => openChat(isFocusView ? guideSubjectId : focusSubjectId)}
           />

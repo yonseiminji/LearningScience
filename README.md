@@ -135,9 +135,9 @@ The assignment steps are already split up. What this adds is deciding **when** t
 
 ### 기능 A. 이번 주 계획 세우기
 
-「이번 주 계획 세우기」 sits in the existing 이번 주 남은 할 일 card — no new card — and opens 곰곰이 on the right.
+「이번 주 계획 세우기」 sits in the existing 이번 주 남은 할 일 card — no new card — and again at the top of 나의 할 일. Either one opens 곰곰이 as a centred popup: the planning conversation needs more room than a side rail gives, and 고르기 and 언제 할지 are one scrolling conversation rather than two pages, so a learner can scroll back to what they picked while deciding the next thing.
 
-- **처음 한 번만:** a finished example plan, built from the learner's own steps and labelled 예시. It can be folded away.
+- **처음 한 번만:** two choices of equal size — 먼저 예시를 볼까요 opens a finished example plan built from the learner's own steps and labelled 예시, 나도 세워 볼게요 goes straight to picking.
 - **둘째 주부터:** 지난주 계획, 어땠나요? 일부만 or 못 했어요 leads to 시간을 더 짧게 / 단계를 더 적게 / 다른 시간에. 더 짧게 starts the duration at 10분; 더 적게 caps the week at two steps.
 - **1/2 고르기:** 2–3 steps, ordered by 마감이 가까운 것부터 or 어려운 것부터.
 - **2/2 언제:** a free hour from the timetable, then 10·20·40분, then 이렇게 할까요?

@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Check, ChevronDown, ChevronRight, Circle, Play } from 'lucide-react'
+import { CalendarPlus, Check, ChevronDown, ChevronRight, Circle, Play } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 import ProgressRing from './ProgressRing.jsx'
 import { data, ddayLabel, dueChipClass, formatDue, stepCounts } from '../assignmentModel.js'
 import { formatMonthDay, stepTargetDate } from '../weekPlan.js'
 
-export default function TodoPage({ stepCompletion, focusSubjectId, onToggleStep, onOpen }) {
+export default function TodoPage({ stepCompletion, focusSubjectId, onToggleStep, onOpen, onStartPlan }) {
   const reduce = useReducedMotion()
   // one subject open at a time; a class clicked in the timetable opens that subject
   const [openId, setOpenId] = useState(focusSubjectId || data.subjects[0]?.id)
@@ -24,8 +24,18 @@ export default function TodoPage({ stepCompletion, focusSubjectId, onToggleStep,
 
   return (
     <div className="todo-page">
-      <h1>{focusSubjectId ? `${data.subjects.find((item) => item.id === focusSubjectId)?.name} 할 일` : '나의 할 일'}</h1>
-      <p className="summary">과목마다 작은 단계로 나누어 두었어요</p>
+      <div className="todo-page-head">
+        <div>
+          <h1>
+            {focusSubjectId ? `${data.subjects.find((item) => item.id === focusSubjectId)?.name} 할 일` : '나의 할 일'}
+          </h1>
+          <p className="summary">과목마다 작은 단계로 나누어 두었어요</p>
+        </div>
+        <button type="button" className="btn primary todo-plan-start" onClick={onStartPlan}>
+          <CalendarPlus aria-hidden="true" size={18} />
+          이번 주 계획 세우기
+        </button>
+      </div>
       <div className="todo-list">
         {subjects.map((subject) => {
           const assignment = data.assignments.find((item) => item.subjectId === subject.id)
