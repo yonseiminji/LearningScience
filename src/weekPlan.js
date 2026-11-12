@@ -37,7 +37,7 @@ export { formatKoreanDate, formatMonthDay, isDateOnly, isUtcIso, toUtcIso } from
 export const DURATIONS = [10, 20, 40]
 export const DEFAULT_MINUTES = 20
 export const SHORT_MINUTES = 10
-export const MAX_PICKS = 3
+export const MAX_PICKS = null // no cap: a learner takes on what they can
 export const FEWER_PICKS = 2
 export const PLAN_SCHEMA_VERSION = 1
 
@@ -48,7 +48,11 @@ export const SORT_MODES = [
 
 // ─── display helpers (Seoul) ─────────────────────────────────────────────
 
-export { formatSeoulSentence as formatSlotSentence, formatSeoulSlot as formatSlotLabel } from './planTime.js'
+export {
+  formatSeoulDateTime as formatSlotDateTime,
+  formatSeoulSentence as formatSlotSentence,
+  formatSeoulSlot as formatSlotLabel,
+} from './planTime.js'
 
 // ─── target dates ────────────────────────────────────────────────────────
 
@@ -162,28 +166,46 @@ function freeHoursOn(dateString, now) {
   return hours
 }
 
-// Weekday hours the timetable leaves empty, from now on. At most two a day —
-// one earlier, one after lunch — so the choice reads as "which day" rather
-// than a wall of consecutive hours. This week first, then next week, so there
-// is always something to choose late in the week.
+// Weekday hours the timetable leaves empty, from now on, over this week and
+// the next.
+//
+// Offered a day at a time rather than as a wall of consecutive hours: one
+// earlier hour and one after lunch per day first, so the choice reads as
+// "which day". Only when more are asked for than that gives — a learner who
+// took on many steps this week — are the remaining hours added, still in day
+// order.
 export function freeSlots(now = new Date(), wanted = 8) {
-  const slots = []
   const monday = seoulMondayOf(now)
-  if (!monday) return slots
+  if (!monday) return []
 
-  for (let week = 0; week < 2; week += 1) {
-    for (let dayOffset = 0; dayOffset < 5; dayOffset += 1) {
-      const dateString = addSeoulDays(monday, week * 7 + dayOffset)
-      const hours = freeHoursOn(dateString, now)
-      if (hours.length === 0) continue
-      const picks = [hours[0]]
-      const afternoon = hours.find((hour) => hour.minutes >= AFTERNOON && hour !== hours[0])
-      if (afternoon) picks.push(afternoon)
-      for (const pick of picks) slots.push({ id: pick.at.toISOString(), date: pick.at })
-    }
-    if (slots.length >= wanted) break
+  const byDay = []
+  for (let dayOffset = 0; dayOffset < 14; dayOffset += 1) {
+    const dateString = addSeoulDays(monday, dayOffset)
+    const weekday = seoulWeekday(fromSeoulDate(dateString, 12))
+    if (weekday === 0 || weekday === 6) continue // the timetable is 월–금
+    const hours = freeHoursOn(dateString, now)
+    if (hours.length > 0) byDay.push(hours)
   }
-  return slots.slice(0, wanted)
+
+  const taken = new Set()
+  const slots = []
+  const add = (hour) => {
+    const id = hour.at.toISOString()
+    if (taken.has(id)) return
+    taken.add(id)
+    slots.push({ id, date: hour.at })
+  }
+
+  for (const hours of byDay) add(hours[0])
+  for (const hours of byDay) {
+    const afternoon = hours.find((hour) => hour.minutes >= AFTERNOON)
+    if (afternoon) add(afternoon)
+  }
+  if (slots.length < wanted) {
+    for (const hours of byDay) for (const hour of hours) add(hour)
+  }
+
+  return slots.sort((a, b) => a.date - b.date).slice(0, Math.max(wanted, 1))
 }
 
 // How far ahead a plan may reach: from now to the end of next week, in Seoul.

@@ -7,7 +7,7 @@ import {
   buildPlan,
   createProposal,
   formatKoreanDate,
-  formatSlotLabel,
+  formatSlotDateTime,
   formatSlotSentence,
   freeSlots,
   planEntriesOf,
@@ -103,7 +103,7 @@ export default function ReplanPanel({ entry, plan, stepCompletion = {}, onSave, 
                 setRefusal(null)
               }}
             >
-              {formatSlotLabel(slot.date)}
+              {formatSlotDateTime(slot.date)}
               {used ? <span className="slot-used">이미 정함</span> : null}
             </button>
           )

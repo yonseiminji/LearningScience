@@ -146,7 +146,7 @@ The assignment steps are already split up. What this adds is deciding **when** t
 
 - **처음 한 번만:** two choices of equal size — 먼저 예시를 볼까요 opens a finished example plan built from the learner's own steps and labelled 예시, 나도 세워 볼게요 goes straight to picking.
 - **둘째 주부터:** 지난주 계획, 어땠나요? 일부만 or 못 했어요 leads to 시간을 더 짧게 / 단계를 더 적게 / 다른 시간에. 더 짧게 starts the duration at 10분; 더 적게 caps the week at two steps.
-- **1/2 고르기:** 2–3 steps, ordered by 마감이 가까운 것부터 or 어려운 것부터.
+- **1/2 고르기:** as many steps as the learner wants, ordered by 마감이 가까운 것부터 or 어려운 것부터.
 - **2/2 언제:** a free hour from the timetable, then 10·20·40분, then 이렇게 할까요?
 - **완성:** the plan fills the 이번주 block, and 인쇄하기 puts it on one sheet for a notebook.
 
@@ -179,6 +179,10 @@ Plan Document  최상위 7필드 + entry 12필드
 A planner decides three things per entry and nothing else, so there is nothing it can copy wrongly. `buildPlan()` looks up the rest. Both schemas are in `src/schemas/`, and `src/jsonSchema.js` checks against them — a small checker rather than Ajv, because this workspace cannot reach the npm registry; it reports which keywords it skipped rather than passing them off as checked.
 
 **시간.** Every timestamp stored or exchanged is UTC ISO with milliseconds, `createdAt`·`scheduledAt`·`dueAt` alike; the assignment file's `+09:00` is normalized on the way in. `weekOf` and `targetDate` stay `YYYY-MM-DD`. Every date, weekday and week boundary is worked out in Asia/Seoul (`src/planTime.js`) whatever timezone the browser is in, and screens convert back to Seoul to display. Sorting and conflict checks compare real instants, not strings.
+
+**날짜 표시.** Every time-picking button and the echo under it reads `11월 13일(금) 11:00`, from one function — `formatSeoulDateTime` in `src/planTime.js` — built from the entry's own `scheduledAt`. A year is shown only when the slot falls in a different year from today, so a plan made in late December reads `2027년 1월 5일(월) 09:00`. 다음 주 월 was dropped from the buttons: a weekday alone makes the reader work out which week is meant. The short form stays where room is tight — the plan list in the 이번주 block and in 나의 할 일.
+
+**얼마나 고를지.** There is no 2–3 cap. A learner takes on what they can, and the free hours offered grow with the number of steps picked. `settings.maxPicks` is `null` for an uncapped week; it holds a number only when the learner chose 단계를 더 적게 in 돌아보기, and then it is enforced. Both schema files were widened for this: `entries.maxItems` is gone and `maxPicks` accepts an integer or `null`.
 
 **검증.** `validatePlan()` in `src/planValidation.js` is a pure function — no React, no DOM, no storage — so the backend can run the same gate when the agent moves server-side. Beyond the schema it checks: real calendar dates and instants, `entries` within `settings.maxPicks`, the step exists in the assignment data, no duplicate step, no step already finished, no overlap between sittings, no overlap with a registered class, nothing newly scheduled in the past, and nothing beyond next week.
 

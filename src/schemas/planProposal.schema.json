@@ -9,7 +9,6 @@
   "properties": {
     "entries": {
       "type": "array",
-      "maxItems": 3,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -37,7 +36,8 @@
             ]
           }
         }
-      }
+      },
+      "description": "고를 수 있는 만큼. 주당 상한은 settings.maxPicks가 정하며, null이면 상한 없음."
     }
   }
 }
