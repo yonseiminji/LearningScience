@@ -136,3 +136,64 @@
 @media (prefers-reduced-motion: reduce) {
   .review-mode-card, .review-secondary, .review-primary { transition: none; }
 }
+
+/* ─── v2.3: 원문 확인 · 구간 선택 · 지원 ─────────────────────────────────── */
+
+.review-chunk-list { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 10px; }
+.review-chunk-list li { padding: 12px 14px; border-radius: 12px; background: var(--raised); }
+.review-chunk-meta { margin: 0 0 4px; color: var(--muted); font-size: 12px; }
+.review-chunk-text { margin: 0; font-size: var(--fs-body); line-height: 1.75; white-space: pre-wrap; }
+
+.review-pick-list { list-style: none; margin: 12px 0; padding: 0; display: grid; gap: 8px; }
+.review-pick {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 150ms var(--ease), border-color 150ms var(--ease);
+}
+.review-pick:hover { background: var(--hover); }
+.review-pick.is-on { border-color: var(--accent); background: var(--raised); }
+.review-pick input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.review-pick:focus-within, .review-pick:focus-visible { outline: 3px solid var(--hi); outline-offset: 2px; }
+.review-pick-box {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+  border: 1.5px solid var(--block-line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--accent-ink);
+}
+.review-pick.is-on .review-pick-box { border-color: transparent; background: var(--accent); }
+.review-pick-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.review-pick-text { font-size: var(--fs-body); line-height: 1.7; }
+.review-sticky-foot { justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+
+.review-correct { display: inline-flex; align-items: center; gap: 4px; color: var(--done); }
+.review-wrong { display: inline-flex; align-items: center; gap: 4px; color: var(--soon); }
+
+/* Tutor가 쓴 글과 강의 원문을 눈으로 가른다 */
+.review-support { margin-top: 12px; padding: 14px; border: 1px solid var(--accent); border-radius: 12px; background: var(--surface); }
+.review-support > p { margin: 6px 0; font-size: var(--fs-body); line-height: 1.75; }
+.review-quote {
+  margin: 10px 0;
+  padding: 10px 12px;
+  border: 0;
+  border-left: 3px solid var(--block-line);
+  background: var(--raised);
+  font-size: var(--fs-body);
+}
+.review-quote small { color: var(--muted); font-size: 12px; }
+.review-quote p { margin: 4px 0 0; line-height: 1.7; }
