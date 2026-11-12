@@ -87,7 +87,12 @@ src/
     ClovaGuideDialog.jsx
     RecordingNoticeDialog.jsx
     Modal.jsx
+    WeekPlanPanel.jsx
+    ReplanPanel.jsx
+    BearPanel.jsx
+    PlanSheet.jsx
   lectureNotes.js
+  weekPlan.js
 public/guide/
   Clova_Join.png
   Clova_Login.png
@@ -123,6 +128,36 @@ Two cases, each with a screenshot of the service's front page: 처음 사용해�
 `src/lectureNotes.js` holds the file rules — `.txt` only, 3MB ceiling, empty-file and read-failure messages — with no React in it, so the processing and the UI can change apart from each other. `TxtUpload.jsx` is the drop zone: click or drag, a highlight while dragging, the file name, size and upload time, a preview of the text, and a delete button that clears the entry.
 
 Each accepted file becomes `{ lectureId, fileId, fileName, fileSize, text, uploadedAt }` — the shape a later retrieval step would index. Nothing is sent anywhere: the text is read with the File API, held in React state, and lost on reload. There is no embedding, no vector search, and no model call.
+
+## 이번 주 계획 (v2.2)
+
+The assignment steps are already split up. What this adds is deciding **when** to do a few of them, and re-deciding when an hour goes by unused. `src/weekPlan.js` holds the rules with no React in it; the panels only ask the questions.
+
+### 기능 A. 이번 주 계획 세우기
+
+「이번 주 계획 세우기」 sits in the existing 이번 주 남은 할 일 card — no new card — and opens 곰곰이 on the right.
+
+- **처음 한 번만:** a finished example plan, built from the learner's own steps and labelled 예시. It can be folded away.
+- **둘째 주부터:** 지난주 계획, 어땠나요? 일부만 or 못 했어요 leads to 시간을 더 짧게 / 단계를 더 적게 / 다른 시간에. 더 짧게 starts the duration at 10분; 더 적게 caps the week at two steps.
+- **1/2 고르기:** 2–3 steps, ordered by 마감이 가까운 것부터 or 어려운 것부터.
+- **2/2 언제:** a free hour from the timetable, then 10·20·40분, then 이렇게 할까요?
+- **완성:** the plan appears inside the same card, and 인쇄하기 puts it on one sheet for a notebook.
+
+목표일 is counted back from the deadline — the last step two days before it, each earlier step one day before the next — and the panel says so where the learner can read it. 나의 할 일 shows a target date on the step in hand only, so the list does not read as a wall of deadlines.
+
+'어려운 것부터' is ordered by how many completion criteria a step has, with later steps counting as harder. The assignment file has no difficulty field and none was added to it; this is an ordering, not a claim about the step.
+
+빈 시간 comes from the timetable in `assignments.mock.json`: weekday hours between 09:00 and 18:00 that no class occupies and that have not already passed, at most two a day so the choice reads as *which day*. Late in the week it rolls into next week's hours, labelled 다음 주.
+
+### 기능 B. 계획 다시 짜기
+
+Not visible in the ordinary case. When an hour set aside in the plan goes by and the step is not ticked, that row reads 아직이에요 and grows a 「다시 정하기」 button. 곰곰이 asks 언제 다시 해 볼까요?, shows 원래 목표 and 마감 for context, offers the free hours again, and offers to cut the sitting to 10분.
+
+The copy avoids 지연 and 실패 throughout: a missed hour is 아직이에요, and the question is about the next attempt, not the last one.
+
+### What is not in this
+
+No backend. The plan lives in React state and is gone on reload; only "has this learner planned before" is kept, in `localStorage` under `chagok.weekPlan.planned`, to decide between the example and the 돌아보기 question. 지난주 계획 is not stored, so the 돌아보기 step asks about it rather than showing it.
 
 ## 변경사항
 

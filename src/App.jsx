@@ -8,6 +8,9 @@ import GuideView from './components/GuideView.jsx'
 import LecturePage from './components/LecturePage.jsx'
 import SideWing from './components/SideWing.jsx'
 import ChatRoom from './components/ChatRoom.jsx'
+import WeekPlanPanel from './components/WeekPlanPanel.jsx'
+import ReplanPanel from './components/ReplanPanel.jsx'
+import { readHasPlanned, writeHasPlanned } from './weekPlan.js'
 
 const NAV = [
   { id: 'home', label: '홈', icon: House },
@@ -33,6 +36,11 @@ export default function App() {
   // Lecture transcripts, kept per subject so one lecture's notes never show
   // under another. Browser-only: nothing is uploaded or stored on a server.
   const [lectureNotes, setLectureNotes] = useState({})
+  // 이번 주 계획: which steps the learner took on this week and when.
+  const [planEntries, setPlanEntries] = useState([])
+  const [hasPlanned, setHasPlanned] = useState(() => readHasPlanned())
+  const [planPanelOpen, setPlanPanelOpen] = useState(false)
+  const [replanEntry, setReplanEntry] = useState(null)
 
   const counts = overallCounts(stepCompletion)
   const guideAssignment = assignmentForSubject(guideSubjectId)
@@ -78,6 +86,20 @@ export default function App() {
 
   function addLectureNote(subjectId, note) {
     setLectureNotes((current) => ({ ...current, [subjectId]: [...(current[subjectId] || []), note] }))
+  }
+
+  function savePlan(entries) {
+    setPlanEntries(entries)
+    setPlanPanelOpen(false)
+    writeHasPlanned()
+    setHasPlanned(true)
+  }
+
+  function saveReplan(updated) {
+    setPlanEntries((current) =>
+      current.map((entry) => (entry.stepId === updated.stepId ? updated : entry)),
+    )
+    setReplanEntry(null)
   }
 
   function removeLectureNote(subjectId, fileId) {
@@ -201,6 +223,15 @@ export default function App() {
           <SideWing
             counts={counts}
             stepCompletion={stepCompletion}
+            planEntries={planEntries}
+            onStartPlan={() => {
+              setReplanEntry(null)
+              setPlanPanelOpen(true)
+            }}
+            onReplan={(entry) => {
+              setPlanPanelOpen(false)
+              setReplanEntry(entry)
+            }}
             onOpenTasks={openTasks}
             onOpenChat={() => openChat(isFocusView ? guideSubjectId : focusSubjectId)}
           />
@@ -225,6 +256,26 @@ export default function App() {
             닫기
           </button>
         </dialog>
+      ) : null}
+
+      {planPanelOpen ? (
+        <WeekPlanPanel
+          stepCompletion={stepCompletion}
+          hasPlanned={hasPlanned}
+          onSave={savePlan}
+          onClose={() => setPlanPanelOpen(false)}
+        />
+      ) : null}
+
+      {replanEntry ? (
+        <ReplanPanel
+          entry={replanEntry}
+          otherSlotIsos={planEntries
+            .filter((entry) => entry.stepId !== replanEntry.stepId)
+            .map((entry) => entry.slotIso)}
+          onSave={saveReplan}
+          onClose={() => setReplanEntry(null)}
+        />
       ) : null}
 
       {chatOpen ? (

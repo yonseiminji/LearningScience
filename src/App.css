@@ -883,3 +883,134 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 @media (prefers-reduced-motion: reduce) {
   .dropzone, .icon-btn { transition: none; }
 }
+
+/* ─── 이번 주 계획: the plan inside the existing 남은 할 일 card ─────────── */
+.wing-plan { margin: 0 0 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.wing-plan h3 { margin: 0 0 8px; color: var(--text-2); font-size: 13px; font-weight: 700; }
+.wing-plan-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.wing-plan-list li { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 8px; }
+.wing-plan-list li.is-done { opacity: 0.72; }
+.wing-plan-when { color: var(--ink); font-size: var(--fs-body); font-weight: 700; }
+.wing-plan-what { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; min-width: 0; }
+.wing-plan-step { width: 100%; color: var(--ink); font-size: var(--fs-body); }
+.wing-plan-sub, .wing-plan-state { color: var(--muted); font-size: 12px; }
+.wing-plan-state.is-done { display: inline-flex; align-items: center; gap: 3px; color: var(--done); }
+.wing .wing-replan { min-height: 28px; padding: 0 10px; border-radius: 8px; font-size: 12px; }
+.wing .wing-plan-start { width: 100%; margin-top: 8px; }
+
+/* ─── 곰곰이 planning panel ───────────────────────────────────────────── */
+.bear-panel-body { gap: 14px; }
+.plan-answers { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.plan-sort { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.plan-sort-label { color: var(--muted); font-size: 12px; }
+.chat-chip.is-on { border-color: transparent; background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.chat-chip.is-on:hover { background: var(--accent-hover); }
+.plan-note { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+
+/* step picker */
+.pick-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.pick-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: background-color 150ms var(--ease), border-color 150ms var(--ease);
+}
+.pick-item:hover { background: var(--hover); }
+.pick-item.is-on { border-color: var(--accent); background: var(--raised); }
+.pick-item.is-full { opacity: 0.5; cursor: not-allowed; }
+.pick-item input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.pick-item:focus-within { outline: 3px solid var(--hi); outline-offset: 2px; }
+.pick-box {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--block-line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--accent-ink);
+}
+.pick-item.is-on .pick-box { border-color: transparent; background: var(--accent); }
+.pick-main { display: flex; flex-direction: column; min-width: 0; }
+.pick-title { font-size: var(--fs-body); font-weight: 700; }
+.pick-sub { color: var(--muted); font-size: 12px; }
+.pick-dates { display: flex; flex-direction: column; align-items: flex-end; flex: none; }
+.pick-target { font-size: 12px; font-weight: 700; }
+.pick-due { color: var(--muted); font-size: 12px; }
+
+/* free hours in the timetable */
+.slot-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.slot-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 46px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--fs-body);
+  cursor: pointer;
+  transition: background-color 150ms var(--ease), border-color 150ms var(--ease);
+}
+.slot-chip:hover { background: var(--hover); }
+.slot-chip.is-on { border-color: var(--accent); background: var(--raised); font-weight: 700; }
+.slot-chip:disabled { color: var(--muted); background: var(--track); cursor: not-allowed; }
+.slot-used { color: var(--muted); font-size: 11px; }
+.replan-dates { margin-left: 40px; }
+.replan-shorter { align-self: flex-start; }
+
+/* the plan table, on screen and on paper */
+.plan-sheet { padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.plan-sheet.is-example { background: var(--raised); }
+.plan-sheet-title { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font-size: var(--fs-section); font-weight: 700; }
+.plan-tag { padding: 1px 8px; border-radius: 999px; background: var(--chip); color: var(--text-2); font-size: 11px; font-weight: 600; }
+.plan-rows { list-style: none; margin: 0; padding: 0; }
+.plan-rows li { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+.plan-rows li:first-child { border-top: 0; padding-top: 0; }
+.plan-when { font-size: var(--fs-body); font-weight: 700; }
+.plan-what { display: flex; flex-direction: column; min-width: 0; }
+.plan-step { font-size: var(--fs-body); }
+.plan-detail { color: var(--muted); font-size: 12px; }
+
+/* 나의 할 일: a target date on the step in hand only */
+.step-target { flex: none; padding: 2px 8px; border: 1px solid var(--block-line); border-radius: 6px; color: var(--text-2); font-size: 12px; font-weight: 600; }
+
+@media (max-width: 720px) {
+  .wing-plan-list li { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .slot-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pick-item, .slot-chip { transition: none; }
+}
+
+/* 인쇄용 1장: only the plan table reaches the paper */
+.print-sheet { display: none; }
+@media print {
+  #root, .scrim, .bear-fab { display: none !important; }
+  .chat-dialog[open] {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    max-height: none !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+  .chat-head { display: none !important; }
+  .bear-panel-body > *:not(.print-sheet) { display: none !important; }
+  .bear-panel-body { overflow: visible !important; padding: 0 !important; }
+  .print-sheet { display: block !important; border: 0; padding: 0; }
+  .plan-rows li { break-inside: avoid; }
+}

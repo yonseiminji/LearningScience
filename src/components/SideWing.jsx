@@ -1,13 +1,23 @@
-import { ListChecks } from 'lucide-react'
+import { CalendarPlus, Check, ListChecks, RotateCcw } from 'lucide-react'
 import ChagokBlocks from './ChagokBlocks.jsx'
 import { data, ddayLabel, dueChipClass, subjectById } from '../assignmentModel.js'
+import { entryStatus, formatSlotLabel, slotFromIso, sortEntries } from '../weekPlan.js'
 
 function dueDate(iso) {
   const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || '')
   return match ? `${Number(match[2])}월 ${Number(match[3])}일` : ''
 }
 
-export default function SideWing({ counts, stepCompletion, onOpenTasks, onOpenChat }) {
+export default function SideWing({
+  counts,
+  stepCompletion,
+  planEntries = [],
+  onStartPlan,
+  onReplan,
+  onOpenTasks,
+  onOpenChat,
+}) {
+  const plan = sortEntries(planEntries)
   const left = counts.total - counts.done
   const upcoming = data.assignments.slice().sort((a, b) => a.dueAt.localeCompare(b.dueAt))
   const nearestOpenId = upcoming.find((assignment) => assignment.steps.some((step) => !stepCompletion[step.id]))?.id
@@ -53,9 +63,54 @@ export default function SideWing({ counts, stepCompletion, onOpenTasks, onOpenCh
             '모두 끝냈어요'
           )}
         </p>
+        {plan.length > 0 ? (
+          <div className="wing-plan">
+            <h3>이번 주 계획</h3>
+            <ul className="wing-plan-list">
+              {plan.map((entry) => {
+                const status = entryStatus(entry, stepCompletion)
+                return (
+                  <li key={entry.stepId} className={`is-${status}`}>
+                    <span className="wing-plan-when">
+                      {formatSlotLabel(slotFromIso(entry.slotIso, entry.nextWeek))}
+                    </span>
+                    <span className="wing-plan-what">
+                      <span className="wing-plan-step">
+                        {entry.subjectName} {entry.stepNumber}단계 · {entry.minutes}분
+                      </span>
+                      {status === 'done' ? (
+                        <span className="wing-plan-state is-done">
+                          <Check aria-hidden="true" size={13} />다 했어요
+                        </span>
+                      ) : status === 'missed' ? (
+                        <>
+                          <span className="wing-plan-state">아직이에요</span>
+                          <button type="button" className="btn wing-replan" onClick={() => onReplan(entry)}>
+                            <RotateCcw aria-hidden="true" size={13} />
+                            다시 정하기
+                          </button>
+                        </>
+                      ) : (
+                        <span className="wing-plan-sub">{entry.stepTitle}</span>
+                      )}
+                    </span>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        ) : null}
         <button type="button" className="btn ghost wing-tasks" onClick={onOpenTasks}>
           <ListChecks aria-hidden="true" size={16} />
           나의 할 일 보기
+        </button>
+        <button
+          type="button"
+          className={plan.length > 0 ? 'btn wing-plan-start' : 'btn primary wing-plan-start'}
+          onClick={onStartPlan}
+        >
+          <CalendarPlus aria-hidden="true" size={16} />
+          {plan.length > 0 ? '계획 다시 세우기' : '이번 주 계획 세우기'}
         </button>
       </section>
       <button type="button" className="bear-fab" onClick={onOpenChat}>
