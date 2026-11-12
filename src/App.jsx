@@ -11,6 +11,7 @@ import ChatRoom from './components/ChatRoom.jsx'
 import WeekPlanPanel from './components/WeekPlanPanel.jsx'
 import ReplanPanel from './components/ReplanPanel.jsx'
 import { planEntriesOf, readHasPlanned, writeHasPlanned } from './weekPlan.js'
+import { emptySession } from './communication.js'
 
 const NAV = [
   { id: 'home', label: '홈', icon: House },
@@ -43,6 +44,12 @@ export default function App() {
   const [hasPlanned, setHasPlanned] = useState(() => readHasPlanned())
   const [planPanelOpen, setPlanPanelOpen] = useState(false)
   const [replanEntry, setReplanEntry] = useState(null)
+  // 소통 준비하기. Kept here rather than in the panel so closing the modal
+  // does not throw away a half-written question.
+  const [chatTab, setChatTab] = useState('help')
+  const [commuSession, setCommuSession] = useState(() => emptySession())
+  const [commuStep, setCommuStep] = useState(0)
+  const [commuDraft, setCommuDraft] = useState(null)
 
   const guideAssignment = assignmentForSubject(guideSubjectId)
   const guideSubject = data.subjects.find((subject) => subject.id === guideSubjectId)
@@ -121,10 +128,11 @@ export default function App() {
   }
 
   // one 곰곰이 window at a time
-  function openChat(subjectId) {
+  function openChat(subjectId, tab = 'help') {
     if (subjectId) setChatSubjectId(subjectId)
     setPlanPanelOpen(false)
     setReplanEntry(null)
+    setChatTab(tab)
     setChatOpen(true)
   }
 
@@ -209,7 +217,11 @@ export default function App() {
                   <img className="hero-banner" src="/brand/hero-banner.webp" alt="곰곰이와 함께 한 단계씩 공부를 정리해요" />
                   <p className="hint">{data.notes[0]}</p>
                 </section>
-                <SubjectBoard stepCompletion={stepCompletion} onOpen={openLecture} />
+                <SubjectBoard
+                  stepCompletion={stepCompletion}
+                  onOpen={openLecture}
+                  onOpenCommunication={() => openChat(null, 'commu')}
+                />
               </>
             ) : null}
             {view === 'tasks' ? (
@@ -294,6 +306,14 @@ export default function App() {
           onSubject={setChatSubjectId}
           stepCompletion={stepCompletion}
           criterionCompletion={criterionCompletion}
+          tab={chatTab}
+          onTab={setChatTab}
+          commuSession={commuSession}
+          onCommuSession={setCommuSession}
+          commuStep={commuStep}
+          onCommuStep={setCommuStep}
+          commuDraft={commuDraft}
+          onCommuDraft={setCommuDraft}
           onClose={() => setChatOpen(false)}
         />
       ) : null}

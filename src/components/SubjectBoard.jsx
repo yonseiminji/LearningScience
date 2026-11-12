@@ -1,9 +1,10 @@
-import { ChevronRight } from 'lucide-react'
+import { ArrowRight, ChevronRight, MessageCircle } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 import { data, ddayLabel, dueChipClass, formatDue, stepCounts } from '../assignmentModel.js'
 import ProgressRing from './ProgressRing.jsx'
+import { COPY } from '../communication.js'
 
-export default function SubjectBoard({ stepCompletion, onOpen }) {
+export default function SubjectBoard({ stepCompletion, onOpen, onOpenCommunication }) {
   const reduce = useReducedMotion()
 
   return (
@@ -44,6 +45,22 @@ export default function SubjectBoard({ stepCompletion, onOpen }) {
             </article>
           )
         })}
+
+        {/* 소통 준비하기 sits with the week's work: asking someone is one of
+            the things a stuck learner can do next. */}
+        <article className="subject-card commu-card">
+          <span className="commu-card-icon" aria-hidden="true">
+            <MessageCircle size={20} />
+          </span>
+          <div className="commu-card-main">
+            <h3>{COPY.homeTitle}</h3>
+            <p>{COPY.homeDescription}</p>
+          </div>
+          <button type="button" className="btn primary commu-card-open" onClick={onOpenCommunication}>
+            {COPY.homeTitle}
+            <ArrowRight aria-hidden="true" size={16} />
+          </button>
+        </article>
       </div>
     </motion.section>
   )

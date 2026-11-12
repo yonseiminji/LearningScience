@@ -1,6 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowUp, CircleCheck, FileText, ListChecks, X } from 'lucide-react'
 import { data, subjectById } from '../assignmentModel.js'
+import CommunicationWizard from './CommunicationWizard.jsx'
+import { COPY } from '../communication.js'
+
+// 곰곰이 answers two different needs, so the panel carries two tabs.
+// 과제 도움받기 is the class chat; 소통 준비하기 helps put a question into
+// words to send someone. Neither replaces the other.
+const TABS = [
+  { id: 'help', label: '과제 도움받기' },
+  { id: 'commu', label: '소통 준비하기' },
+]
 
 const BEAR = '/brand/gomgomi-question.webp'
 
@@ -54,7 +64,21 @@ function stepsFor(step) {
   ]
 }
 
-export default function ChatRoom({ subjectId, onSubject, stepCompletion, criterionCompletion, onClose }) {
+export default function ChatRoom({
+  subjectId,
+  onSubject,
+  stepCompletion,
+  criterionCompletion,
+  tab = 'help',
+  onTab,
+  commuSession,
+  onCommuSession,
+  commuStep,
+  onCommuStep,
+  commuDraft,
+  onCommuDraft,
+  onClose,
+}) {
   const subject = subjectById(subjectId) || data.subjects[0]
   const assignment = data.assignments.find((item) => item.subjectId === subject.id)
   const step = assignment.steps.find((item) => !stepCompletion[item.id]) || null
@@ -67,7 +91,7 @@ export default function ChatRoom({ subjectId, onSubject, stepCompletion, criteri
   useEffect(() => {
     const el = logRef.current
     if (el) el.scrollTop = el.scrollHeight
-  }, [log, mode])
+  }, [log, mode, tab, commuStep])
 
   function say(entries) {
     setLog((current) => [...current, ...entries])
@@ -105,12 +129,46 @@ export default function ChatRoom({ subjectId, onSubject, stepCompletion, criteri
         <img src={BEAR} alt="" />
         <div>
           <h2 id="chat-title">곰곰이에게 질문하기</h2>
-          <p className="chat-sub">{step ? `지금 단계: ${step.title}` : '이 과제는 모든 단계를 마쳤어요'}</p>
+          <p className="chat-sub">
+            {tab === 'commu'
+              ? COPY.wizardSubtitle
+              : step
+                ? `지금 단계: ${step.title}`
+                : '이 과제는 모든 단계를 마쳤어요'}
+          </p>
         </div>
         <button type="button" className="chat-close" onClick={onClose} aria-label="닫기">
           <X aria-hidden="true" size={18} />
         </button>
       </div>
+      <div className="chat-tabs" role="tablist" aria-label="곰곰이 기능 선택">
+        {TABS.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            role="tab"
+            aria-selected={item.id === tab}
+            className="chat-tab"
+            onClick={() => onTab(item.id)}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'commu' ? (
+        <div className="chat-log commu-body" ref={logRef}>
+          <CommunicationWizard
+            session={commuSession}
+            onSession={onCommuSession}
+            step={commuStep}
+            onStep={onCommuStep}
+            draft={commuDraft}
+            onDraft={onCommuDraft}
+          />
+        </div>
+      ) : (
+      <>
       <div className="chat-subjects" role="tablist" aria-label="수업 선택">
         {data.subjects.map((item) => (
           <button
@@ -202,6 +260,8 @@ export default function ChatRoom({ subjectId, onSubject, stepCompletion, criteri
           <ArrowUp aria-hidden="true" size={18} />
         </button>
       </form>
+      </>
+      )}
     </dialog>
   )
 }

@@ -89,6 +89,7 @@ src/
     Modal.jsx
     WeekPlanPanel.jsx
     ReplanPanel.jsx
+    CommunicationWizard.jsx
     BearPanel.jsx
     PlanSheet.jsx
   lectureNotes.js
@@ -97,7 +98,11 @@ src/
   planValidation.js
   jsonSchema.js
   planAgent.js
+  communication.js
   data/planAgent.mock.json
+  data/communication.mock.json
+docs/
+  Commu_SysPrompt.txt
   schemas/planProposal.schema.json
   schemas/planDocument.schema.json
 public/guide/
@@ -135,6 +140,31 @@ Two cases, each with a screenshot of the service's front page: 처음 사용해�
 `src/lectureNotes.js` holds the file rules — `.txt` only, 3MB ceiling, empty-file and read-failure messages — with no React in it, so the processing and the UI can change apart from each other. `TxtUpload.jsx` is the drop zone: click or drag, a highlight while dragging, the file name, size and upload time, a preview of the text, and a delete button that clears the entry.
 
 Each accepted file becomes `{ lectureId, fileId, fileName, fileSize, text, uploadedAt }` — the shape a later retrieval step would index. Nothing is sent anywhere: the text is read with the File API, held in React state, and lost on reload. There is no embedding, no vector search, and no model call.
+
+## 소통 준비하기 (v2.2)
+
+Asking for help is its own skill, and a learner who is stuck on a question often cannot start the sentence. 곰곰이 asks four things and hands back a message to send.
+
+곰곰이's panel now carries two tabs. **과제 도움받기** is the class chat, unchanged. **소통 준비하기** is this: it opens from the card on the home board, or from the tab.
+
+1. **상대방** — 조원과 소통하기 or 교수님께 질문하기.
+2. **상황** — three per recipient, from the mock file.
+3. **확인할 정보** — each item gets 알고 있어요 / 알고 싶어요 / 잘 모르겠어요. All of them must be answered before moving on.
+4. **상황 입력** — the learner's own words, plus an optional course.
+
+Then the sentence: a medium to send it through (이메일 · 메시지 · 대면 질문, by recipient), an editable draft, and 문장 복사하기.
+
+### 무엇을 짓고 무엇을 짓지 않는가
+
+The free text is carried through **as the learner wrote it**. This generator has no model behind it: it does not read, summarise or answer what they typed, and it never adds a fact they did not give — no name, no student number, no course they did not pick. The panel says so on every screen: 시연용 UI · 실제 AI 및 메시지 전송 기능 미연동. Nothing is sent anywhere; the learner copies the text and sends it themselves.
+
+The worked example in `demoSession` is used only when the whole session matches it, free text included, so a hand-written sentence never stands in for something a learner actually typed.
+
+Korean particles are chosen from the last syllable's final consonant — 마감 기한**은**, 작업 범위**를** — rather than written 은(는).
+
+### LLM으로 바꿀 자리
+
+`generateDraft(session)` in `src/communication.js`, and `createDraft()` around it. An LLM returning a `CommunicationDraft` of the same shape changes nothing above it: the wizard collects answers and renders what came back, and `source` on the draft says who wrote it. `docs/Commu_SysPrompt.txt` is the prompt it would run. All wording and choices come from `src/data/communication.mock.json`; the components hold no copy of their own.
 
 ## 이번 주 계획 (v2.2)
 

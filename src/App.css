@@ -488,7 +488,7 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
   align-items: center;
 }
 
-.chat-head { gap: 12px; padding: 20px 20px 0; background: var(--kraft); }
+.chat-head { flex: none; gap: 12px; padding: 20px 20px 0; background: var(--kraft); }
 .chat-head img { width: 44px; height: 44px; }
 .chat-head h2 { margin: 0; font-size: 19px; }
 .chat-sub { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
@@ -511,7 +511,7 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 
 /* 수업 선택은 하나의 틀 안에서 전환 */
 /* header and subject tabs share one kraft band, set apart from the conversation */
-.chat-subjects { display: flex; gap: 2px; margin: 0; padding: 12px 20px 14px; background: var(--kraft); }
+.chat-subjects { display: flex; flex: none; gap: 2px; margin: 0; padding: 12px 20px 14px; background: var(--kraft); }
 .chat-subjects .nav-btn { min-height: 34px; padding: 0 14px; border-color: transparent; border-radius: 8px; background: transparent; color: var(--text-2); }
 .chat-subjects .nav-btn[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(42, 33, 24, 0.12); }
 
@@ -1142,3 +1142,139 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 }
 .plan-caution p { margin: 0; color: var(--text-2); }
 .plan-caution .btn { align-self: flex-start; min-height: 32px; padding: 0 12px; }
+
+/* ─── 소통 준비하기 ──────────────────────────────────────────────────────── */
+
+/* 곰곰이 패널 상단 탭: 과제 도움받기 / 소통 준비하기 */
+.chat-tabs { display: flex; gap: 4px; flex: none; padding: 12px 20px 0; background: var(--kraft); }
+.chat-tab {
+  min-height: 38px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: 10px 10px 0 0;
+  background: transparent;
+  color: var(--text-2);
+  font-size: var(--fs-body);
+  font-weight: 600;
+  cursor: pointer;
+}
+.chat-tab:hover { background: rgba(255, 253, 250, 0.6); }
+.chat-tab[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 -1px 3px rgba(42, 33, 24, 0.08); }
+
+.commu-body { gap: 14px; }
+.commu-disclaimer {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--raised);
+  color: var(--muted);
+  font-size: 12px;
+}
+.commu-step { margin: 0; color: var(--text-2); font-size: var(--fs-body); font-weight: 700; }
+.commu-trail { display: flex; flex-wrap: wrap; gap: 6px; margin: -6px 0 0; }
+.commu-trail span { padding: 2px 10px; border-radius: 999px; background: var(--chip); color: var(--text-2); font-size: 12px; }
+.commu-hint { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+
+/* 선택지: 길어도 잘리지 않게 좌우로 펼친다 */
+.commu-choices { display: grid; gap: 8px; }
+.commu-choice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 52px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--fs-section);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 150ms var(--ease), border-color 150ms var(--ease);
+}
+.commu-choice svg { margin-left: auto; flex: none; color: var(--muted); }
+.commu-choice:hover { background: var(--hover); border-color: var(--accent); }
+.commu-choice.is-on { border-color: var(--accent); background: var(--raised); font-weight: 700; }
+
+/* 확인할 정보: 항목마다 세 가지 상태 */
+.commu-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.commu-items li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.commu-items li.is-answered { border-color: var(--block-line); background: var(--hover); }
+.commu-item-label { flex: 1 1 100%; font-size: var(--fs-body); font-weight: 700; }
+.commu-states { display: flex; flex-wrap: wrap; gap: 6px; }
+.commu-state {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 150ms var(--ease), color 150ms var(--ease);
+}
+.commu-state:hover { background: var(--raised); }
+.commu-state.is-on { border-color: transparent; color: var(--accent-ink); font-weight: 600; }
+.commu-state.is-on.is-known { background: var(--done); }
+.commu-state.is-on.is-unknown { background: var(--accent); }
+.commu-state.is-on.is-unsure { background: var(--wait); }
+
+.commu-field { display: flex; flex-direction: column; gap: 6px; }
+.commu-field-label { color: var(--text-2); font-size: 12px; font-weight: 700; }
+.commu-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--fs-body);
+  line-height: 1.7;
+  resize: vertical;
+}
+.commu-textarea:focus-visible { outline: 3px solid var(--hi); outline-offset: 1px; }
+.commu-textarea.is-draft { min-height: 200px; background: var(--bg); }
+
+.commu-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.commu-copied { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--done); font-size: var(--fs-body); }
+.commu-back { align-self: flex-start; margin-top: 4px; }
+
+/* 홈 보드의 진입 카드 */
+.commu-card { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.commu-card-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--chip);
+  color: var(--accent);
+}
+.commu-card-main { flex: 1 1 220px; min-width: 0; }
+.commu-card-main h3 { margin: 0 0 2px; font-size: var(--fs-section); font-weight: 700; }
+.commu-card-main p { margin: 0; color: var(--muted); font-size: var(--fs-body); }
+.commu-card-open { flex: none; }
+
+@media (max-width: 720px) {
+  .chat-tabs { padding: 10px 14px 0; }
+  .chat-tab { padding: 0 12px; }
+  .commu-states { width: 100%; }
+  .commu-state { flex: 1; }
+  .commu-card-open { width: 100%; justify-content: center; }
+  .commu-row .btn { flex: 1 1 auto; justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .commu-choice, .commu-state { transition: none; }
+}
