@@ -93,6 +93,8 @@ src/
     PlanSheet.jsx
   lectureNotes.js
   weekPlan.js
+  planAgent.js
+  data/planAgent.mock.json
 public/guide/
   Clova_Join.png
   Clova_Login.png
@@ -135,7 +137,7 @@ The assignment steps are already split up. What this adds is deciding **when** t
 
 ### 기능 A. 이번 주 계획 세우기
 
-「이번 주 계획 세우기」 sits in the existing 이번 주 남은 할 일 card — no new card — and again at the top of 나의 할 일. Either one opens 곰곰이 as a centred popup: the planning conversation needs more room than a side rail gives, and 고르기 and 언제 할지 are one scrolling conversation rather than two pages, so a learner can scroll back to what they picked while deciding the next thing.
+「이번 주 계획 세우기」 sits in the 이번주 block, and nowhere else: one way in, beside the week it fills. It opens 곰곰이 as a centred popup: the planning conversation needs more room than a side rail gives, and 고르기 and 언제 할지 are one scrolling conversation rather than two pages, so a learner can scroll back to what they picked while deciding the next thing.
 
 - **처음 한 번만:** two choices of equal size — 먼저 예시를 볼까요 opens a finished example plan built from the learner's own steps and labelled 예시, 나도 세워 볼게요 goes straight to picking.
 - **둘째 주부터:** 지난주 계획, 어땠나요? 일부만 or 못 했어요 leads to 시간을 더 짧게 / 단계를 더 적게 / 다른 시간에. 더 짧게 starts the duration at 10분; 더 적게 caps the week at two steps.
@@ -156,6 +158,41 @@ The assignment steps are already split up. What this adds is deciding **when** t
 Not visible in the ordinary case. When an hour set aside in the plan goes by and the step is not ticked, that row reads 아직이에요 and grows a 「다시 정하기」 button. 곰곰이 asks 언제 다시 해 볼까요?, shows 원래 목표 and 마감 for context, offers the free hours again, and offers to cut the sitting to 10분.
 
 The copy avoids 지연 and 실패 throughout: a missed hour is 아직이에요, and the question is about the next attempt, not the last one.
+
+### 대화는 데이터, 계획은 JSON
+
+What 곰곰이 says, and where each answer leads, is not written into the screen. It comes from `src/data/planAgent.mock.json` through `src/planAgent.js`: a turn names the lines to say, the widget that collects the answer, the effect the answer has (`시간을 더 짧게` sets the duration to 10 minutes) and the turn to go to next. The screen knows how to draw a step picker and a slot grid; it does not hold a single question. Putting a real agent behind this means returning turns of the same shape — the screen does not change.
+
+The conversation hands back a plan document, and that document is what the rest of the app reads:
+
+```json
+{
+  "schemaVersion": 1,
+  "source": "mock",
+  "createdAt": "2026-11-12T14:00:00.000Z",
+  "weekOf": "2026-11-09",
+  "review": { "lastWeek": "some", "adjust": "shorter" },
+  "settings": { "sortMode": "due", "maxPicks": 2, "defaultMinutes": 10 },
+  "entries": [
+    {
+      "stepId": "ls-s1",
+      "assignmentId": "ls-cognitive-load-01",
+      "assignmentTitle": "인지부하 이론과 나의 학습 사례 보고서",
+      "subjectId": "learning-science",
+      "subjectName": "학습과학",
+      "colorToken": "brown",
+      "stepNumber": 1,
+      "stepTitle": "인지부하 이론 자료 찾기",
+      "targetDate": "2026-11-07",
+      "dueAt": "2026-11-12T23:59:00+09:00",
+      "scheduledAt": "2026-11-13T02:00:00.000Z",
+      "minutes": 20
+    }
+  ]
+}
+```
+
+나의 할 일 reads that document and nothing else. Before a plan exists the page is empty and says so; after one, it lists only the steps the learner set aside time for, grouped by subject, each with the hour it was given. `assignments.mock.json` still supplies what the steps *are* — it no longer decides what a learner's week holds.
 
 ### What is not in this
 

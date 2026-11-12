@@ -2,27 +2,27 @@ import { useMemo, useState } from 'react'
 import { CalendarPlus, Check, Eye, Printer } from 'lucide-react'
 import BearPanel from './BearPanel.jsx'
 import PlanSheet from './PlanSheet.jsx'
+import { PLAN_AGENT_TITLE, effectsOf, fill, firstTurnId, getTurn, labelOf, nextTurnId } from '../planAgent.js'
 import {
-  ADJUST_ANSWERS,
+  DEFAULT_MINUTES,
   DURATIONS,
-  LAST_WEEK_ANSWERS,
+  MAX_PICKS,
   SORT_MODES,
+  buildPlan,
   createEntry,
-  defaultMinutesFor,
-  examplePlan,
   formatMonthDay,
   formatSlotLabel,
   formatSlotSentence,
   freeSlots,
   labelFor,
-  maxPicksFor,
   planCandidates,
   sortCandidates,
-  sortEntries,
 } from '../weekPlan.js'
 
 const BEAR = '/brand/gomgomi-question.webp'
-const ORDER = ['start', 'pick', 'schedule', 'done']
+// the order the conversation runs in, so earlier turns stay on screen
+const FLOW = ['intro', 'review', 'adjust', 'pick', 'schedule', 'done']
+const rank = (id) => FLOW.indexOf(id)
 
 function Bear({ children }) {
   return (
@@ -37,16 +37,19 @@ function Me({ children }) {
   return <p className="chat-me">{children}</p>
 }
 
-// 이번 주 계획 세우기. The steps are already split up by the assignment data;
-// what is decided here is which few to take on this week and when.
+// 이번 주 계획 세우기.
 //
-// Everything said so far stays on screen. Picking steps and setting times are
-// one scrolling conversation, not two pages, so a learner can look back at
-// what they chose while deciding the next thing.
+// What 곰곰이 says, and where each answer leads, comes from the agent
+// (src/planAgent.js, backed by a mock script today). This screen only knows
+// how to draw each widget and collect the answer, so the conversation can move
+// to a real agent without being rewritten.
+//
+// Everything said so far stays on screen: picking steps and setting times are
+// one scrolling conversation, not two pages.
 export default function WeekPlanPanel({ stepCompletion, hasPlanned, onSave, onClose }) {
-  const [stage, setStage] = useState('start')
-  const [lastWeek, setLastWeek] = useState(null)
-  const [adjust, setAdjust] = useState(null)
+  const [stage, setStage] = useState(() => firstTurnId(hasPlanned))
+  const [answers, setAnswers] = useState({ lastWeek: null, adjust: null })
+  const [effects, setEffects] = useState({})
   const [exampleOpen, setExampleOpen] = useState(false)
   const [sortMode, setSortMode] = useState('due')
   const [picked, setPicked] = useState([])
@@ -57,37 +60,40 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, onSave, onCl
 
   const candidates = useMemo(() => planCandidates(stepCompletion), [stepCompletion])
   const sorted = useMemo(() => sortCandidates(candidates, sortMode), [candidates, sortMode])
-  const example = useMemo(() => examplePlan(stepCompletion), [stepCompletion])
   const slots = useMemo(() => freeSlots(new Date(), 8), [])
+  const example = useMemo(() => {
+    const rows = sortCandidates(planCandidates(stepCompletion), 'due').slice(0, 3)
+    const free = freeSlots(new Date(), 6)
+    return rows
+      .map((row, index) =>
+        free[index] ? createEntry({ row, slot: free[index], minutes: index === rows.length - 1 ? 10 : 20 }) : null,
+      )
+      .filter(Boolean)
+  }, [stepCompletion])
 
-  const reached = (name) => ORDER.indexOf(stage) >= ORDER.indexOf(name)
-  const maxPicks = maxPicksFor(adjust)
+  const reached = (id) => rank(stage) >= rank(id)
+  const maxPicks = effects.maxPicks ?? MAX_PICKS
+  const defaultMinutes = effects.defaultMinutes ?? DEFAULT_MINUTES
   const pickedRows = picked.map((id) => candidates.find((row) => row.stepId === id)).filter(Boolean)
   const currentRow = reached('schedule') ? pickedRows[scheduleIndex] : null
-  const currentMinutes = minutes ?? defaultMinutesFor(adjust)
+  const currentMinutes = minutes ?? defaultMinutes
   const chosenSlot = slots.find((slot) => slot.id === slotId) || null
-  const usedSlotIds = new Set(draft.map((entry) => entry.slotIso))
+  const usedSlotIds = new Set(draft.map((entry) => entry.scheduledAt))
   const minPicks = Math.min(2, sorted.length)
 
-  const subtitle =
-    stage === 'start'
-      ? hasPlanned
-        ? '지난주 돌아보기'
-        : '처음 사용할 때만 · 예시 계획'
-      : stage === 'pick'
-        ? '1/2 · 이번 주에 할 단계 고르기'
-        : stage === 'schedule'
-          ? '2/2 · 언제 할지 정하기'
-          : '이번 주 계획 완성'
+  const introTurn = getTurn('intro')
+  const reviewTurn = getTurn('review')
+  const adjustTurn = getTurn('adjust')
+  const pickTurn = getTurn('pick')
+  const scheduleTurn = getTurn('schedule')
+  const doneTurn = getTurn('done')
+  const subtitle = getTurn(stage)?.subtitle || ''
 
-  function answerLastWeek(id) {
-    setLastWeek(id)
-    if (id === 'all') setStage('pick')
-  }
-
-  function answerAdjust(id) {
-    setAdjust(id)
-    setStage('pick')
+  function answer(turnId, optionId, field) {
+    setAnswers((current) => ({ ...current, [field]: optionId }))
+    setEffects((current) => ({ ...current, ...effectsOf(turnId, optionId) }))
+    const next = nextTurnId(turnId, optionId)
+    if (next) setStage(next)
   }
 
   function togglePick(stepId) {
@@ -98,63 +104,77 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, onSave, onCl
     })
   }
 
-  function confirmSlot() {
+  function commitSlot() {
     if (!currentRow || !chosenSlot) return
     setDraft([...draft, createEntry({ row: currentRow, slot: chosenSlot, minutes: currentMinutes })])
     setSlotId(null)
     setMinutes(null)
     if (scheduleIndex + 1 < pickedRows.length) setScheduleIndex(scheduleIndex + 1)
-    else setStage('done')
+    else setStage(nextTurnId('schedule') || 'done')
   }
 
-  const finished = sortEntries(draft)
-  const scrollKey = `${stage}-${draft.length}-${lastWeek}-${adjust}-${exampleOpen}-${slotId}`
+  // the document the conversation hands back
+  const plan = buildPlan({
+    entries: draft,
+    review: answers,
+    settings: { sortMode, maxPicks, defaultMinutes },
+  })
+  const scrollKey = `${stage}-${draft.length}-${answers.lastWeek}-${answers.adjust}-${exampleOpen}-${slotId}`
 
   return (
     <BearPanel
-      title="곰곰이와 이번 주 계획 세우기"
+      title={PLAN_AGENT_TITLE}
       subtitle={subtitle}
       titleId="week-plan-title"
       scrollKey={scrollKey}
       onClose={onClose}
     >
-      {/* ── 시작: 처음이면 예시, 둘째 주부터는 돌아보기 ── */}
+      {/* ── 처음이면 예시, 둘째 주부터는 돌아보기 ── */}
       {hasPlanned ? (
         <>
           <Bear>
-            <p>지난주 계획, 어땠나요?</p>
+            {reviewTurn.say.map((line) => (
+              <p key={line}>{line}</p>
+            ))}
           </Bear>
-          {!lastWeek ? (
+          {!answers.lastWeek ? (
             <div className="plan-answers">
-              {LAST_WEEK_ANSWERS.map((answer) => (
-                <button key={answer.id} type="button" className="chat-chip" onClick={() => answerLastWeek(answer.id)}>
-                  {answer.label}
+              {reviewTurn.options.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  className="chat-chip"
+                  onClick={() => answer('review', option.id, reviewTurn.field)}
+                >
+                  {option.label}
                 </button>
               ))}
             </div>
           ) : (
             <>
-              <Me>{LAST_WEEK_ANSWERS.find((answer) => answer.id === lastWeek)?.label}</Me>
-              {lastWeek !== 'all' ? (
+              <Me>{labelOf('review', answers.lastWeek)}</Me>
+              {nextTurnId('review', answers.lastWeek) === 'adjust' ? (
                 <>
                   <Bear>
-                    <p>이번 주에는 어떻게 해 볼까요?</p>
+                    {adjustTurn.say.map((line) => (
+                      <p key={line}>{line}</p>
+                    ))}
                   </Bear>
-                  {!adjust ? (
+                  {!answers.adjust ? (
                     <div className="plan-answers">
-                      {ADJUST_ANSWERS.map((answer) => (
+                      {adjustTurn.options.map((option) => (
                         <button
-                          key={answer.id}
+                          key={option.id}
                           type="button"
                           className="chat-chip"
-                          onClick={() => answerAdjust(answer.id)}
+                          onClick={() => answer('adjust', option.id, adjustTurn.field)}
                         >
-                          {answer.label}
+                          {option.label}
                         </button>
                       ))}
                     </div>
                   ) : (
-                    <Me>{ADJUST_ANSWERS.find((answer) => answer.id === adjust)?.label}</Me>
+                    <Me>{labelOf('adjust', answers.adjust)}</Me>
                   )}
                 </>
               ) : null}
@@ -164,30 +184,31 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, onSave, onCl
       ) : (
         <>
           <Bear>
-            <p>먼저 예시를 볼까요?</p>
+            {introTurn.say.map((line) => (
+              <p key={line}>{line}</p>
+            ))}
           </Bear>
           <div className="start-choices">
-            <button
-              type="button"
-              className={exampleOpen ? 'start-card is-on' : 'start-card'}
-              aria-pressed={exampleOpen}
-              disabled={reached('pick')}
-              onClick={() => setExampleOpen((open) => !open)}
-            >
-              <Eye aria-hidden="true" size={36} />
-              <span className="start-card-title">먼저 예시를 볼까요</span>
-              <span className="start-card-sub">다른 학생의 한 주를 먼저 봐요</span>
-            </button>
-            <button
-              type="button"
-              className="start-card"
-              disabled={reached('pick')}
-              onClick={() => setStage('pick')}
-            >
-              <CalendarPlus aria-hidden="true" size={36} />
-              <span className="start-card-title">나도 세워 볼게요</span>
-              <span className="start-card-sub">이번 주에 할 단계를 골라요</span>
-            </button>
+            {introTurn.options.map((option) => {
+              const Icon = option.action === 'toggleExample' ? Eye : CalendarPlus
+              const on = option.action === 'toggleExample' && exampleOpen
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  className={on ? 'start-card is-on' : 'start-card'}
+                  aria-pressed={option.action === 'toggleExample' ? exampleOpen : undefined}
+                  disabled={reached('pick')}
+                  onClick={() =>
+                    option.action === 'toggleExample' ? setExampleOpen((open) => !open) : setStage(option.next)
+                  }
+                >
+                  <Icon aria-hidden="true" size={36} />
+                  <span className="start-card-title">{option.label}</span>
+                  <span className="start-card-sub">{option.hint}</span>
+                </button>
+              )
+            })}
           </div>
           {exampleOpen ? <PlanSheet entries={example} tag="예시" className="is-example" /> : null}
         </>
@@ -197,11 +218,11 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, onSave, onCl
       {reached('pick') ? (
         <>
           <Bear>
-            <p>{sortMode === 'difficulty' ? '어려운 순서로 정리했어요.' : '마감이 가까운 순서로 정리했어요.'}</p>
-            <p>이번 주에 할 단계를 {maxPicks === 2 ? '2개' : '2~3개'}만 골라 보세요.</p>
+            <p>{pickTurn.sayBySort[sortMode]}</p>
+            <p>{fill(pickTurn.ask, { picks: pickTurn.picksLabel[String(maxPicks)] })}</p>
           </Bear>
           <div className="plan-sort">
-            <span className="plan-sort-label">순서</span>
+            <span className="plan-sort-label">{pickTurn.sortLabel}</span>
             {SORT_MODES.map((mode) => (
               <button
                 key={mode.id}
@@ -248,17 +269,15 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, onSave, onCl
           </ul>
           {!reached('schedule') ? (
             <>
-              <p className="plan-note">
-                목표일은 마감일에서 거꾸로 계산해 마지막 단계를 마감 1–2일 전으로 잡았어요.
-              </p>
+              <p className="plan-note">{pickTurn.note}</p>
               <div className="chat-choices">
                 <button
                   type="button"
                   className="btn primary"
                   disabled={picked.length < minPicks}
-                  onClick={() => setStage('schedule')}
+                  onClick={() => setStage(pickTurn.next)}
                 >
-                  {picked.length}개 골랐어요
+                  {fill(pickTurn.confirmLabel, { count: picked.length })}
                 </button>
               </div>
             </>
@@ -269,19 +288,14 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, onSave, onCl
       {/* ── 2/2 언제 할지 정하기: 정한 것은 대화로 남고 다음 단계가 이어짐 ── */}
       {reached('schedule') ? (
         <>
-          <Me>{picked.length}개 골랐어요</Me>
+          <Me>{fill(pickTurn.confirmLabel, { count: picked.length })}</Me>
           {draft.map((entry) => (
             <div key={entry.stepId}>
               <Bear>
-                <p>
-                  <b>
-                    {entry.subjectName} {entry.stepNumber}단계
-                  </b>
-                  는 언제 할까요?
-                </p>
+                <p>{fill(scheduleTurn.ask, { step: `${entry.subjectName} ${entry.stepNumber}단계` })}</p>
               </Bear>
               <Me>
-                {formatSlotLabel({ date: new Date(entry.slotIso), nextWeek: entry.nextWeek })} · {entry.minutes}분
+                {formatSlotLabel(entry.scheduledAt)} · {entry.minutes}분
               </Me>
             </div>
           ))}
@@ -291,9 +305,7 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, onSave, onCl
       {currentRow ? (
         <>
           <Bear>
-            <p>
-              <b>{labelFor(currentRow)}</b>는 언제 할까요?
-            </p>
+            <p>{fill(scheduleTurn.ask, { step: labelFor(currentRow) })}</p>
           </Bear>
           <div className="slot-grid">
             {slots.map((slot) => {
@@ -307,16 +319,16 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, onSave, onCl
                   disabled={used}
                   onClick={() => setSlotId(slot.id)}
                 >
-                  {formatSlotLabel(slot)}
+                  {formatSlotLabel(slot.date)}
                   {used ? <span className="slot-used">이미 정함</span> : null}
                 </button>
               )
             })}
           </div>
-          {slots.length === 0 ? <p className="plan-note">이번 주와 다음 주 시간표에 빈 시간이 없어요.</p> : null}
+          {slots.length === 0 ? <p className="plan-note">{scheduleTurn.emptyNote}</p> : null}
 
           <div className="plan-sort">
-            <span className="plan-sort-label">한 번에</span>
+            <span className="plan-sort-label">{scheduleTurn.durationLabel}</span>
             {DURATIONS.map((value) => (
               <button
                 key={value}
@@ -329,25 +341,34 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, onSave, onCl
               </button>
             ))}
           </div>
-          {adjust === 'shorter' && minutes === null ? (
-            <p className="plan-note">지난주에 “시간을 더 짧게 해 볼래요”를 골라서 10분이 선택돼 있어요.</p>
+          {answers.adjust === 'shorter' && minutes === null ? (
+            <p className="plan-note">{scheduleTurn.effectNote.shorter}</p>
           ) : null}
 
           {chosenSlot ? (
             <>
               <Bear>
-                <p>
-                  {formatSlotSentence(chosenSlot)} · {labelFor(currentRow)} · {currentMinutes}분
-                </p>
-                <p>이렇게 할까요?</p>
+                {scheduleTurn.confirmSay.map((line) => (
+                  <p key={line}>
+                    {fill(line, {
+                      slot: formatSlotSentence(chosenSlot.date),
+                      step: labelFor(currentRow),
+                      minutes: currentMinutes,
+                    })}
+                  </p>
+                ))}
               </Bear>
               <div className="plan-answers">
-                <button type="button" className="chat-chip" onClick={confirmSlot}>
-                  좋아요
-                </button>
-                <button type="button" className="chat-chip" onClick={() => setSlotId(null)}>
-                  다른 시간 고를래요
-                </button>
+                {scheduleTurn.options.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    className="chat-chip"
+                    onClick={() => (option.action === 'commitSlot' ? commitSlot() : setSlotId(null))}
+                  >
+                    {option.label}
+                  </button>
+                ))}
               </div>
             </>
           ) : null}
@@ -358,19 +379,25 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, onSave, onCl
       {stage === 'done' ? (
         <>
           <Bear>
-            <p>이번 주 계획이 완성됐어요.</p>
+            {doneTurn.say.map((line) => (
+              <p key={line}>{line}</p>
+            ))}
           </Bear>
-          <PlanSheet entries={finished} />
+          <PlanSheet entries={plan.entries} title={doneTurn.sheetTitle} />
           <div className="chat-choices">
-            <button type="button" className="btn primary" onClick={() => onSave(finished)}>
-              홈에 저장
-            </button>
-            <button type="button" className="btn" onClick={() => window.print()}>
-              <Printer aria-hidden="true" size={16} />
-              인쇄하기
-            </button>
+            {doneTurn.actions.map((action) => (
+              <button
+                key={action.id}
+                type="button"
+                className={action.primary ? 'btn primary' : 'btn'}
+                onClick={() => (action.id === 'save' ? onSave(plan) : window.print())}
+              >
+                {action.id === 'print' ? <Printer aria-hidden="true" size={16} /> : null}
+                {action.label}
+              </button>
+            ))}
           </div>
-          <PlanSheet entries={finished} className="print-sheet" />
+          <PlanSheet entries={plan.entries} className="print-sheet" />
         </>
       ) : null}
     </BearPanel>
