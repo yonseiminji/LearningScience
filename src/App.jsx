@@ -5,6 +5,7 @@ import SubjectBoard from './components/SubjectBoard.jsx'
 import TodoPage from './components/TodoPage.jsx'
 import Timetable from './components/Timetable.jsx'
 import GuideView from './components/GuideView.jsx'
+import LecturePage from './components/LecturePage.jsx'
 import SideWing from './components/SideWing.jsx'
 import ChatRoom from './components/ChatRoom.jsx'
 
@@ -29,6 +30,9 @@ export default function App() {
   const [criterionResponses, setCriterionResponses] = useState(() => ({
     ...data.initialProgress.criterionResponses,
   }))
+  // Lecture transcripts, kept per subject so one lecture's notes never show
+  // under another. Browser-only: nothing is uploaded or stored on a server.
+  const [lectureNotes, setLectureNotes] = useState({})
 
   const counts = overallCounts(stepCompletion)
   const guideAssignment = assignmentForSubject(guideSubjectId)
@@ -47,7 +51,7 @@ export default function App() {
     if (complete) {
       const index = assignment.steps.findIndex((item) => item.id === stepId)
       const following = assignment.steps.slice(index + 1).find((item) => item.id !== stepId && !stepCompletion[item.id])
-      if (following && view === 'guide' && assignment.subjectId === guideSubjectId) {
+      if (following && (view === 'guide' || view === 'lecture') && assignment.subjectId === guideSubjectId) {
         setActiveStepId(following.id)
       }
     }
@@ -62,6 +66,25 @@ export default function App() {
     setGuideSubjectId(subjectId)
     setActiveStepId(firstOpenStep(assignment, stepCompletion)?.id || null)
     setView('guide')
+  }
+
+  function openLecture(subjectId) {
+    const assignment = assignmentForSubject(subjectId)
+    setGuideSubjectId(subjectId)
+    setActiveStepId(firstOpenStep(assignment, stepCompletion)?.id || null)
+    setView('lecture')
+    window.scrollTo({ top: 0 })
+  }
+
+  function addLectureNote(subjectId, note) {
+    setLectureNotes((current) => ({ ...current, [subjectId]: [...(current[subjectId] || []), note] }))
+  }
+
+  function removeLectureNote(subjectId, fileId) {
+    setLectureNotes((current) => ({
+      ...current,
+      [subjectId]: (current[subjectId] || []).filter((note) => note.fileId !== fileId),
+    }))
   }
 
   function openSubjectTasks(subjectId) {
@@ -90,8 +113,25 @@ export default function App() {
     }
   }
 
+  // Everything GuideView needs, shared by the standalone view and the
+  // 과제 수행 section of the lecture page.
+  const guideProps = {
+    stepCompletion,
+    criterionCompletion,
+    criterionResponses,
+    activeStepId: currentStepId,
+    onSelectStep: setActiveStepId,
+    onChangeResponse: (id, value) => setCriterionResponses((current) => ({ ...current, [id]: value })),
+    onSubmitCriterion: submitCriterion,
+    onCompleteStep: (assignment, stepId) => markStep(assignment, stepId, true),
+    onBack: () => setView('home'),
+    onAskHelp: () => openChat(guideSubjectId),
+  }
+
+  const isFocusView = view === 'guide' || view === 'lecture'
+
   return (
-    <div className={view === 'guide' ? 'shell is-guide' : 'shell'}>
+    <div className={isFocusView ? 'shell is-guide' : 'shell'}>
       <header className="topbar">
         <div className="frame bar">
           <nav className="nav" aria-label="주요 메뉴">
@@ -131,7 +171,7 @@ export default function App() {
                   <img className="hero-banner" src="/brand/hero-banner.webp" alt="곰곰이와 함께 한 단계씩 공부를 정리해요" />
                   <p className="hint">{data.notes[0]}</p>
                 </section>
-                <SubjectBoard stepCompletion={stepCompletion} onOpen={openGuide} />
+                <SubjectBoard stepCompletion={stepCompletion} onOpen={openLecture} />
               </>
             ) : null}
             {view === 'tasks' ? (
@@ -144,21 +184,17 @@ export default function App() {
             ) : null}
             {view === 'timetable' ? <Timetable onOpenSubject={openSubjectTasks} /> : null}
             {view === 'guide' && guideAssignment ? (
-              <GuideView
-                assignment={guideAssignment}
+              <GuideView {...guideProps} assignment={guideAssignment} subject={guideSubject} />
+            ) : null}
+            {view === 'lecture' ? (
+              <LecturePage
                 subject={guideSubject}
-                stepCompletion={stepCompletion}
-                criterionCompletion={criterionCompletion}
-                criterionResponses={criterionResponses}
-                activeStepId={currentStepId}
-                onSelectStep={setActiveStepId}
-                onChangeResponse={(id, value) =>
-                  setCriterionResponses((current) => ({ ...current, [id]: value }))
-                }
-                onSubmitCriterion={submitCriterion}
-                onCompleteStep={(assignment, stepId) => markStep(assignment, stepId, true)}
+                assignment={guideAssignment}
+                notes={lectureNotes[guideSubjectId] || []}
+                onAddNote={(note) => addLectureNote(guideSubjectId, note)}
+                onRemoveNote={(fileId) => removeLectureNote(guideSubjectId, fileId)}
                 onBack={() => setView('home')}
-                onAskHelp={() => openChat(guideSubjectId)}
+                guideProps={guideProps}
               />
             ) : null}
           </div>
@@ -166,7 +202,7 @@ export default function App() {
             counts={counts}
             stepCompletion={stepCompletion}
             onOpenTasks={openTasks}
-            onOpenChat={() => openChat(view === 'guide' ? guideSubjectId : focusSubjectId)}
+            onOpenChat={() => openChat(isFocusView ? guideSubjectId : focusSubjectId)}
           />
         </div>
       </main>

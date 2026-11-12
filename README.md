@@ -80,6 +80,17 @@ src/
     SideWing.jsx
     ChatRoom.jsx
     ChagokBlocks.jsx
+    ProgressRing.jsx
+    LecturePage.jsx
+    LectureUnderstanding.jsx
+    TxtUpload.jsx
+    ClovaGuideDialog.jsx
+    RecordingNoticeDialog.jsx
+    Modal.jsx
+  lectureNotes.js
+public/guide/
+  Clova_Join.png
+  Clova_Login.png
 ```
 
 `src/data/assignments.mock.json` is the only assignment source. It is the supplied file, unchanged. Completion and typed responses live in React state, keyed by the step and criterion ids in that file.
@@ -87,11 +98,31 @@ src/
 ## What the demo does
 
 1. The first screen is the hero. Scrolling reveals the three subject cards.
-2. Each card shows the deadline as 마감 MM월 DD일 HH:mm, a computed D-day, step checkboxes, and **자세히 보기**.
+2. Each card shows the deadline as 마감 MM월 DD일 HH:mm, a computed D-day, a progress ring, and **강의탭 이동**, which opens that lecture's page.
 3. In the guide, recording every criterion for a step, or clicking **이 단계 완료**, completes that step and moves to the next one. There are no 이전 or 다음 buttons.
 4. **시간표 등록** explains that registration is not saved. Class blocks open that subject’s 할 일.
 5. 곰곰이 opens a class chat labeled as prepared examples, not a live model.
 6. `prefers-reduced-motion: reduce` shows the board and steps without the travel.
+
+## 강의탭 (v2.1)
+
+**강의탭 이동** on a home card opens one lecture, split into the three kinds of work a week holds. The sections snap to the top of the screen with `scroll-snap-type: y proximity`, so a section longer than the screen still scrolls freely, and snapping and smooth scrolling are both dropped under `prefers-reduced-motion: reduce`.
+
+1. **강의 이해 지원.** 차곡차곡 records nothing itself. **강의 녹음하기** shows the ClovaNote walkthrough to a first-time learner, then the pre-recording notice; only **확인했습니다** opens `clovanote.naver.com` in a new tab, so Escape and a backdrop click leave the learner where they are. **클로바노트 사용법 보기** reopens the walkthrough at any time.
+2. **과제 수행.** The existing assignment guide, embedded unchanged.
+3. **복습 및 개인 공부.** Labelled 준비 중. Nothing here pretends to work yet.
+
+Notes are kept per lecture, so one lecture's transcripts never appear under another.
+
+### ClovaNote walkthrough
+
+Two cases, each with a screenshot of the service's front page: 처음 사용해요 points at 개인용 시작하기, 이미 사용하고 있어요 points at 로그인. The walkthrough shows itself once; `localStorage` under `chagok.clovaGuideSeen` remembers that it has been read, and a storage failure simply means it shows again. 차곡차곡 never signs in to that service and does not track whether the learner has an account there.
+
+### TXT upload
+
+`src/lectureNotes.js` holds the file rules — `.txt` only, 3MB ceiling, empty-file and read-failure messages — with no React in it, so the processing and the UI can change apart from each other. `TxtUpload.jsx` is the drop zone: click or drag, a highlight while dragging, the file name, size and upload time, a preview of the text, and a delete button that clears the entry.
+
+Each accepted file becomes `{ lectureId, fileId, fileName, fileSize, text, uploadedAt }` — the shape a later retrieval step would index. Nothing is sent anywhere: the text is read with the File API, held in React state, and lost on reload. There is no embedding, no vector search, and no model call.
 
 ## 변경사항
 

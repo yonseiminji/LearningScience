@@ -1,3 +1,4 @@
+import { ChevronRight } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 import { data, ddayLabel, dueChipClass, formatDue, stepCounts } from '../assignmentModel.js'
 import ProgressRing from './ProgressRing.jsx'
@@ -37,7 +38,8 @@ export default function SubjectBoard({ stepCompletion, onOpen }) {
                 <ProgressRing done={counts.done} total={counts.total} />
               </div>
               <button type="button" className="btn subject-open" onClick={() => onOpen(subject.id)}>
-                자세히 보기
+                강의탭 이동
+                <ChevronRight aria-hidden="true" size={16} />
               </button>
             </article>
           )

@@ -17,7 +17,12 @@ export default function GuideView({
   onCompleteStep,
   onBack,
   onAskHelp,
+  embedded = false,
 }) {
+  // Inside the lecture page the section heading already carries the level, so
+  // the assignment and step titles step down one rank.
+  const Title = embedded ? 'h3' : 'h1'
+  const StepTitle = embedded ? 'h4' : 'h2'
   const reduce = useReducedMotion()
   const [instructionOpen, setInstructionOpen] = useState(false)
   const step = assignment.steps.find((item) => item.id === activeStepId) || assignment.steps[0]
@@ -26,11 +31,13 @@ export default function GuideView({
   const segments = segmentInstruction(assignment)
 
   return (
-    <div className="guide">
-      <button type="button" className="guide-back" onClick={onBack}>
-        <ChevronLeft aria-hidden="true" size={16} />
-        홈으로
-      </button>
+    <div className={embedded ? 'guide is-embedded' : 'guide'}>
+      {embedded ? null : (
+        <button type="button" className="guide-back" onClick={onBack}>
+          <ChevronLeft aria-hidden="true" size={16} />
+          홈으로
+        </button>
+      )}
 
       <header className="guide-head">
         <div>
@@ -38,7 +45,7 @@ export default function GuideView({
             <span className={`subject-dot dot-${subject?.colorToken}`} aria-hidden="true" />
             {subject?.name}
           </p>
-          <h1>{assignment.title}</h1>
+          <Title>{assignment.title}</Title>
           <p className="due-row">
             <span className={dueChipClass(assignment.dueAt)}>{ddayLabel(assignment.dueAt)}</span>
             <span>{formatDue(assignment.dueAt)}</span>
@@ -137,7 +144,7 @@ export default function GuideView({
             <p className="step-eyebrow">
               {stepIndex + 1}단계 / {assignment.steps.length}단계
             </p>
-            <h2>{step.title}</h2>
+            <StepTitle>{step.title}</StepTitle>
             <p className="step-desc">{step.description}</p>
             {step.prerequisiteTip ? (
               <p className="step-tip">

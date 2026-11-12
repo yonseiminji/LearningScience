@@ -664,3 +664,189 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 .chat-log .chat-chip { min-height: 38px; border: 1.5px solid var(--accent); border-radius: 12px; font-size: 14px; font-weight: 600; }
 .chat-dialog[open] .chat-log { padding-top: 20px; }
 
+
+/* ─── 강의탭: three stacked sections, each snapping to the top of the screen ─── */
+.lecture-page { display: flex; flex-direction: column; gap: 20px; }
+.lecture-head { padding: 4px 0 8px; }
+.lecture-head h1 { margin: 2px 0 6px; font-size: var(--fs-title); }
+.lecture-lead { margin: 0; color: var(--muted); font-size: var(--fs-body); }
+
+.lecture-section {
+  scroll-snap-align: start;
+  scroll-margin-top: 84px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+.lecture-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 6px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+  font-size: 22px;
+}
+.lecture-section-title svg { color: var(--accent); }
+.section-lead { margin: 14px 0 18px; color: var(--text-2); }
+.subsection-title { margin: 0 0 10px; font-size: var(--fs-section); }
+
+/* the assignment guide sits inside a section, so it drops its own card chrome */
+.guide.is-embedded { margin-top: 16px; }
+.guide.is-embedded .guide-head h3 { margin: 2px 0 6px; font-size: 20px; }
+
+.placeholder-card {
+  margin-top: 16px;
+  padding: 20px;
+  border: 1px dashed var(--block-line);
+  border-radius: 14px;
+  background: var(--raised);
+}
+.placeholder-card p { margin: 0 0 8px; }
+.placeholder-card p:last-child { margin-bottom: 0; }
+.placeholder-tag {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--track);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* 강의 이해 지원 */
+.understand-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.understand-hint { margin: 12px 0 0; }
+.understand-upload { margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--line); }
+.external-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: var(--fs-body);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.external-note:hover { color: var(--accent); }
+
+/* TXT upload: click or drop, read in the browser only */
+.dropzone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 160px;
+  padding: 24px;
+  border: 2px dashed var(--block-line);
+  border-radius: 14px;
+  background: var(--bg);
+  color: var(--text-2);
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 150ms var(--ease), border-color 150ms var(--ease);
+}
+.dropzone:hover { border-color: var(--accent); background: var(--hover); }
+.dropzone:focus-within { outline: 3px solid var(--hi); outline-offset: 2px; }
+.dropzone.is-active { border-color: var(--accent); background: var(--raised); }
+.dropzone svg, .dropzone p { pointer-events: none; }
+.dropzone svg { color: var(--accent); }
+.dropzone-input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.dropzone-msg { margin: 6px 0 0; font-weight: 600; color: var(--ink); }
+.dropzone-desc { margin: 0; font-size: var(--fs-body); }
+.dropzone-note { margin: 8px 0 0; color: var(--muted); font-size: 12px; }
+.upload-error {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--soon-bg);
+  color: var(--soon);
+  font-size: var(--fs-body);
+}
+
+.note-list { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 8px; }
+.note-item { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.note-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
+.note-row > svg { flex: none; color: var(--accent); }
+.note-main { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.note-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: var(--fs-body); }
+.note-meta { color: var(--muted); font-size: 12px; }
+.note-toggle { flex: none; min-height: 32px; padding: 0 12px; font-size: var(--fs-body); }
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text-2);
+  cursor: pointer;
+  transition: background-color 150ms var(--ease), color 150ms var(--ease);
+}
+.icon-btn:hover { background: var(--soon-bg); color: var(--soon); }
+.note-preview {
+  margin: 0;
+  padding: 12px 14px;
+  border-top: 1px solid var(--line);
+  max-height: 240px;
+  overflow: auto;
+  font-family: inherit;
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  color: var(--text-2);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* dialogs: ClovaNote walkthrough and the pre-recording notice */
+.modal-panel { display: flex; flex-direction: column; gap: 14px; }
+.dialog-title { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 20px; }
+.dialog-title svg { color: var(--accent); }
+.dialog-lead { margin: 0; color: var(--text-2); }
+.dialog-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.clova-dialog .help-types { margin: 0; }
+.help-type-arrow { margin-left: auto; color: var(--muted); }
+
+.clova-figure { margin: 0; }
+.clova-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.clova-figure figcaption { margin-top: 8px; color: var(--text-2); font-size: var(--fs-body); }
+.clova-steps { margin: 0; padding-left: 20px; color: var(--text-2); font-size: var(--fs-body); }
+.clova-steps li + li { margin-top: 6px; }
+
+.notice-body p { margin: 0 0 10px; }
+.notice-body p:last-child { margin-bottom: 0; }
+.notice-law { color: var(--muted); font-size: var(--fs-body); }
+
+/* gentle snapping: sections settle at the top, long ones still scroll freely */
+@media (prefers-reduced-motion: no-preference) {
+  html:has(.lecture-page) { scroll-snap-type: y proximity; scroll-behavior: smooth; }
+}
+
+@media (max-width: 720px) {
+  .lecture-section { padding: 18px 16px; scroll-margin-top: 72px; }
+  .lecture-section-title { font-size: 19px; }
+  .lecture-head h1 { font-size: 24px; }
+  .understand-actions .btn { width: 100%; justify-content: center; }
+  .external-note { width: 100%; }
+  .dropzone { min-height: 140px; padding: 18px; }
+  .note-row { flex-wrap: wrap; }
+  .note-main { flex-basis: 100%; order: -1; }
+  .note-toggle { margin-left: auto; }
+  .dialog-actions .btn { flex: 1; justify-content: center; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dropzone, .icon-btn, .external-note { transition: none; }
+}
