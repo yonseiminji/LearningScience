@@ -1250,7 +1250,17 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 .commu-back { align-self: flex-start; margin-top: 4px; }
 
 /* 홈 보드의 진입 카드 */
-.commu-card { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+/* .subject-card is a column flex, so this has to say row or the card stacks
+   and centres itself. Laid out like the subject rows above it: a marker, the
+   text, then the action on the right. */
+.commu-card {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+}
 .commu-card-icon {
   display: grid;
   place-items: center;
@@ -1261,17 +1271,19 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
   background: var(--chip);
   color: var(--accent);
 }
-.commu-card-main { flex: 1 1 220px; min-width: 0; }
+.commu-card-main { flex: 1 1 240px; min-width: 0; }
 .commu-card-main h3 { margin: 0 0 2px; font-size: var(--fs-section); font-weight: 700; }
 .commu-card-main p { margin: 0; color: var(--muted); font-size: var(--fs-body); }
-.commu-card-open { flex: none; }
+.commu-card-open { flex: none; margin-left: auto; min-height: 36px; padding: 0 14px; }
 
 @media (max-width: 720px) {
   .chat-tabs { padding: 10px 14px 0; }
   .chat-tab { padding: 0 12px; }
   .commu-states { width: 100%; }
   .commu-state { flex: 1; }
-  .commu-card-open { width: 100%; justify-content: center; }
+  .commu-card { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .commu-card-main { flex: 1 1 auto; }
+  .commu-card-open { width: 100%; margin-left: 0; justify-content: center; }
   .commu-row .btn { flex: 1 1 auto; justify-content: center; }
 }
 
