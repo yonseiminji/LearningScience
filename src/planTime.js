@@ -126,26 +126,42 @@ export function seoulMondayOf(value) {
 
 // ─── display ─────────────────────────────────────────────────────────────
 
-// '금 11:00', or '다음 주 월 09:00' when it falls in the week after `now`.
-export function formatSeoulSlot(value, now = new Date()) {
+// The one date format every time-picking button and echo uses:
+// '11월 13일(금) 11:00'. A year is added only when the slot falls in a
+// different year from `now`, so a plan made in late December reads
+// '2027년 1월 5일(월) 09:00' instead of a bare '1월 5일'.
+//
+// '다음 주 월' was dropped on purpose: a weekday alone makes the reader work
+// out which week is meant, and gets worse the further ahead the slot is.
+export function formatSeoulDateTime(value, now = new Date()) {
   const f = seoulFields(value)
   if (!f) return ''
-  return `${nextWeekPrefix(value, now)}${DAY_NAMES[f.weekday]} ${seoulClock(value)}`
+  return `${seoulYearPrefix(f, now)}${f.month}월 ${f.day}일(${DAY_NAMES[f.weekday]}) ${seoulClock(value)}`
 }
 
-// '금요일 11시' — the spoken form 곰곰이 uses when confirming.
+// The spoken form 곰곰이 uses when confirming: '11월 16일 월요일 9시'.
 export function formatSeoulSentence(value, now = new Date()) {
   const f = seoulFields(value)
   if (!f) return ''
   const clock = f.minute === 0 ? `${f.hour}시` : `${f.hour}시 ${f.minute}분`
-  return `${nextWeekPrefix(value, now)}${DAY_NAMES[f.weekday]}요일 ${clock}`
+  return `${seoulYearPrefix(f, now)}${f.month}월 ${f.day}일 ${DAY_NAMES[f.weekday]}요일 ${clock}`
 }
 
-function nextWeekPrefix(value, now) {
+// The short form, kept for the places that are tight for room: the plan list
+// in the 이번주 block and in 나의 할 일.
+export function formatSeoulSlot(value, now = new Date()) {
+  const f = seoulFields(value)
+  if (!f) return ''
   const monday = seoulMondayOf(now)
   const nextMonday = monday ? addSeoulDays(monday, 7) : null
   const date = seoulDateString(value)
-  return nextMonday && date && date >= nextMonday ? '다음 주 ' : ''
+  const prefix = nextMonday && date && date >= nextMonday ? '다음 주 ' : ''
+  return `${prefix}${DAY_NAMES[f.weekday]} ${seoulClock(value)}`
+}
+
+function seoulYearPrefix(fields, now) {
+  const here = seoulFields(now)
+  return here && fields.year !== here.year ? `${fields.year}년 ` : ''
 }
 
 export function formatMonthDay(value) {

@@ -1018,20 +1018,24 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 .pick-due { color: var(--muted); font-size: 12px; }
 
 /* free hours in the timetable */
-.slot-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.slot-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px; }
 .slot-chip {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 2px;
-  min-height: 46px;
-  padding: 6px 10px;
+  min-height: 48px;
+  padding: 8px 12px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--surface);
   color: var(--ink);
   font-size: var(--fs-body);
+  line-height: 1.35;
+  text-align: center;
+  overflow-wrap: anywhere;
+  word-break: keep-all;
   cursor: pointer;
   transition: background-color 150ms var(--ease), border-color 150ms var(--ease);
 }
@@ -1076,6 +1080,7 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 @media (max-width: 720px) {
   .wing-plan-list li { grid-template-columns: minmax(0, 1fr); gap: 2px; }
   .slot-grid { grid-template-columns: minmax(0, 1fr); }
+  .slot-chip { min-height: 52px; }
   .plan-popup { width: 100vw; height: 100svh; max-height: 100svh; border-radius: 0; }
   .plan-popup-bear { width: 48px; height: 48px; }
   .plan-popup-titles h2 { font-size: 18px; }

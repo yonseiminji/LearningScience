@@ -145,9 +145,10 @@ export function validatePlan(plan, { stepCompletion = {}, now = new Date(), prev
     }
   })
 
-  // 3. no more steps than the week was set to hold
+  // 3. no more steps than the week was set to hold. null = the learner was
+  //    not capped, so there is nothing to exceed.
   const maxPicks = plan?.settings?.maxPicks
-  if (Number.isFinite(maxPicks) && entries.length > maxPicks) {
+  if (maxPicks !== null && Number.isFinite(maxPicks) && entries.length > maxPicks) {
     errors.push({
       code: PLAN_ERROR.TOO_MANY_ENTRIES,
       message: `이번 주에는 ${maxPicks}개까지 담기로 했는데 ${entries.length}개가 들어 있어요.`,

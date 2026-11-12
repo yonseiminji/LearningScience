@@ -11,9 +11,10 @@ import {
   buildPlan,
   createProposal,
   formatMonthDay,
-  formatSlotLabel,
+  formatSlotDateTime,
   formatSlotSentence,
   freeSlots,
+  hydrateEntry,
   labelFor,
   planCandidates,
   sortCandidates,
@@ -62,7 +63,7 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, previousPlan
 
   const candidates = useMemo(() => planCandidates(stepCompletion), [stepCompletion])
   const sorted = useMemo(() => sortCandidates(candidates, sortMode), [candidates, sortMode])
-  const slots = useMemo(() => freeSlots(new Date(), 8), [])
+  const slots = useMemo(() => freeSlots(new Date(), Math.max(8, picked.length * 2)), [picked.length])
   const example = useMemo(() => {
     const rows = sortCandidates(planCandidates(stepCompletion), 'due').slice(0, 3)
     const free = freeSlots(new Date(), 6)
@@ -79,7 +80,7 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, previousPlan
   }, [stepCompletion])
 
   const reached = (id) => rank(stage) >= rank(id)
-  const maxPicks = effects.maxPicks ?? MAX_PICKS
+  const maxPicks = effects.maxPicks ?? MAX_PICKS // null = 할 수 있는 만큼
   const defaultMinutes = effects.defaultMinutes ?? DEFAULT_MINUTES
   const pickedRows = picked.map((id) => candidates.find((row) => row.stepId === id)).filter(Boolean)
   // the next picked step with no hour yet — derived, so dropping a refused
@@ -91,7 +92,7 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, previousPlan
   const chosenSlot = slots.find((slot) => slot.id === slotId) || null
   const usedSlotIds = new Set(draft.map((entry) => entry.scheduledAt))
   const scheduledCount = draft.length
-  const minPicks = Math.min(2, sorted.length)
+  const minPicks = Math.min(1, sorted.length)
 
   const introTurn = getTurn('intro')
   const reviewTurn = getTurn('review')
@@ -111,7 +112,7 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, previousPlan
   function togglePick(stepId) {
     setPicked((current) => {
       if (current.includes(stepId)) return current.filter((id) => id !== stepId)
-      if (current.length >= maxPicks) return current
+      if (maxPicks !== null && current.length >= maxPicks) return current
       return [...current, stepId]
     })
   }
@@ -255,7 +256,7 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, previousPlan
         <>
           <Bear>
             <p>{pickTurn.sayBySort[sortMode]}</p>
-            <p>{fill(pickTurn.ask, { picks: pickTurn.picksLabel[String(maxPicks)] })}</p>
+            <p>{fill(pickTurn.ask, { picks: pickTurn.picksLabel[maxPicks === null ? 'none' : String(maxPicks)] })}</p>
           </Bear>
           <div className="plan-sort">
             <span className="plan-sort-label">{pickTurn.sortLabel}</span>
@@ -276,7 +277,7 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, previousPlan
             {sorted.map((row) => {
               const on = picked.includes(row.stepId)
               const locked = reached('schedule')
-              const full = !on && picked.length >= maxPicks
+              const full = !on && maxPicks !== null && picked.length >= maxPicks
               if (locked && !on) return null
               return (
                 <li key={row.stepId}>
@@ -325,16 +326,21 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, previousPlan
       {reached('schedule') ? (
         <>
           <Me>{fill(pickTurn.confirmLabel, { count: picked.length })}</Me>
-          {draft.map((entry) => (
-            <div key={entry.stepId}>
-              <Bear>
-                <p>{fill(scheduleTurn.ask, { step: `${entry.subjectName} ${entry.stepNumber}단계` })}</p>
-              </Bear>
-              <Me>
-                {formatSlotLabel(entry.scheduledAt)} · {entry.minutes}분
-              </Me>
-            </div>
-          ))}
+          {/* draft holds proposal entries; the labels come from the
+              assignment data, in the order the learner decided them */}
+          {draft.map((entry) => {
+            const filled = hydrateEntry(entry)
+            return (
+              <div key={entry.stepId}>
+                <Bear>
+                  <p>{fill(scheduleTurn.ask, { step: filled ? labelFor(filled) : entry.stepId })}</p>
+                </Bear>
+                <Me>
+                  {formatSlotDateTime(entry.scheduledAt)} · {entry.minutes}분
+                </Me>
+              </div>
+            )
+          })}
         </>
       ) : null}
 
@@ -355,7 +361,7 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, previousPlan
                   disabled={used}
                   onClick={() => setSlotId(slot.id)}
                 >
-                  {formatSlotLabel(slot.date)}
+                  {formatSlotDateTime(slot.date)}
                   {used ? <span className="slot-used">이미 정함</span> : null}
                 </button>
               )
