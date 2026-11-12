@@ -672,7 +672,6 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 .lecture-lead { margin: 0; color: var(--muted); font-size: var(--fs-body); }
 
 .lecture-section {
-  scroll-snap-align: start;
   scroll-margin-top: 84px;
   padding: 24px;
   border: 1px solid var(--line);
@@ -863,9 +862,10 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 .notice-body p:last-child { margin-bottom: 0; }
 .notice-law { color: var(--muted); font-size: var(--fs-body); }
 
-/* gentle snapping: sections settle at the top, long ones still scroll freely */
+/* free scrolling: nothing pulls the page to a section boundary. smooth only
+   applies to anchor and scripted jumps, never to the wheel or a drag. */
 @media (prefers-reduced-motion: no-preference) {
-  html:has(.lecture-page) { scroll-snap-type: y proximity; scroll-behavior: smooth; }
+  html:has(.lecture-page) { scroll-behavior: smooth; }
 }
 
 @media (max-width: 720px) {
