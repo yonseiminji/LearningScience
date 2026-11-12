@@ -89,7 +89,7 @@ src/
     Modal.jsx
     WeekPlanPanel.jsx
     ReplanPanel.jsx
-    CommunicationWizard.jsx
+    communication/     ← 소통 준비하기 (7개 컴포넌트)
     review/            ← 복습 및 개인 공부 모듈
   services/tutorService.js
   services/mockTutorService.js
@@ -182,28 +182,56 @@ A TXT that is deleted takes its analysis and its wrong answers with it — keepi
 
 ## 소통 준비하기 (v2.2)
 
-Asking for help is its own skill, and a learner who is stuck on a question often cannot start the sentence. 곰곰이 asks four things and hands back a message to send.
+Asking for help is its own skill, and a learner stuck on a question often cannot start the sentence. 곰곰이 asks four things and hands back a message to send. The panel opens from the card on the home board or from the 소통 준비하기 tab; **과제 도움받기** is the class chat, unchanged.
 
-곰곰이's panel now carries two tabs. **과제 도움받기** is the class chat, unchanged. **소통 준비하기** is this: it opens from the card on the home board, or from the tab.
+### 네 단계
 
-1. **상대방** — 조원과 소통하기 or 교수님께 질문하기.
-2. **상황** — three per recipient, from the mock file.
-3. **확인할 정보** — each item gets 알고 있어요 / 알고 싶어요 / 잘 모르겠어요. All of them must be answered before moving on.
-4. **상황 입력** — the learner's own words, plus an optional course.
+1. **상대방과 상황** — 조원과 소통하기 or 교수님께 질문하기, then one of that person's three difficulties.
+2. **확인할 정보** — each item gets 알고 있어요 / 알고 싶어요 / 잘 모르겠어요. All of them must be answered before moving on: what the learner does not know is what the question will be about.
+3. **현재 상황 입력** — their own words, or 예시 사용하기 to drop in this situation's prepared example.
+4. **질문 문장** — a medium (이메일 · 메시지 · 대면 질문, by recipient), an editable draft, 원래 문장으로 되돌리기, 문장 다시 구성하기, 문장 복사하기.
 
-Then the sentence: a medium to send it through (이메일 · 메시지 · 대면 질문, by recipient), an editable draft, and 문장 복사하기.
+### 여섯 시나리오
+
+| 상대 | situationId | 확인할 정보 | 매체 |
+| --- | --- | --- | --- |
+| 조원 | `role_unclear` | 담당 작업 · 결과물 형식 · 완료 기준 · 마감 기한 | 메시지 · 대면 |
+| 조원 | `schedule_coordination` | 가능한 시간 · 중간 점검일 · 최종 마감일 | 메시지 · 대면 |
+| 조원 | `message_unclear` | 요청의 의미 · 작업 범위 · 우선순위 · 결과물 형식 | 메시지 · 대면 |
+| 교수님 | `assignment_unclear` | 과제의 목적 · 필수 내용 · 평가 기준 · 제출 형식 · 마감 기한 | 이메일 · 메시지 · 대면 |
+| 교수님 | `lecture_unclear` | 핵심 개념 · 어려운 용어 · 개념 간 관계 · 구체적인 사례 · 참고 자료 | 이메일 · 메시지 · 대면 |
+| 교수님 | `presentation_help` | 발표의 핵심 내용 · 발표 구성 · 예상 질문 · 답변 방법 · 평가 기준 | 이메일 · 메시지 · 대면 |
+
+Fifteen prepared sentences in all, one per situation per medium, every one different. An email carries a greeting and a closing, a message is short, and a spoken question is one run of plain sentences. Each situation also carries an `exampleContext`; the two the original spec wrote are kept word for word and marked `exampleSource: "spec"`, the four written for this round are marked `"added"`.
 
 ### 무엇을 짓고 무엇을 짓지 않는가
 
-The free text is carried through **as the learner wrote it**. This generator has no model behind it: it does not read, summarise or answer what they typed, and it never adds a fact they did not give — no name, no student number, no course they did not pick. The panel says so on every screen: 시연용 UI · 실제 AI 및 메시지 전송 기능 미연동. Nothing is sent anywhere; the learner copies the text and sends it themselves.
+There is no model behind this. The honest line runs through `contextSource`:
 
-The worked example in `demoSession` is used only when the whole session matches it, free text included, so a hand-written sentence never stands in for something a learner actually typed.
+- The box still holds a prepared example, untouched → the prepared sentence answers it, and 곰곰이 uses the spec's wording.
+- The learner typed their own words, or changed the example by a character → the sentence is a **template wrapped around their text, carried through as written**, and the panel says so: 적어 주신 내용은 고치지 않고 그대로 넣었어요. 곰곰이가 뜻을 읽은 것은 아니에요.
+
+A prepared sentence is never presented as a reading of something the learner typed. `basis` on every draft says which of the two it is, so no screen can be mistaken about it. Nothing is added that the learner did not supply — `(학번) (이름)` is a blank for them to fill, the convention the spec's own examples use, not an invented identity. Nothing is sent anywhere; they copy the text and send it themselves.
+
+Edits are kept apart from the original: `generatedText` never changes, `editedText` holds the learner's version, and 복사 takes `editedText` when `isUserEdited`. 원래 문장으로 되돌리기 drops the edit.
 
 Korean particles are chosen from the last syllable's final consonant — 마감 기한**은**, 작업 범위**를** — rather than written 은(는).
 
+### CommunicationDraft 계약
+
+```json
+{
+  "schemaVersion": 1, "source": "mock", "status": "ready",
+  "recipientId": "professor", "situationId": "assignment_unclear", "channel": "email",
+  "basis": "prepared-example",
+  "identifiedNeeds": ["과제에서 사용할 이론의 개수 확인"],
+  "draft": { "generatedText": "교수님, 안녕하세요. …", "editedText": null, "isUserEdited": false }
+}
+```
+
 ### LLM으로 바꿀 자리
 
-`generateDraft(session)` in `src/communication.js`, and `createDraft()` around it. An LLM returning a `CommunicationDraft` of the same shape changes nothing above it: the wizard collects answers and renders what came back, and `source` on the draft says who wrote it. `docs/Commu_SysPrompt.txt` is the prompt it would run. All wording and choices come from `src/data/communication.mock.json`; the components hold no copy of their own.
+`generateDraft(session)` in `src/communication.js`. A Communication Agent returning the same draft changes nothing above it — the panel collects answers and renders what came back. `docs/Commu_SysPrompt.txt` is the prompt it would run. All wording and choices come from `src/data/communication.mock.json`; the components hold no copy of their own, and `src/components/communication/` splits them one per job: `CommunicationPanel` · `RecipientSelector` · `SituationSelector` · `InformationSelector` · `ContextInput` · `ChannelSelector` · `DraftEditor`.
 
 ## 이번 주 계획 (v2.2)
 

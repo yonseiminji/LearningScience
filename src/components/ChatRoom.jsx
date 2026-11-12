@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowUp, CircleCheck, FileText, ListChecks, X } from 'lucide-react'
 import { data, subjectById } from '../assignmentModel.js'
-import CommunicationWizard from './CommunicationWizard.jsx'
+import CommunicationPanel from './communication/CommunicationPanel.jsx'
 import { COPY } from '../communication.js'
 
 // 곰곰이 answers two different needs, so the panel carries two tabs.
@@ -158,7 +158,7 @@ export default function ChatRoom({
 
       {tab === 'commu' ? (
         <div className="chat-log commu-body" ref={logRef}>
-          <CommunicationWizard
+          <CommunicationPanel
             session={commuSession}
             onSession={onCommuSession}
             step={commuStep}

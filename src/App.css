@@ -1247,7 +1247,35 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 
 .commu-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .commu-copied { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--done); font-size: var(--fs-body); }
-.commu-back { align-self: flex-start; margin-top: 4px; }
+
+/* 예시 사용하기 — 준비된 시연용 문장임을 눈에 보이게 */
+.commu-example {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px dashed var(--block-line);
+  border-radius: 12px;
+  background: var(--raised);
+}
+.commu-example-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0; color: var(--muted); font-size: 12px; }
+.commu-example-tag { padding: 2px 8px; border-radius: 999px; background: var(--chip); color: var(--text-2); font-size: 11px; font-weight: 600; }
+.commu-example-text { margin: 0; color: var(--ink); font-size: var(--fs-body); line-height: 1.7; }
+.commu-example .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+/* 확인하려는 것 */
+.commu-needs { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.commu-needs li {
+  position: relative;
+  padding-left: 16px;
+  color: var(--text-2);
+  font-size: var(--fs-body);
+  line-height: 1.7;
+}
+.commu-needs li::before { content: '·'; position: absolute; left: 4px; color: var(--accent); font-weight: 700; }
+
+.commu-nav { margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--line); }
 
 /* 홈 보드의 진입 카드 */
 /* .subject-card is a column flex, so this has to say row or the card stacks
