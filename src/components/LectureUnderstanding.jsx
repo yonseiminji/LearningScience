@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BookOpenCheck, ExternalLink, Mic } from 'lucide-react'
+import { BookOpenCheck, Mic } from 'lucide-react'
 import ClovaGuideDialog from './ClovaGuideDialog.jsx'
 import RecordingNoticeDialog from './RecordingNoticeDialog.jsx'
 import TxtUpload from './TxtUpload.jsx'
@@ -60,10 +60,6 @@ export default function LectureUnderstanding({ lectureId, notes, onAddNote, onRe
           <BookOpenCheck aria-hidden="true" size={18} />
           클로바노트 사용법 보기
         </button>
-        <a className="external-note" href={CLOVANOTE_URL} target="_blank" rel="noopener noreferrer">
-          clovanote.naver.com
-          <ExternalLink aria-hidden="true" size={14} />
-        </a>
       </div>
 
       <p className="hint understand-hint">

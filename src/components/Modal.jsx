@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 
 const FOCUSABLE =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
@@ -54,12 +55,14 @@ export default function Modal({ titleId, labelledBy, className = '', onClose, ch
     }
   }, [onClose])
 
-  return (
+  // Rendered at the end of <body> so no ancestor's stacking or transform can
+  // trap the panel behind the backdrop.
+  return createPortal(
     <>
       <div className="scrim" onClick={onClose} aria-hidden="true" />
       <div
         ref={panelRef}
-        className={`level-dialog modal-panel ${className}`.trim()}
+        className={`modal-panel ${className}`.trim()}
         role="dialog"
         aria-modal="true"
         aria-labelledby={labelledBy || titleId}
@@ -67,6 +70,7 @@ export default function Modal({ titleId, labelledBy, className = '', onClose, ch
       >
         {children}
       </div>
-    </>
+    </>,
+    document.body,
   )
 }
