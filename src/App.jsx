@@ -10,7 +10,7 @@ import SideWing from './components/SideWing.jsx'
 import ChatRoom from './components/ChatRoom.jsx'
 import WeekPlanPanel from './components/WeekPlanPanel.jsx'
 import ReplanPanel from './components/ReplanPanel.jsx'
-import { readHasPlanned, writeHasPlanned } from './weekPlan.js'
+import { planEntriesOf, readHasPlanned, writeHasPlanned } from './weekPlan.js'
 
 const NAV = [
   { id: 'home', label: '홈', icon: House },
@@ -36,8 +36,10 @@ export default function App() {
   // Lecture transcripts, kept per subject so one lecture's notes never show
   // under another. Browser-only: nothing is uploaded or stored on a server.
   const [lectureNotes, setLectureNotes] = useState({})
-  // 이번 주 계획: which steps the learner took on this week and when.
-  const [planEntries, setPlanEntries] = useState([])
+  // 이번 주 계획, as the JSON document the planning conversation hands back.
+  // 나의 할 일 and the 이번주 block both read it; nothing else decides what
+  // the learner's week holds.
+  const [plan, setPlan] = useState(null)
   const [hasPlanned, setHasPlanned] = useState(() => readHasPlanned())
   const [planPanelOpen, setPlanPanelOpen] = useState(false)
   const [replanEntry, setReplanEntry] = useState(null)
@@ -87,16 +89,21 @@ export default function App() {
     setLectureNotes((current) => ({ ...current, [subjectId]: [...(current[subjectId] || []), note] }))
   }
 
-  function savePlan(entries) {
-    setPlanEntries(entries)
+  function savePlan(document) {
+    setPlan(document)
     setPlanPanelOpen(false)
     writeHasPlanned()
     setHasPlanned(true)
   }
 
   function saveReplan(updated) {
-    setPlanEntries((current) =>
-      current.map((entry) => (entry.stepId === updated.stepId ? updated : entry)),
+    setPlan((current) =>
+      current
+        ? {
+            ...current,
+            entries: current.entries.map((entry) => (entry.stepId === updated.stepId ? updated : entry)),
+          }
+        : current,
     )
     setReplanEntry(null)
   }
@@ -212,11 +219,11 @@ export default function App() {
             ) : null}
             {view === 'tasks' ? (
               <TodoPage
+                plan={plan}
                 stepCompletion={stepCompletion}
                 focusSubjectId={focusSubjectId}
                 onToggleStep={toggleStep}
                 onOpen={openGuide}
-                onStartPlan={openPlanPanel}
               />
             ) : null}
             {view === 'timetable' ? <Timetable onOpenSubject={openSubjectTasks} /> : null}
@@ -237,7 +244,7 @@ export default function App() {
           </div>
           <SideWing
             stepCompletion={stepCompletion}
-            planEntries={planEntries}
+            planEntries={planEntriesOf(plan)}
             onStartPlan={openPlanPanel}
             onReplan={openReplanPanel}
             onOpenTasks={openTasks}
@@ -278,9 +285,9 @@ export default function App() {
       {replanEntry ? (
         <ReplanPanel
           entry={replanEntry}
-          otherSlotIsos={planEntries
+          otherSlotIsos={planEntriesOf(plan)
             .filter((entry) => entry.stepId !== replanEntry.stepId)
-            .map((entry) => entry.slotIso)}
+            .map((entry) => entry.scheduledAt)}
           onSave={saveReplan}
           onClose={() => setReplanEntry(null)}
         />

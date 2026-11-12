@@ -1,7 +1,7 @@
 import { CalendarPlus, Check, ListChecks, RotateCcw } from 'lucide-react'
 import ChagokBlocks from './ChagokBlocks.jsx'
 import { data, ddayLabel, dueChipClass, subjectById } from '../assignmentModel.js'
-import { entryStatus, formatSlotLabel, slotFromIso, sortEntries } from '../weekPlan.js'
+import { entryStatus, formatSlotLabel, sortEntries } from '../weekPlan.js'
 
 function dueDate(iso) {
   const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || '')
@@ -46,7 +46,7 @@ export default function SideWing({ stepCompletion, planEntries = [], onStartPlan
                   return (
                     <li key={entry.stepId} className={`is-${status}`}>
                       <span className="wing-plan-when">
-                        {formatSlotLabel(slotFromIso(entry.slotIso, entry.nextWeek))}
+                        {formatSlotLabel(entry.scheduledAt)}
                       </span>
                       <span className="wing-plan-what">
                         <span className="wing-plan-step">

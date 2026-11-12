@@ -10,12 +10,17 @@ export const DURATIONS = [10, 20, 40]
 export const DEFAULT_MINUTES = 20
 export const SHORT_MINUTES = 10
 export const MAX_PICKS = 3
-export const FEWER_PICKS = 2
 
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토']
 const DAY_MS = 86400000
 
 // ─── dates ───────────────────────────────────────────────────────────────
+
+export function mondayOf(date) {
+  const day = startOfDay(date)
+  const offset = (day.getDay() + 6) % 7 // Monday = 0
+  return new Date(day.getTime() - offset * DAY_MS)
+}
 
 export function startOfDay(value) {
   const date = new Date(value)
@@ -50,19 +55,39 @@ export function formatKoreanDate(date) {
   return `${date.getMonth() + 1}월 ${date.getDate()}일`
 }
 
-export function formatSlotLabel(slot) {
-  if (!slot) return ''
-  const prefix = slot.nextWeek ? '다음 주 ' : ''
-  return `${prefix}${DAY_NAMES[slot.date.getDay()]} ${slot.time}`
+function toDate(value) {
+  if (!value) return null
+  if (value instanceof Date) return value
+  if (value.date instanceof Date) return value.date
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? null : date
 }
 
-export function formatSlotSentence(slot) {
-  if (!slot) return ''
-  const hour = slot.date.getHours()
-  const minute = slot.date.getMinutes()
-  const clock = minute === 0 ? `${hour}시` : `${hour}시 ${minute}분`
-  const prefix = slot.nextWeek ? '다음 주 ' : ''
-  return `${prefix}${DAY_NAMES[slot.date.getDay()]}요일 ${clock}`
+function nextWeekPrefix(date, now = new Date()) {
+  return date.getTime() >= mondayOf(now).getTime() + 7 * DAY_MS ? '다음 주 ' : ''
+}
+
+export function formatClock(date) {
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+}
+
+export function formatSlotLabel(value, now = new Date()) {
+  const date = toDate(value)
+  if (!date) return ''
+  return `${nextWeekPrefix(date, now)}${DAY_NAMES[date.getDay()]} ${formatClock(date)}`
+}
+
+export function formatSlotSentence(value, now = new Date()) {
+  const date = toDate(value)
+  if (!date) return ''
+  const minute = date.getMinutes()
+  const clock = minute === 0 ? `${date.getHours()}시` : `${date.getHours()}시 ${minute}분`
+  return `${nextWeekPrefix(date, now)}${DAY_NAMES[date.getDay()]}요일 ${clock}`
+}
+
+export function formatIsoDate(date) {
+  if (!date) return null
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
 // ─── the steps a learner can plan ────────────────────────────────────────
@@ -120,12 +145,6 @@ export function labelFor(row) {
 
 // ─── free time in the timetable ──────────────────────────────────────────
 
-function mondayOf(date) {
-  const day = startOfDay(date)
-  const offset = (day.getDay() + 6) % 7 // Monday = 0
-  return new Date(day.getTime() - offset * DAY_MS)
-}
-
 function classesOn(dayOfWeek) {
   return data.demoSchedule.filter((item) => item.dayOfWeek === dayOfWeek)
 }
@@ -176,49 +195,84 @@ export function freeSlots(now = new Date(), wanted = 8) {
   return slots.slice(0, wanted)
 }
 
-export function slotFromIso(iso, nextWeek = false) {
-  const date = new Date(iso)
-  if (Number.isNaN(date.getTime())) return null
-  return {
-    id: iso,
-    date,
-    time: `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`,
-    nextWeek,
-  }
-}
-
 // ─── the plan itself ─────────────────────────────────────────────────────
 
 export function createEntry({ row, slot, minutes }) {
   return {
     stepId: row.stepId,
-    subjectId: row.subjectId,
     assignmentId: row.assignmentId,
-    stepNumber: row.stepNumber,
-    stepTitle: row.stepTitle,
+    assignmentTitle: row.assignmentTitle,
+    subjectId: row.subjectId,
     subjectName: row.subjectName,
     colorToken: row.colorToken,
-    targetIso: row.targetDate ? row.targetDate.toISOString() : null,
+    stepNumber: row.stepNumber,
+    stepTitle: row.stepTitle,
+    targetDate: formatIsoDate(row.targetDate),
     dueAt: row.dueAt,
-    slotIso: slot.id,
-    nextWeek: Boolean(slot.nextWeek),
+    scheduledAt: slot.id,
     minutes,
   }
 }
 
 export function sortEntries(entries) {
-  return entries.slice().sort((a, b) => a.slotIso.localeCompare(b.slotIso))
+  return entries.slice().sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt))
 }
 
 // 'done' | 'waiting' | 'missed'. 'missed' only means the hour set aside has
 // gone by and the step is not ticked — never phrased as a failure.
 export function entryStatus(entry, stepCompletion, now = new Date()) {
   if (stepCompletion[entry.stepId]) return 'done'
-  return new Date(entry.slotIso).getTime() < now.getTime() ? 'missed' : 'waiting'
+  return new Date(entry.scheduledAt).getTime() < now.getTime() ? 'missed' : 'waiting'
 }
 
-export function missedEntries(entries, stepCompletion, now = new Date()) {
-  return sortEntries(entries).filter((entry) => entryStatus(entry, stepCompletion, now) === 'missed')
+// The plan as a document. This is the shape the screen hands back and the
+// shape 나의 할 일 reads: one week, the few steps taken on, and when.
+export function buildPlan({ entries, review = {}, settings = {}, source = 'mock', now = new Date() }) {
+  return {
+    schemaVersion: 1,
+    source,
+    createdAt: now.toISOString(),
+    weekOf: formatIsoDate(mondayOf(now)),
+    review: { lastWeek: review.lastWeek ?? null, adjust: review.adjust ?? null },
+    settings: {
+      sortMode: settings.sortMode ?? 'due',
+      maxPicks: settings.maxPicks ?? MAX_PICKS,
+      defaultMinutes: settings.defaultMinutes ?? DEFAULT_MINUTES,
+    },
+    entries: sortEntries(entries),
+  }
+}
+
+export function planEntriesOf(plan) {
+  return Array.isArray(plan?.entries) ? plan.entries : []
+}
+
+// 나의 할 일 reads this: the planned steps gathered per subject, with the
+// assignment they belong to. Nothing that was not planned appears.
+export function planBySubject(plan, stepCompletion = {}) {
+  const groups = []
+  for (const entry of sortEntries(planEntriesOf(plan))) {
+    let group = groups.find((item) => item.subjectId === entry.subjectId)
+    if (!group) {
+      const assignment = data.assignments.find((item) => item.id === entry.assignmentId)
+      group = {
+        subjectId: entry.subjectId,
+        subjectName: entry.subjectName,
+        colorToken: entry.colorToken,
+        assignmentId: entry.assignmentId,
+        assignmentTitle: entry.assignmentTitle || assignment?.title || '',
+        dueAt: entry.dueAt || assignment?.dueAt || '',
+        entries: [],
+      }
+      groups.push(group)
+    }
+    group.entries.push(entry)
+  }
+  for (const group of groups) {
+    group.done = group.entries.filter((entry) => stepCompletion[entry.stepId]).length
+    group.total = group.entries.length
+  }
+  return groups
 }
 
 // ─── has this learner planned before? ────────────────────────────────────
@@ -239,41 +293,4 @@ export function writeHasPlanned() {
   } catch {
     // storage unavailable: the example simply shows again
   }
-}
-
-// ─── 지난주 돌아보기 ──────────────────────────────────────────────────────
-
-export const LAST_WEEK_ANSWERS = [
-  { id: 'all', label: '계획대로 했어요' },
-  { id: 'some', label: '일부만 했어요' },
-  { id: 'none', label: '못 했어요' },
-]
-
-export const ADJUST_ANSWERS = [
-  { id: 'shorter', label: '시간을 더 짧게 해 볼래요' },
-  { id: 'fewer', label: '단계를 더 적게 해 볼래요' },
-  { id: 'other-time', label: '다른 시간에 할래요' },
-]
-
-export function defaultMinutesFor(adjust) {
-  return adjust === 'shorter' ? SHORT_MINUTES : DEFAULT_MINUTES
-}
-
-export function maxPicksFor(adjust) {
-  return adjust === 'fewer' ? FEWER_PICKS : MAX_PICKS
-}
-
-// An example plan for a first-time learner, built from the real steps so the
-// shape matches what they are about to make. It is labelled 예시 and is never
-// saved.
-export function examplePlan(stepCompletion) {
-  const rows = sortCandidates(planCandidates(stepCompletion), 'due').slice(0, 3)
-  const slots = freeSlots(new Date(), 6)
-  return rows.map((row, index) => ({
-    key: row.stepId,
-    label: labelFor(row),
-    stepTitle: row.stepTitle,
-    minutes: index === rows.length - 1 ? SHORT_MINUTES : DEFAULT_MINUTES,
-    slotLabel: slots[index] ? formatSlotLabel(slots[index]) : '',
-  }))
 }

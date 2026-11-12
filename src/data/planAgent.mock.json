@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "source": "mock",
+  "note": "곰곰이가 이번 주 계획을 세우며 주고받는 질답. 지금은 이 파일이 곧 답변이고, 나중에 agent 응답으로 바꿔 끼울 자리다. 화면은 widget 이름만 보고 그릴 뿐, 무슨 말을 할지와 다음에 무엇을 물을지는 전부 여기서 정한다.",
+  "title": "곰곰이와 이번 주 계획 세우기",
+  "start": {
+    "firstTime": "intro",
+    "returning": "review"
+  },
+  "turns": {
+    "intro": {
+      "subtitle": "처음 사용할 때만 · 예시 계획",
+      "say": ["먼저 예시를 볼까요?"],
+      "widget": "startChoices",
+      "options": [
+        {
+          "id": "example",
+          "label": "먼저 예시를 볼까요",
+          "hint": "다른 학생의 한 주를 먼저 봐요",
+          "action": "toggleExample"
+        },
+        {
+          "id": "mine",
+          "label": "나도 세워 볼게요",
+          "hint": "이번 주에 할 단계를 골라요",
+          "next": "pick"
+        }
+      ]
+    },
+    "review": {
+      "subtitle": "지난주 돌아보기",
+      "say": ["지난주 계획, 어땠나요?"],
+      "widget": "choices",
+      "field": "lastWeek",
+      "options": [
+        { "id": "all", "label": "계획대로 했어요", "next": "pick" },
+        { "id": "some", "label": "일부만 했어요", "next": "adjust" },
+        { "id": "none", "label": "못 했어요", "next": "adjust" }
+      ]
+    },
+    "adjust": {
+      "subtitle": "지난주 돌아보기",
+      "say": ["이번 주에는 어떻게 해 볼까요?"],
+      "widget": "choices",
+      "field": "adjust",
+      "options": [
+        {
+          "id": "shorter",
+          "label": "시간을 더 짧게 해 볼래요",
+          "next": "pick",
+          "effect": { "defaultMinutes": 10 }
+        },
+        {
+          "id": "fewer",
+          "label": "단계를 더 적게 해 볼래요",
+          "next": "pick",
+          "effect": { "maxPicks": 2 }
+        },
+        { "id": "other-time", "label": "다른 시간에 할래요", "next": "pick" }
+      ]
+    },
+    "pick": {
+      "subtitle": "1/2 · 이번 주에 할 단계 고르기",
+      "widget": "stepPicker",
+      "sortLabel": "순서",
+      "sayBySort": {
+        "due": "마감이 가까운 순서로 정리했어요.",
+        "difficulty": "어려운 순서로 정리했어요."
+      },
+      "ask": "이번 주에 할 단계를 {picks}만 골라 보세요.",
+      "picksLabel": { "2": "2개", "3": "2~3개" },
+      "note": "목표일은 마감일에서 거꾸로 계산해 마지막 단계를 마감 1–2일 전으로 잡았어요.",
+      "confirmLabel": "{count}개 골랐어요",
+      "next": "schedule"
+    },
+    "schedule": {
+      "subtitle": "2/2 · 언제 할지 정하기",
+      "widget": "slotPicker",
+      "ask": "{step}는 언제 할까요?",
+      "emptyNote": "이번 주와 다음 주 시간표에 빈 시간이 없어요.",
+      "durationLabel": "한 번에",
+      "effectNote": {
+        "shorter": "지난주에 “시간을 더 짧게 해 볼래요”를 골라서 10분이 선택돼 있어요."
+      },
+      "confirmSay": ["{slot} · {step} · {minutes}분", "이렇게 할까요?"],
+      "options": [
+        { "id": "yes", "label": "좋아요", "action": "commitSlot" },
+        { "id": "other", "label": "다른 시간 고를래요", "action": "clearSlot" }
+      ],
+      "next": "done"
+    },
+    "done": {
+      "subtitle": "이번 주 계획 완성",
+      "say": ["이번 주 계획이 완성됐어요."],
+      "widget": "planSheet",
+      "sheetTitle": "이번 주 계획",
+      "actions": [
+        { "id": "save", "label": "홈에 저장", "primary": true },
+        { "id": "print", "label": "인쇄하기" }
+      ]
+    }
+  }
+}

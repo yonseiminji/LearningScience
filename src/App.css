@@ -908,7 +908,8 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
   display: flex;
   flex-direction: column;
   width: min(680px, calc(100vw - 32px));
-  height: min(780px, calc(100svh - 48px));
+  height: auto;
+  max-height: min(820px, calc(100svh - 48px));
   border: 1px solid var(--line);
   border-radius: 20px;
   background: var(--surface);
@@ -940,6 +941,7 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
   overflow-y: auto;
   overscroll-behavior: contain;
 }
+.plan-popup-body > * { flex: none; }
 
 /* 처음 사용할 때: 두 갈래를 같은 크기로 */
 .start-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
@@ -980,6 +982,7 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 /* step picker */
 .pick-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .pick-item {
+  position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
@@ -994,7 +997,7 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 .pick-item:hover { background: var(--hover); }
 .pick-item.is-on { border-color: var(--accent); background: var(--raised); }
 .pick-item.is-full { opacity: 0.5; cursor: not-allowed; }
-.pick-item input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.pick-item input { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
 .pick-item:focus-within { outline: 3px solid var(--hi); outline-offset: 2px; }
 .pick-box {
   display: grid;
@@ -1053,12 +1056,27 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 .plan-detail { color: var(--muted); font-size: 12px; }
 
 /* 나의 할 일: a target date on the step in hand only */
+.todo-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 24px;
+  border: 1px dashed var(--block-line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-align: center;
+}
+.todo-empty svg { color: var(--accent); }
+.todo-empty-title { margin: 0; font-size: var(--fs-section); font-weight: 700; }
+.todo-empty .hint { margin: 0; max-width: 38ch; }
+.step-when { flex: none; color: var(--muted); font-size: 12px; }
 .step-target { flex: none; padding: 2px 8px; border: 1px solid var(--block-line); border-radius: 6px; color: var(--text-2); font-size: 12px; font-weight: 600; }
 
 @media (max-width: 720px) {
   .wing-plan-list li { grid-template-columns: minmax(0, 1fr); gap: 2px; }
   .slot-grid { grid-template-columns: minmax(0, 1fr); }
-  .plan-popup { width: 100vw; height: 100svh; border-radius: 0; }
+  .plan-popup { width: 100vw; height: 100svh; max-height: 100svh; border-radius: 0; }
   .plan-popup-bear { width: 48px; height: 48px; }
   .plan-popup-titles h2 { font-size: 18px; }
   .start-choices { grid-template-columns: minmax(0, 1fr); }

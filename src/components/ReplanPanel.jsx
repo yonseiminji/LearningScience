@@ -21,7 +21,7 @@ export default function ReplanPanel({ entry, otherSlotIsos = [], onSave, onClose
   const taken = new Set(otherSlotIsos)
   const chosenSlot = slots.find((slot) => slot.id === slotId) || null
   const label = `${entry.subjectName} ${entry.stepNumber}단계`
-  const target = entry.targetIso ? new Date(entry.targetIso) : null
+  const target = entry.targetDate ? new Date(entry.targetDate) : null
   const due = entry.dueAt ? new Date(entry.dueAt) : null
 
   return (
@@ -89,7 +89,7 @@ export default function ReplanPanel({ entry, otherSlotIsos = [], onSave, onClose
             <button
               type="button"
               className="chat-chip"
-              onClick={() => onSave({ ...entry, slotIso: chosenSlot.id, nextWeek: chosenSlot.nextWeek, minutes })}
+              onClick={() => onSave({ ...entry, scheduledAt: chosenSlot.id, minutes })}
             >
               좋아요
             </button>
