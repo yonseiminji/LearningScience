@@ -136,6 +136,15 @@ export default function App() {
     setChatOpen(true)
   }
 
+  // 완료하기: the question is written and copied, so the panel starts clean
+  // next time. Closing with X instead keeps a half-written one.
+  function finishCommunication() {
+    setCommuSession(emptySession())
+    setCommuStep(0)
+    setCommuDraft(null)
+    setChatOpen(false)
+  }
+
   function openPlanPanel() {
     setChatOpen(false)
     setReplanEntry(null)
@@ -314,6 +323,7 @@ export default function App() {
           onCommuStep={setCommuStep}
           commuDraft={commuDraft}
           onCommuDraft={setCommuDraft}
+          onCommuFinish={finishCommunication}
           onClose={() => setChatOpen(false)}
         />
       ) : null}

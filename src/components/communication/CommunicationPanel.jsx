@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight } from 'lucide-react'
 import ChannelSelector from './ChannelSelector.jsx'
 import ContextInput from './ContextInput.jsx'
 import DraftEditor from './DraftEditor.jsx'
@@ -11,6 +11,7 @@ import {
   STEPS,
   channelsFor,
   clearSituationAnswers,
+  emptySession,
   generateDraft,
   informationComplete,
   recipientById,
@@ -26,7 +27,9 @@ import {
 // the flow and nothing else — every question comes from the mock file and
 // every sentence from generateDraft(), so a Communication Agent behind that
 // one function would change nothing here.
-export default function CommunicationPanel({ session, onSession, step, onStep, draft, onDraft }) {
+export default function CommunicationPanel({ session, onSession, step, onStep, draft, onDraft, onFinish }) {
+  // asking to go back to the recipient question when there is work to lose
+  const [pendingReset, setPendingReset] = useState(false)
   const recipient = recipientById(session.recipientId)
   const situation = situationById(session.recipientId, session.situationId)
   const channels = channelsFor(session.recipientId)
@@ -63,10 +66,23 @@ export default function CommunicationPanel({ session, onSession, step, onStep, d
     onStep(step + 1)
   }
 
+  // Back to the very first question. Everything after the recipient belongs to
+  // a situation that is no longer chosen, so it goes with it.
+  function resetToRecipient() {
+    onSession(emptySession())
+    onDraft(null)
+    onStep(0)
+    setPendingReset(false)
+  }
+
+  function askToResetRecipient() {
+    if (hasAnswers(session)) setPendingReset(true)
+    else resetToRecipient()
+  }
+
   function back() {
     if (step === 0 && onSituationHalf) {
-      update({ situationId: null, information: [], contextSource: null, contextText: '' })
-      onDraft(null)
+      askToResetRecipient()
       return
     }
     onStep(Math.max(0, step - 1))
@@ -81,9 +97,31 @@ export default function CommunicationPanel({ session, onSession, step, onStep, d
 
       {session.recipientId && (onSituationHalf || step > 0) ? (
         <p className="commu-trail">
-          <span>{recipient?.label}</span>
-          {situation ? <span>{situation.label.replace(/\.$/, '')}</span> : null}
+          <button type="button" className="commu-trail-step" onClick={askToResetRecipient}>
+            {recipient?.label}
+            <span className="commu-trail-change">바꾸기</span>
+          </button>
+          {situation ? (
+            <button type="button" className="commu-trail-step" onClick={() => onStep(0)} disabled={step === 0}>
+              {situation.label.replace(/\.$/, '')}
+              {step > 0 ? <span className="commu-trail-change">바꾸기</span> : null}
+            </button>
+          ) : null}
         </p>
+      ) : null}
+
+      {pendingReset ? (
+        <div className="plan-caution" role="alert">
+          <p>처음부터 다시 고르면 지금까지 고른 정보와 적어 둔 내용이 지워져요. 다시 고를까요?</p>
+          <div className="commu-row">
+            <button type="button" className="btn primary" onClick={resetToRecipient}>
+              다시 고를게요
+            </button>
+            <button type="button" className="btn" onClick={() => setPendingReset(false)}>
+              그대로 둘래요
+            </button>
+          </div>
+        </div>
       ) : null}
 
       {step === 0 && !onSituationHalf ? (
@@ -154,6 +192,12 @@ export default function CommunicationPanel({ session, onSession, step, onStep, d
           <button type="button" className="btn primary" disabled={!canAdvance} onClick={next}>
             {step === 2 ? '질문 문장 만들기' : '다음 단계'}
             <ChevronRight aria-hidden="true" size={16} />
+          </button>
+        ) : null}
+        {step === 3 ? (
+          <button type="button" className="btn primary commu-finish" onClick={onFinish}>
+            <Check aria-hidden="true" size={16} />
+            완료하기
           </button>
         ) : null}
         {!canAdvance && step === 1 ? <span className="commu-hint">모든 항목을 하나씩 골라 주세요.</span> : null}

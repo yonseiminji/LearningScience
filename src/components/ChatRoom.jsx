@@ -77,6 +77,7 @@ export default function ChatRoom({
   onCommuStep,
   commuDraft,
   onCommuDraft,
+  onCommuFinish,
   onClose,
 }) {
   const subject = subjectById(subjectId) || data.subjects[0]
@@ -165,6 +166,7 @@ export default function ChatRoom({
             onStep={onCommuStep}
             draft={commuDraft}
             onDraft={onCommuDraft}
+            onFinish={onCommuFinish}
           />
         </div>
       ) : (
