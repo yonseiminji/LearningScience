@@ -1,5 +1,6 @@
-import { ShieldCheck } from 'lucide-react'
+import { ExternalLink, ShieldCheck } from 'lucide-react'
 import Modal from './Modal.jsx'
+import { CLOVANOTE_URL } from '../lectureNotes.js'
 
 // Shown before the learner leaves for the external recording service.
 // Only the confirm button opens the site: Escape and the backdrop just close.
@@ -20,11 +21,19 @@ export default function RecordingNoticeDialog({ onCancel, onConfirm }) {
           강의 내용과 비공개 대화는 「저작권법」 및 「통신비밀보호법」 등에 따라 보호될 수 있습니다.
         </p>
       </div>
+      <p className="notice-target">
+        확인하면 아래 주소를 새 탭에서 열어요.
+        <a href={CLOVANOTE_URL} target="_blank" rel="noopener noreferrer">
+          {CLOVANOTE_URL}
+          <ExternalLink aria-hidden="true" size={14} />
+        </a>
+      </p>
       <div className="dialog-actions">
         <button type="button" className="btn" onClick={onCancel}>
           취소
         </button>
         <button type="button" className="btn primary" onClick={onConfirm}>
+          <ExternalLink aria-hidden="true" size={16} />
           확인했습니다
         </button>
       </div>
