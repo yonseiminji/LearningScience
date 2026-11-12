@@ -1108,3 +1108,32 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
   .print-sheet { display: block !important; border: 0; padding: 0; }
   .plan-rows li { break-inside: avoid; }
 }
+
+/* 검증 결과: 저장을 막는 것과 알려만 주는 것을 눈으로 가른다 */
+.plan-refusal {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border: 1px solid var(--soon);
+  border-radius: 14px;
+  background: var(--soon-bg);
+  color: var(--ink);
+}
+.plan-refusal-title { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--soon); font-size: var(--fs-body); font-weight: 700; }
+.plan-refusal ul { margin: 0; padding-left: 20px; font-size: var(--fs-body); line-height: 1.6; }
+.plan-refusal li + li { margin-top: 4px; }
+.plan-refusal .btn { align-self: flex-start; }
+.plan-refusal .plan-note { color: var(--text-2); }
+.plan-caution {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--block-line);
+  border-radius: 14px;
+  background: var(--raised);
+  font-size: var(--fs-body);
+}
+.plan-caution p { margin: 0; color: var(--text-2); }
+.plan-caution .btn { align-self: flex-start; min-height: 32px; padding: 0 12px; }

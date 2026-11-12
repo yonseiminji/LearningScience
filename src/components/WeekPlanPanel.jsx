@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { CalendarPlus, Check, Eye, Printer } from 'lucide-react'
+import { CalendarPlus, Check, Eye, Printer, TriangleAlert } from 'lucide-react'
 import BearPanel from './BearPanel.jsx'
 import PlanSheet from './PlanSheet.jsx'
 import { PLAN_AGENT_TITLE, effectsOf, fill, firstTurnId, getTurn, labelOf, nextTurnId } from '../planAgent.js'
@@ -9,7 +9,7 @@ import {
   MAX_PICKS,
   SORT_MODES,
   buildPlan,
-  createEntry,
+  createProposal,
   formatMonthDay,
   formatSlotLabel,
   formatSlotSentence,
@@ -18,6 +18,7 @@ import {
   planCandidates,
   sortCandidates,
 } from '../weekPlan.js'
+import { CLASS_CHECK, validatePlan } from '../planValidation.js'
 
 const BEAR = '/brand/gomgomi-question.webp'
 // the order the conversation runs in, so earlier turns stay on screen
@@ -46,17 +47,18 @@ function Me({ children }) {
 //
 // Everything said so far stays on screen: picking steps and setting times are
 // one scrolling conversation, not two pages.
-export default function WeekPlanPanel({ stepCompletion, hasPlanned, onSave, onClose }) {
+export default function WeekPlanPanel({ stepCompletion, hasPlanned, previousPlan = null, onSave, onClose }) {
   const [stage, setStage] = useState(() => firstTurnId(hasPlanned))
   const [answers, setAnswers] = useState({ lastWeek: null, adjust: null })
   const [effects, setEffects] = useState({})
   const [exampleOpen, setExampleOpen] = useState(false)
   const [sortMode, setSortMode] = useState('due')
   const [picked, setPicked] = useState([])
-  const [scheduleIndex, setScheduleIndex] = useState(0)
+  // the proposal being assembled: { stepId, scheduledAt, minutes } only
   const [draft, setDraft] = useState([])
   const [slotId, setSlotId] = useState(null)
   const [minutes, setMinutes] = useState(null)
+  const [refusal, setRefusal] = useState(null)
 
   const candidates = useMemo(() => planCandidates(stepCompletion), [stepCompletion])
   const sorted = useMemo(() => sortCandidates(candidates, sortMode), [candidates, sortMode])
@@ -64,21 +66,31 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, onSave, onCl
   const example = useMemo(() => {
     const rows = sortCandidates(planCandidates(stepCompletion), 'due').slice(0, 3)
     const free = freeSlots(new Date(), 6)
-    return rows
-      .map((row, index) =>
-        free[index] ? createEntry({ row, slot: free[index], minutes: index === rows.length - 1 ? 10 : 20 }) : null,
-      )
-      .filter(Boolean)
+    const proposal = createProposal(
+      rows
+        .map((row, index) =>
+          free[index]
+            ? { stepId: row.stepId, scheduledAt: free[index].id, minutes: index === rows.length - 1 ? 10 : 20 }
+            : null,
+        )
+        .filter(Boolean),
+    )
+    return buildPlan(proposal, { source: 'mock' }).entries
   }, [stepCompletion])
 
   const reached = (id) => rank(stage) >= rank(id)
   const maxPicks = effects.maxPicks ?? MAX_PICKS
   const defaultMinutes = effects.defaultMinutes ?? DEFAULT_MINUTES
   const pickedRows = picked.map((id) => candidates.find((row) => row.stepId === id)).filter(Boolean)
-  const currentRow = reached('schedule') ? pickedRows[scheduleIndex] : null
+  // the next picked step with no hour yet — derived, so dropping a refused
+  // entry sends the learner straight back to that one
+  const currentRow = reached('schedule')
+    ? pickedRows.find((row) => !draft.some((entry) => entry.stepId === row.stepId)) || null
+    : null
   const currentMinutes = minutes ?? defaultMinutes
   const chosenSlot = slots.find((slot) => slot.id === slotId) || null
   const usedSlotIds = new Set(draft.map((entry) => entry.scheduledAt))
+  const scheduledCount = draft.length
   const minPicks = Math.min(2, sorted.length)
 
   const introTurn = getTurn('intro')
@@ -106,20 +118,44 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, onSave, onCl
 
   function commitSlot() {
     if (!currentRow || !chosenSlot) return
-    setDraft([...draft, createEntry({ row: currentRow, slot: chosenSlot, minutes: currentMinutes })])
+    const next = [...draft, { stepId: currentRow.stepId, scheduledAt: chosenSlot.id, minutes: currentMinutes }]
+    setDraft(next)
     setSlotId(null)
     setMinutes(null)
-    if (scheduleIndex + 1 < pickedRows.length) setScheduleIndex(scheduleIndex + 1)
-    else setStage(nextTurnId('schedule') || 'done')
+    setRefusal(null)
+    if (next.length >= pickedRows.length) setStage(nextTurnId('schedule') || 'done')
   }
 
-  // the document the conversation hands back
-  const plan = buildPlan({
-    entries: draft,
+  // Nothing is stored until the plan passes the same gate an agent's plan
+  // would. A refusal names the steps at fault and sends them back for another
+  // hour; the plan already saved is left alone.
+  function trySave() {
+    const result = validatePlan(plan, { stepCompletion, now: new Date(), previousPlan })
+    if (result.ok) {
+      onSave(plan, result)
+      return
+    }
+    setRefusal(result)
+  }
+
+  function repickBlocked() {
+    const blocked = new Set(refusal?.blockedSteps || [])
+    setDraft(draft.filter((entry) => !blocked.has(entry.stepId)))
+    setRefusal(null)
+    setStage('schedule')
+  }
+
+  // the document the conversation hands back: the proposal, hydrated from the
+  // assignment data
+  const plan = buildPlan(createProposal(draft), {
+    source: 'mock',
     review: answers,
     settings: { sortMode, maxPicks, defaultMinutes },
   })
-  const scrollKey = `${stage}-${draft.length}-${answers.lastWeek}-${answers.adjust}-${exampleOpen}-${slotId}`
+  const preview = stage === 'done' ? validatePlan(plan, { stepCompletion, previousPlan }) : null
+  const warnings = refusal ? [] : preview?.warnings || []
+  const classCheckSkipped = preview?.checks.classConflict === CLASS_CHECK.SKIPPED_NO_TIMETABLE
+  const scrollKey = `${stage}-${draft.length}-${answers.lastWeek}-${answers.adjust}-${exampleOpen}-${slotId}-${refusal ? 'x' : ''}`
 
   return (
     <BearPanel
@@ -384,13 +420,45 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, onSave, onCl
             ))}
           </Bear>
           <PlanSheet entries={plan.entries} title={doneTurn.sheetTitle} />
+
+          {refusal ? (
+            <div className="plan-refusal" role="alert">
+              <p className="plan-refusal-title">
+                <TriangleAlert aria-hidden="true" size={16} />이대로는 저장할 수 없어요
+              </p>
+              <ul>
+                {refusal.errors.map((error, index) => (
+                  <li key={`${error.code}-${index}`}>{error.message}</li>
+                ))}
+              </ul>
+              <button type="button" className="btn primary" onClick={repickBlocked}>
+                다시 고를게요
+              </button>
+            </div>
+          ) : null}
+
+          {warnings.length > 0 ? (
+            <div className="plan-caution">
+              {warnings.map((warning, index) => (
+                <p key={`${warning.code}-${index}`}>{warning.message}</p>
+              ))}
+              <button type="button" className="btn" onClick={repickBlocked}>
+                시간 다시 고르기
+              </button>
+            </div>
+          ) : null}
+
+          {classCheckSkipped ? (
+            <p className="plan-note">등록된 시간표가 없어서 수업 시간과 겹치는지는 확인하지 못했어요.</p>
+          ) : null}
+
           <div className="chat-choices">
             {doneTurn.actions.map((action) => (
               <button
                 key={action.id}
                 type="button"
                 className={action.primary ? 'btn primary' : 'btn'}
-                onClick={() => (action.id === 'save' ? onSave(plan) : window.print())}
+                onClick={() => (action.id === 'save' ? trySave() : window.print())}
               >
                 {action.id === 'print' ? <Printer aria-hidden="true" size={16} /> : null}
                 {action.label}

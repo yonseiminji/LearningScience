@@ -1,0 +1,171 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Chagok Stored Weekly Plan v1 (normalized UTC)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "source",
+    "createdAt",
+    "weekOf",
+    "review",
+    "settings",
+    "entries"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "mock",
+        "agent"
+      ]
+    },
+    "createdAt": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+    },
+    "weekOf": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "lastWeek",
+        "adjust"
+      ],
+      "properties": {
+        "lastWeek": {
+          "enum": [
+            "all",
+            "some",
+            "none",
+            null
+          ]
+        },
+        "adjust": {
+          "enum": [
+            "shorter",
+            "fewer",
+            "other-time",
+            null
+          ]
+        }
+      }
+    },
+    "settings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sortMode",
+        "maxPicks",
+        "defaultMinutes"
+      ],
+      "properties": {
+        "sortMode": {
+          "enum": [
+            "due",
+            "difficulty"
+          ]
+        },
+        "maxPicks": {
+          "type": "integer",
+          "enum": [
+            2,
+            3
+          ]
+        },
+        "defaultMinutes": {
+          "type": "integer",
+          "enum": [
+            10,
+            20
+          ]
+        }
+      }
+    },
+    "entries": {
+      "type": "array",
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "stepId",
+          "assignmentId",
+          "assignmentTitle",
+          "subjectId",
+          "subjectName",
+          "colorToken",
+          "stepNumber",
+          "stepTitle",
+          "targetDate",
+          "dueAt",
+          "scheduledAt",
+          "minutes"
+        ],
+        "properties": {
+          "stepId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "assignmentId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "assignmentTitle": {
+            "type": "string"
+          },
+          "subjectId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "subjectName": {
+            "type": "string"
+          },
+          "colorToken": {
+            "type": "string"
+          },
+          "stepNumber": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "stepTitle": {
+            "type": "string"
+          },
+          "targetDate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "dueAt": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+          },
+          "scheduledAt": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}Z$"
+          },
+          "minutes": {
+            "type": "integer",
+            "enum": [
+              10,
+              20,
+              40
+            ]
+          }
+        }
+      }
+    }
+  }
+}
