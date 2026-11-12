@@ -89,6 +89,8 @@ export default function App() {
     setLectureNotes((current) => ({ ...current, [subjectId]: [...(current[subjectId] || []), note] }))
   }
 
+  // Both panels validate before they call these; nothing unvalidated reaches
+  // state. A refused plan never gets here, so the stored plan is untouched.
   function savePlan(document) {
     setPlan(document)
     setPlanPanelOpen(false)
@@ -96,15 +98,8 @@ export default function App() {
     setHasPlanned(true)
   }
 
-  function saveReplan(updated) {
-    setPlan((current) =>
-      current
-        ? {
-            ...current,
-            entries: current.entries.map((entry) => (entry.stepId === updated.stepId ? updated : entry)),
-          }
-        : current,
-    )
+  function saveReplan(document) {
+    setPlan(document)
     setReplanEntry(null)
   }
 
@@ -277,6 +272,7 @@ export default function App() {
         <WeekPlanPanel
           stepCompletion={stepCompletion}
           hasPlanned={hasPlanned}
+          previousPlan={plan}
           onSave={savePlan}
           onClose={() => setPlanPanelOpen(false)}
         />
@@ -285,9 +281,8 @@ export default function App() {
       {replanEntry ? (
         <ReplanPanel
           entry={replanEntry}
-          otherSlotIsos={planEntriesOf(plan)
-            .filter((entry) => entry.stepId !== replanEntry.stepId)
-            .map((entry) => entry.scheduledAt)}
+          plan={plan}
+          stepCompletion={stepCompletion}
           onSave={saveReplan}
           onClose={() => setReplanEntry(null)}
         />

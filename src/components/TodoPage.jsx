@@ -115,7 +115,7 @@ export default function TodoPage({ plan, stepCompletion, focusSubjectId, onToggl
                               </span>
                               {/* only the step in hand carries a target date */}
                               {isNext && entry.targetDate ? (
-                                <span className="step-target">목표 {formatMonthDay(new Date(entry.targetDate))}</span>
+                                <span className="step-target">목표 {formatMonthDay(entry.targetDate)}</span>
                               ) : null}
                               {checked ? (
                                 <span className="step-status is-done">

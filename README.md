@@ -93,8 +93,13 @@ src/
     PlanSheet.jsx
   lectureNotes.js
   weekPlan.js
+  planTime.js
+  planValidation.js
+  jsonSchema.js
   planAgent.js
   data/planAgent.mock.json
+  schemas/planProposal.schema.json
+  schemas/planDocument.schema.json
 public/guide/
   Clova_Join.png
   Clova_Login.png
@@ -158,6 +163,28 @@ The assignment steps are already split up. What this adds is deciding **when** t
 Not visible in the ordinary case. When an hour set aside in the plan goes by and the step is not ticked, that row reads 아직이에요 and grows a 「다시 정하기」 button. 곰곰이 asks 언제 다시 해 볼까요?, shows 원래 목표 and 마감 for context, offers the free hours again, and offers to cut the sitting to 10분.
 
 The copy avoids 지연 and 실패 throughout: a missed hour is 아직이에요, and the question is about the next attempt, not the last one.
+
+### 계약과 검증
+
+두 가지 모양이 한 방향으로 흐른다.
+
+```
+PlanProposal   { entries: [{ stepId, scheduledAt, minutes }] }
+     │           planner가 정하는 것 — 지금은 mock, 나중엔 LLM agent
+     ▼  buildPlan()
+Plan Document  최상위 7필드 + entry 12필드
+                 제목·과목·마감·단계 순서는 과제 데이터에서 조회
+```
+
+A planner decides three things per entry and nothing else, so there is nothing it can copy wrongly. `buildPlan()` looks up the rest. Both schemas are in `src/schemas/`, and `src/jsonSchema.js` checks against them — a small checker rather than Ajv, because this workspace cannot reach the npm registry; it reports which keywords it skipped rather than passing them off as checked.
+
+**시간.** Every timestamp stored or exchanged is UTC ISO with milliseconds, `createdAt`·`scheduledAt`·`dueAt` alike; the assignment file's `+09:00` is normalized on the way in. `weekOf` and `targetDate` stay `YYYY-MM-DD`. Every date, weekday and week boundary is worked out in Asia/Seoul (`src/planTime.js`) whatever timezone the browser is in, and screens convert back to Seoul to display. Sorting and conflict checks compare real instants, not strings.
+
+**검증.** `validatePlan()` in `src/planValidation.js` is a pure function — no React, no DOM, no storage — so the backend can run the same gate when the agent moves server-side. Beyond the schema it checks: real calendar dates and instants, `entries` within `settings.maxPicks`, the step exists in the assignment data, no duplicate step, no step already finished, no overlap between sittings, no overlap with a registered class, nothing newly scheduled in the past, and nothing beyond next week.
+
+A sitting after its own deadline is a warning, not a refusal — it is shown and the learner decides. A past `targetDate` is fine; it is what 계획 다시 짜기 is for. With no timetable registered the class check is reported as `skipped-no-timetable`, so "no conflict" is never confused with "not looked at".
+
+A plan is stored only when the schema, the reference checks and the conflict checks all pass and the learner confirms. A refusal names the steps at fault in Korean and sends them back for another hour; the plan already saved is left untouched.
 
 ### 대화는 데이터, 계획은 JSON
 
