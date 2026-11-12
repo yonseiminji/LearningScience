@@ -314,8 +314,7 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 .due-list .due-chip.is-soon.is-near { background: var(--soon); color: #fff; }
 .due-list li.is-done { opacity: 0.6; }
 .due-list li.is-done .due-date { color: var(--done); font-weight: 600; }
-.wing-left { margin: 0 0 12px; }
-.wing-left b { margin-right: 4px; color: var(--ink); font-size: 24px; font-weight: 600; }
+.wing-empty { margin: 0 0 12px; }
 .wing .wing-tasks { width: 100%; border-color: transparent; background: var(--raised); }
 .wing .wing-tasks:hover { background: var(--chip); }
 /* 질문하기: dark brown button, 곰곰이 on a cream tile with room for the outline */
@@ -886,6 +885,7 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 
 /* ─── 이번 주 계획: the plan inside the existing 남은 할 일 card ─────────── */
 .wing-plan { margin: 0 0 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.wing-week .wing-count { margin-bottom: 0; }
 .wing-plan h3 { margin: 0 0 8px; color: var(--text-2); font-size: 13px; font-weight: 700; }
 .wing-plan-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .wing-plan-list li { display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 8px; }
