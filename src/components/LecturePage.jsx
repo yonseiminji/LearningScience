@@ -1,6 +1,9 @@
+import { useMemo } from 'react'
 import { ChevronLeft, ClipboardList, Headphones, RotateCcw } from 'lucide-react'
 import GuideView from './GuideView.jsx'
 import LectureUnderstanding from './LectureUnderstanding.jsx'
+import ReviewStudyPage from './review/ReviewStudyPage.jsx'
+import { materialsFor } from '../lectureNotes.js'
 
 // One lecture, three kinds of work, stacked in the order a week runs:
 // understand the class, do the assignment, then review on your own.
@@ -15,6 +18,10 @@ export default function LecturePage({
   onBack,
   guideProps,
 }) {
+  // the TXT files 강의 이해 지원 already holds, in the shape 복습 및 개인 공부
+  // reads. One upload, two sections — no second uploader.
+  const materials = useMemo(() => materialsFor(notes), [notes])
+
   return (
     <div className="lecture-page">
       <button type="button" className="guide-back" onClick={onBack}>
@@ -61,13 +68,11 @@ export default function LecturePage({
           <RotateCcw aria-hidden="true" size={22} />
           복습 및 개인 공부
         </h2>
-        <div className="placeholder-card">
-          <p className="placeholder-tag">준비 중</p>
-          <p>
-            올려 둔 강의 기록으로 복습 문제를 만들고 개인 공부를 기록하는 기능을 준비하고 있어요. 아직 동작하지 않아요.
-          </p>
-          <p className="hint">지금은 ‘강의 이해 지원’에 강의 기록을 모아 두는 것까지 할 수 있어요.</p>
-        </div>
+        <p className="section-lead">
+          ‘강의 이해 지원’에 올린 강의 기록으로 공부해요. 아래 내용은 모두 <b>시연용</b>이고, 실제 AI 분석이나 요약이
+          아니에요.
+        </p>
+        <ReviewStudyPage courseId={subject?.id} materials={materials} showHeading={false} />
       </section>
     </div>
   )
