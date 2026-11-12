@@ -189,7 +189,9 @@ Asking for help is its own skill, and a learner stuck on a question often cannot
 1. **상대방과 상황** — 조원과 소통하기 or 교수님께 질문하기, then one of that person's three difficulties.
 2. **확인할 정보** — each item gets 알고 있어요 / 알고 싶어요 / 잘 모르겠어요. All of them must be answered before moving on: what the learner does not know is what the question will be about.
 3. **현재 상황 입력** — their own words, or 예시 사용하기 to drop in this situation's prepared example.
-4. **질문 문장** — a medium (이메일 · 메시지 · 대면 질문, by recipient), an editable draft, 원래 문장으로 되돌리기, 문장 다시 구성하기, 문장 복사하기.
+4. **질문 문장** — a medium (이메일 · 메시지 · 대면 질문, by recipient), an editable draft, 원래 문장으로 되돌리기, 문장 다시 구성하기, 문장 복사하기, then 완료하기.
+
+이전 단계 walks back a step at a time and keeps going past the situation to the recipient question, so 조원 and 교수님 can be swapped without closing the panel. The trail above the question does the same in one tap: each step the learner has passed is a chip they can go back to. Either way, if there are answers or text to lose, it asks first. 완료하기 closes the panel and starts the next question clean; closing with ✕ keeps a half-written one.
 
 ### 여섯 시나리오
 
