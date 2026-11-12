@@ -3,6 +3,7 @@ import { Check, ChevronDown, ChevronRight, Circle, Play } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 import ProgressRing from './ProgressRing.jsx'
 import { data, ddayLabel, dueChipClass, formatDue, stepCounts } from '../assignmentModel.js'
+import { formatMonthDay, stepTargetDate } from '../weekPlan.js'
 
 export default function TodoPage({ stepCompletion, focusSubjectId, onToggleStep, onOpen }) {
   const reduce = useReducedMotion()
@@ -68,9 +69,12 @@ export default function TodoPage({ stepCompletion, focusSubjectId, onToggleStep,
               {open ? (
                 <div id={bodyId} className="todo-body">
                   <ul className="check-list">
-                    {assignment.steps.map((step) => {
+                    {assignment.steps.map((step, index) => {
                       const checked = Boolean(stepCompletion[step.id])
                       const isNext = nextStep?.id === step.id
+                      // only the step in hand carries a target date, so the
+                      // list does not read as a wall of deadlines
+                      const target = isNext ? stepTargetDate(assignment, index) : null
                       return (
                         <li key={step.id} className={`${checked ? 'is-done' : ''}${isNext ? ' is-next' : ''}`}>
                           <label>
@@ -82,6 +86,7 @@ export default function TodoPage({ stepCompletion, focusSubjectId, onToggleStep,
                             >
                               {step.title}
                             </motion.span>
+                            {target ? <span className="step-target">목표 {formatMonthDay(target)}</span> : null}
                             {checked ? (
                               <span className="step-status is-done">
                                 <Check aria-hidden="true" size={12} />
