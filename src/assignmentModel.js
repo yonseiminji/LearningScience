@@ -70,6 +70,7 @@ export function nextOpenAssignment(stepCompletion) {
 }
 
 export function firstOpenStep(assignment, stepCompletion) {
+  if (!assignment) return null
   return assignment.steps.find((step) => !stepCompletion[step.id]) || assignment.steps.at(-1) || null
 }
 
