@@ -1,0 +1,138 @@
+/* 복습 및 개인 공부.
+ *
+ * Same structure and class names the module shipped with; the colours and
+ * sizes are read from the project's tokens in App.css instead of being
+ * written again here, so this section matches the rest of 차곡차곡 and
+ * follows it if the palette ever changes. */
+
+.review-study { width: 100%; color: var(--ink); font-family: inherit; }
+.review-study h3 { margin: 20px 0 10px; font-size: var(--fs-section); }
+.review-study h4 { margin: 8px 0; font-size: var(--fs-body); }
+
+.review-field { display: grid; gap: 8px; }
+.review-field label { font-size: var(--fs-body); font-weight: 700; }
+.review-field select,
+.review-result input[type='text'] {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-body);
+  box-sizing: border-box;
+}
+
+/* 무엇을 공부할까요? — four ways into the same material */
+.review-mode-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.review-mode-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 118px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--fs-section);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 150ms var(--ease), border-color 150ms var(--ease);
+}
+.review-mode-card:hover { background: var(--hover); border-color: var(--accent); }
+.review-mode-card svg { color: var(--accent); }
+.review-mode-card span { color: var(--muted); font-size: var(--fs-body); font-weight: 400; }
+.review-mode-card.active { border-color: var(--accent); background: var(--raised); }
+.review-mode-card:focus-visible,
+.review-study button:focus-visible,
+.review-study select:focus-visible,
+.review-study input:focus-visible { outline: 3px solid var(--hi); outline-offset: 2px; }
+
+.review-result {
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.review-result h3 { margin-top: 0; }
+.review-muted { color: var(--muted); font-size: var(--fs-body); line-height: 1.6; }
+.review-item { margin: 10px 0; padding: 14px; border-radius: 12px; background: var(--raised); }
+.review-item p { margin: 6px 0; font-size: var(--fs-body); line-height: 1.7; }
+.review-item strong { margin-right: 4px; }
+.review-original {
+  margin-top: 14px;
+  padding: 14px;
+  border-radius: 12px;
+  background: var(--raised);
+  font-size: var(--fs-body);
+  line-height: 1.7;
+  white-space: pre-wrap;
+  max-height: 420px;
+  overflow: auto;
+}
+
+/* the paragraph a claim came from, quoted next to it */
+.review-sources blockquote {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border: 0;
+  border-left: 3px solid var(--block-line);
+  background: var(--surface);
+  font-size: var(--fs-body);
+}
+.review-sources blockquote p { margin: 4px 0; line-height: 1.7; }
+.review-sources small { color: var(--muted); font-size: 12px; }
+
+.review-secondary,
+.review-primary {
+  min-height: 38px;
+  padding: 0 14px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: var(--fs-body);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 150ms var(--ease);
+}
+.review-secondary { border: 1px solid var(--line); background: var(--surface); color: var(--text-2); }
+.review-secondary:hover { background: var(--hover); }
+.review-primary { border: 1px solid transparent; background: var(--accent); color: var(--accent-ink); }
+.review-primary:hover { background: var(--accent-hover); }
+.review-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+.review-primary:disabled:hover { background: var(--accent); }
+
+.review-chip-list,
+.review-choices { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.review-choices label {
+  padding: 8px 16px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  font-size: var(--fs-body);
+  cursor: pointer;
+}
+.review-feedback { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); font-size: var(--fs-body); }
+.review-feedback p { margin: 4px 0 0; color: var(--text-2); line-height: 1.7; }
+.review-between { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.review-error { color: var(--soon); font-size: var(--fs-body); }
+.review-note { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.review-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.review-copied { display: flex; align-items: center; gap: 6px; margin: 8px 0 0; color: var(--done); font-size: var(--fs-body); }
+.review-study details summary { cursor: pointer; font-size: var(--fs-body); color: var(--text-2); }
+
+@media (max-width: 720px) {
+  .review-mode-grid { grid-template-columns: 1fr; }
+  .review-result { padding: 14px; }
+  .review-row .review-primary, .review-row .review-secondary { flex: 1 1 auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .review-mode-card, .review-secondary, .review-primary { transition: none; }
+}

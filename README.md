@@ -90,6 +90,10 @@ src/
     WeekPlanPanel.jsx
     ReplanPanel.jsx
     CommunicationWizard.jsx
+    review/            ← 복습 및 개인 공부 모듈
+  services/tutorService.js
+  services/mockTutorService.js
+  utils/chunkSearch.js
     BearPanel.jsx
     PlanSheet.jsx
   lectureNotes.js
@@ -140,6 +144,41 @@ Two cases, each with a screenshot of the service's front page: 처음 사용해�
 `src/lectureNotes.js` holds the file rules — `.txt` only, 3MB ceiling, empty-file and read-failure messages — with no React in it, so the processing and the UI can change apart from each other. `TxtUpload.jsx` is the drop zone: click or drag, a highlight while dragging, the file name, size and upload time, a preview of the text, and a delete button that clears the entry.
 
 Each accepted file becomes `{ lectureId, fileId, fileName, fileSize, text, uploadedAt }` — the shape a later retrieval step would index. Nothing is sent anywhere: the text is read with the File API, held in React state, and lost on reload. There is no embedding, no vector search, and no model call.
+
+## 복습 및 개인 공부 (v2.3)
+
+The third section of 강의탭 used to say 준비 중. It now runs on the TXT files the learner already uploaded to 강의 이해 지원 — **one uploader, two sections**. `materialsFor()` in `src/lectureNotes.js` is the adapter: it turns a stored note into the `{ materialId, courseId, fileName, content, chunks }` the module expects, splitting the text into paragraph chunks on the way.
+
+Pick a lecture record, then one of four ways in:
+
+| | |
+| --- | --- |
+| 강의 내용 확인하기 | 원문과 발췌 문단 |
+| 핵심 내용 파악하기 | 어려운 용어를 쉬운 말로 |
+| 이해 여부 점검하기 | OX·빈칸 문제 |
+| 부족한 부분 다시 학습하기 | 틀린 문제와 그 근거가 된 원문 |
+
+Every claim carries the paragraph it came from, quoted underneath, so a learner can check it against the lecture rather than taking it on trust.
+
+### 시연 범위 — 지금 할 수 없는 것
+
+The module ships as a demo and says so on screen. These limits are real and none of them is papered over:
+
+- **실제 OpenAI API, AI 요약, 의미 검색은 없습니다.** 요약은 원문 문단을 발췌한 것이고, 화면에도 그렇게 적혀 있습니다.
+- 용어 설명과 문제는 미리 적어 둔 **학습과학 용어 몇 개**에만 반응합니다. 아무 강의 TXT나 이해하지는 못합니다.
+- 퀴즈 정답이 클라이언트 코드에 있어 **평가 용도로 쓸 수 없습니다.**
+- 오답 기록은 화면 상태일 뿐 저장되지 않습니다.
+- 청크 검색은 **단순 키워드 일치**입니다.
+- `apiTutorService`가 호출할 `/api/tutor` 서버는 아직 없습니다.
+- 수업별 접근 제한, 인증, 외부 전송 동의와 삭제 정책은 실제 사용 전에 구현해야 합니다.
+
+A TXT that is deleted takes its analysis and its wrong answers with it — keeping them would answer questions about a lecture the learner no longer has. `materialId` is unique per upload, so re-uploading the same file starts clean.
+
+`docs/tutor-demo/` holds the sample lecture TXT files to upload while demonstrating, and `docs/Commu_SysPrompt.txt` the communication prompt.
+
+### LLM으로 바꿀 자리
+
+`src/services/tutorService.js` — one line points at the mock. An API provider returning the same `{ schemaVersion, materialId, mode, status, data, provider }` changes nothing above it; `ReviewStudyPage` already refuses a response whose `materialId`, `mode` or `schemaVersion` does not match what it asked for.
 
 ## 소통 준비하기 (v2.2)
 

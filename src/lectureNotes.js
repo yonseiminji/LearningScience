@@ -5,6 +5,8 @@
 // AI Tutor step (chunking, embedding, vector search) can be added here without
 // touching the components.
 
+import { createChunks } from './utils/chunkSearch.js'
+
 export const MAX_FILE_BYTES = 3 * 1024 * 1024 // 3MB
 export const ACCEPTED_EXTENSION = '.txt'
 export const CLOVANOTE_URL = 'https://clovanote.naver.com/'
@@ -58,6 +60,25 @@ export function createLectureNote({ lectureId, file, text }) {
     text,
     uploadedAt: new Date().toISOString(),
   }
+}
+
+// 복습 및 개인 공부 reads the same uploads 강의 이해 지원 collects — there is
+// one uploader, and this is the adapter to the shape that section expects.
+// Chunking happens here so nothing has to re-read the file.
+export function toMaterial(note) {
+  return {
+    materialId: note.fileId,
+    courseId: note.lectureId,
+    fileName: note.fileName,
+    uploadedAt: note.uploadedAt,
+    status: 'ready',
+    content: note.text,
+    chunks: createChunks(note.fileId, note.text),
+  }
+}
+
+export function materialsFor(notes = []) {
+  return notes.map(toMaterial)
 }
 
 export function notePreview(text, limit = 600) {
