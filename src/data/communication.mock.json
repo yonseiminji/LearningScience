@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "feature": "communication-support",
+  "mode": "mock",
+  "flow": ["recipient", "situation", "information", "context", "draft", "edit-and-copy"],
+  "copy": {
+    "homeTitle": "소통 준비하기",
+    "homeDescription": "교수님이나 조원에게 질문할 내용을 곰곰이와 함께 정리해요.",
+    "wizardTitle": "곰곰이에게 질문하기",
+    "wizardSubtitle": "소통 준비하기 · 단계별 안내",
+    "disclaimer": "시연용 UI · 실제 AI 및 메시지 전송 기능 미연동",
+    "informationQuestion": "이 중에서 어떤 정보를 알고 있나요? 어떤 정보를 모르고 있나요?",
+    "informationStates": ["known", "unknown", "unsure"],
+    "informationStateLabels": {"known": "알고 있어요", "unknown": "알고 싶어요", "unsure": "잘 모르겠어요"},
+    "contextPlaceholder": "현재 상황을 편하게 적어 주세요.",
+    "previewHeading": "질문 문장을 함께 확인해요",
+    "editHint": "내용을 확인하고 필요하다면 직접 수정해 보세요.",
+    "copyButton": "문장 복사하기",
+    "copySuccess": "문장을 복사했어요. 원하는 곳에 붙여넣어 사용해 보세요."
+  },
+  "recipients": [
+    {
+      "id": "teammate",
+      "label": "조원과 소통하기",
+      "situationQuestion": "조원과 이야기할 때 어떤 점이 어려운가요? 가장 가까운 것을 골라 보세요.",
+      "contextQuestion": "조원의 요청이나, 자신이 이해한 내용을 간단히 입력해 봐요.",
+      "outputIntro": "말씀해 주신 내용을 바탕으로 질문 문장을 제안할게요. 확인하고 수정한 뒤 조원에게 보내 보세요.",
+      "channels": ["message", "face_to_face"],
+      "situations": [
+        {"id": "role-unclear", "label": "제가 맡은 역할을 정확히 모르겠어요.", "informationItems": [
+          {"id": "assigned-work", "label": "담당 작업"},
+          {"id": "deliverable-format", "label": "결과물 형식"},
+          {"id": "done-criteria", "label": "완료 기준"},
+          {"id": "deadline", "label": "마감 기한"}
+        ]},
+        {"id": "schedule-coordination", "label": "조원과 일정을 조율하고 싶어요.", "informationItems": [
+          {"id": "available-times", "label": "가능한 시간"},
+          {"id": "checkpoint-date", "label": "중간 점검일"},
+          {"id": "final-deadline", "label": "최종 마감일"}
+        ]},
+        {"id": "message-unclear", "label": "조원이 한 말을 정확히 이해하지 못했어요.", "informationItems": [
+          {"id": "request-meaning", "label": "요청의 의미"},
+          {"id": "work-scope", "label": "작업 범위"},
+          {"id": "priority", "label": "우선순위"},
+          {"id": "deliverable-format", "label": "결과물 형식"}
+        ]}
+      ]
+    },
+    {
+      "id": "professor",
+      "label": "교수님께 질문하기",
+      "situationQuestion": "교수님께 질문하고 싶은 내용이 있나요? 어떤 점이 어려운지 가장 가까운 것을 골라 보세요.",
+      "contextQuestion": "교수님께 질문하고 싶은 상황을 간단히 적어 봐요. 알고 있는 내용과 아직 이해하지 못한 내용을 함께 적어도 좋아요.",
+      "outputIntro": "말씀해 주신 내용을 바탕으로 질문 문장을 제안할게요. 필요한 부분을 수정한 뒤 교수님께 질문해 보세요.",
+      "channels": ["email", "message", "face_to_face"],
+      "situations": [
+        {"id": "assignment-unclear", "label": "과제에서 무엇을 해야 하는지 모르겠어요.", "informationItems": [
+          {"id": "purpose", "label": "과제의 목적"},
+          {"id": "required-content", "label": "필수 내용"},
+          {"id": "rubric", "label": "평가 기준"},
+          {"id": "submission-format", "label": "제출 형식"},
+          {"id": "deadline", "label": "마감 기한"}
+        ]},
+        {"id": "lecture-unclear", "label": "수업에서 이해하지 못한 내용이 있어요.", "informationItems": [
+          {"id": "core-concept", "label": "핵심 개념"},
+          {"id": "hard-terms", "label": "어려운 용어"},
+          {"id": "concept-relationship", "label": "개념 간 관계"},
+          {"id": "examples", "label": "구체적인 사례"},
+          {"id": "references", "label": "참고 자료"}
+        ]},
+        {"id": "presentation-prep", "label": "발표나 질의응답을 준비하고 싶어요.", "informationItems": [
+          {"id": "key-content", "label": "발표의 핵심 내용"},
+          {"id": "structure", "label": "발표 구성"},
+          {"id": "expected-questions", "label": "예상 질문"},
+          {"id": "answer-strategy", "label": "답변 방법"},
+          {"id": "rubric", "label": "평가 기준"}
+        ]}
+      ]
+    }
+  ],
+  "demoSession": {
+    "sessionId": "commu-demo-professor-001",
+    "recipientId": "professor",
+    "situationId": "assignment-unclear",
+    "information": [
+      {"itemId": "purpose", "status": "known"},
+      {"itemId": "required-content", "status": "unknown"},
+      {"itemId": "rubric", "status": "unsure"},
+      {"itemId": "submission-format", "status": "unsure"},
+      {"itemId": "deadline", "status": "known"}
+    ],
+    "contextText": "교수님이 사회학 이론을 실제 사례에 적용하라고 하셨어요. 그런데 이론 하나만 선택해야 하는지, 여러 개를 사용해도 되는지 모르겠어요.",
+    "channel": "email",
+    "identity": {"courseName": "사회학", "studentName": "", "studentNumber": ""},
+    "draft": {
+      "generatedText": "교수님, 안녕하세요. 사회학 강의를 수강하고 있는 학생입니다. 사회학 과제와 관련해 질문드립니다. 과제에서 사회학 이론을 실제 사례에 적용해야 한다는 점은 이해했습니다. 다만 이론을 하나만 선택해야 하는지, 여러 이론을 활용해도 되는지 궁금합니다. 확인해 주시면 감사하겠습니다.",
+      "editedText": null,
+      "isUserEdited": false
+    },
+    "status": "draft"
+  }
+}
