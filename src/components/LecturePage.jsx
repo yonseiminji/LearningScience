@@ -4,8 +4,8 @@ import LectureUnderstanding from './LectureUnderstanding.jsx'
 
 // One lecture, three kinds of work, stacked in the order a week runs:
 // understand the class, do the assignment, then review on your own.
-// The sections snap to the top of the screen, and a section longer than the
-// screen still scrolls freely.
+// The page scrolls freely: the sections are told apart by their cards and
+// headings, not by pulling the viewport to a boundary.
 export default function LecturePage({
   subject,
   assignment,

@@ -106,7 +106,7 @@ public/guide/
 
 ## 강의탭 (v2.1)
 
-**강의탭 이동** on a home card opens one lecture, split into the three kinds of work a week holds. The sections snap to the top of the screen with `scroll-snap-type: y proximity`, so a section longer than the screen still scrolls freely, and snapping and smooth scrolling are both dropped under `prefers-reduced-motion: reduce`.
+**강의탭 이동** on a home card opens one lecture, split into the three kinds of work a week holds. The page scrolls freely; the sections are told apart by their cards and headings, not by pulling the viewport to a boundary. The v2.1 spec asked for `scroll-snap-type: y proximity`, and it was built that way, but settling onto a section fought the reader, so the snapping was taken out. `scroll-behavior: smooth` is kept for anchor and scripted jumps and dropped under `prefers-reduced-motion: reduce`.
 
 1. **강의 이해 지원.** 차곡차곡 records nothing itself. **강의 녹음하기** shows the ClovaNote walkthrough to a first-time learner, then the pre-recording notice; only **확인했습니다** opens `clovanote.naver.com` in a new tab, so Escape and a backdrop click leave the learner where they are. **클로바노트 사용법 보기** reopens the walkthrough at any time.
 2. **과제 수행.** The existing assignment guide, embedded unchanged.
