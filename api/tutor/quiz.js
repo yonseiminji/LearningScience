@@ -5,13 +5,14 @@
 // against the text are dropped rather than shown: a question the learner
 // cannot verify against the lecture is worse than one fewer question.
 //
-// Answers do not travel with the questions. They are kept in _store.js and
-// /api/tutor/answer does the marking.
+// The answer travels with the question but sealed: the browser holds a token
+// it cannot open, and /api/tutor/answer opens it to mark. See _seal.js for why
+// an in-memory answer key cannot work across two Vercel Functions.
 
 import { Type } from '@google/genai'
 import { ApiError, generateJson, handler, sendJson } from './_gemini.js'
 import { checkRate, requireChunks, requireOneOf, requireString } from './_limit.js'
-import { newQuizId, saveQuiz } from './_store.js'
+import { seal } from './_seal.js'
 
 const QUESTION_TYPES = ['ox', 'blank']
 
@@ -113,7 +114,8 @@ export function verifyQuestions(raw, chunks) {
   return { kept, dropped }
 }
 
-// what the browser is allowed to see
+// What the browser is allowed to see, plus the sealed answer it will hand
+// back when the learner commits. Nothing readable about the answer is here.
 function publicQuestion(question) {
   return {
     questionId: question.questionId,
@@ -121,6 +123,14 @@ function publicQuestion(question) {
     questionText: question.questionText,
     sourceChunkIds: question.sourceChunkIds,
     evidenceText: question.evidenceText,
+    answerToken: seal({
+      questionId: question.questionId,
+      answer: question.answer,
+      acceptableAnswers: question.acceptableAnswers,
+      explanation: question.explanation,
+      sourceChunkIds: question.sourceChunkIds,
+      evidenceText: question.evidenceText,
+    }),
   }
 }
 
@@ -150,13 +160,10 @@ export default handler(async (req, res, body) => {
     throw new ApiError(422, '이 구간으로는 확인할 수 있는 문제를 만들지 못했어요. 다른 구간을 골라 주세요.')
   }
 
-  const quizId = newQuizId(materialId)
-  saveQuiz({ quizId, materialId, questions: kept })
-
   sendJson(res, 200, {
     schemaVersion: 1,
     provider: 'gemini',
-    quizId,
+    quizId: `quiz-${Date.now().toString(36)}`,
     materialId,
     questions: kept.map(publicQuestion),
     droppedCount: dropped.length,

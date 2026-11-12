@@ -20,7 +20,7 @@ async function withFallback(call, fallback) {
 }
 
 export const tutorService = {
-  /** Questions come back without their answers; the server keeps those. */
+  /** Questions come back with their answers sealed, not in the clear. */
   createQuiz({ material, chunkIds }) {
     const chunks = material.chunks.filter((chunk) => chunkIds.includes(chunk.chunkId))
     return withFallback(
@@ -38,12 +38,14 @@ export const tutorService = {
     )
   },
 
-  submitAnswer({ quizId, questionId, userAnswer }) {
+  /** The answerToken came with the question and is opaque to this side; the
+   *  server opens it to mark. */
+  submitAnswer({ quizId, questionId, answerToken, userAnswer }) {
     if (String(quizId).startsWith('mock-')) {
       return mockTutorService.submitAnswer({ quizId, questionId, userAnswer })
     }
     return withFallback(
-      () => tutorApi.answer({ quizId, questionId, userAnswer }).then((d) => ({ ...d, provider: 'gemini' })),
+      () => tutorApi.answer({ questionId, answerToken, userAnswer }).then((d) => ({ ...d, provider: 'gemini' })),
       () => mockTutorService.submitAnswer({ quizId, questionId, userAnswer }),
     )
   },

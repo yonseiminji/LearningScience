@@ -94,7 +94,12 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
   async function submitAnswer(question, userAnswer) {
     if (!quiz) return
     const data = await run('answer', () =>
-      tutorService.submitAnswer({ quizId: quiz.quizId, questionId: question.questionId, userAnswer }),
+      tutorService.submitAnswer({
+        quizId: quiz.quizId,
+        questionId: question.questionId,
+        answerToken: question.answerToken,
+        userAnswer,
+      }),
     )
     if (!data) return
     setResults((prev) => ({ ...prev, [question.questionId]: data }))
