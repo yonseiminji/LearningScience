@@ -8,31 +8,83 @@ function dueDate(iso) {
   return match ? `${Number(match[2])}월 ${Number(match[3])}일` : ''
 }
 
-export default function SideWing({
-  counts,
-  stepCompletion,
-  planEntries = [],
-  onStartPlan,
-  onReplan,
-  onOpenTasks,
-  onOpenChat,
-}) {
+export default function SideWing({ stepCompletion, planEntries = [], onStartPlan, onReplan, onOpenTasks, onOpenChat }) {
+  // 이번주 is the week the learner actually took on, not every step in every
+  // assignment. Before a plan exists there is nothing to count, so the block
+  // asks for one instead of showing a dozen empty squares.
   const plan = sortEntries(planEntries)
-  const left = counts.total - counts.done
+  const planned = plan.length
+  const done = plan.filter((entry) => stepCompletion[entry.stepId]).length
   const upcoming = data.assignments.slice().sort((a, b) => a.dueAt.localeCompare(b.dueAt))
   const nearestOpenId = upcoming.find((assignment) => assignment.steps.some((step) => !stepCompletion[step.id]))?.id
 
   return (
     <aside className="wing" aria-label="이번 주 계획">
-      <section className="wing-group">
+      <section className="wing-group wing-week">
         <h2>이번주</h2>
-        <div className="wing-count">
-          <ChagokBlocks done={counts.done} total={counts.total} />
-          <span className="num">
-            {counts.done}/{counts.total}
-          </span>
-        </div>
+        {planned === 0 ? (
+          <>
+            <p className="wing-empty">아직 이번 주 계획이 없어요. 할 단계를 두세 개만 골라 볼까요?</p>
+            <button type="button" className="btn primary wing-plan-start" onClick={onStartPlan}>
+              <CalendarPlus aria-hidden="true" size={16} />
+              이번 주 계획 세우기
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="wing-count">
+              <ChagokBlocks done={done} total={planned} />
+              <span className="num">
+                {done}/{planned}
+              </span>
+            </div>
+            <div className="wing-plan">
+              <h3>이번 주 계획</h3>
+              <ul className="wing-plan-list">
+                {plan.map((entry) => {
+                  const status = entryStatus(entry, stepCompletion)
+                  return (
+                    <li key={entry.stepId} className={`is-${status}`}>
+                      <span className="wing-plan-when">
+                        {formatSlotLabel(slotFromIso(entry.slotIso, entry.nextWeek))}
+                      </span>
+                      <span className="wing-plan-what">
+                        <span className="wing-plan-step">
+                          {entry.subjectName} {entry.stepNumber}단계 · {entry.minutes}분
+                        </span>
+                        {status === 'done' ? (
+                          <span className="wing-plan-state is-done">
+                            <Check aria-hidden="true" size={13} />다 했어요
+                          </span>
+                        ) : status === 'missed' ? (
+                          <>
+                            <span className="wing-plan-state">아직이에요</span>
+                            <button type="button" className="btn wing-replan" onClick={() => onReplan(entry)}>
+                              <RotateCcw aria-hidden="true" size={13} />
+                              다시 정하기
+                            </button>
+                          </>
+                        ) : (
+                          <span className="wing-plan-sub">{entry.stepTitle}</span>
+                        )}
+                      </span>
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+            <button type="button" className="btn ghost wing-tasks" onClick={onOpenTasks}>
+              <ListChecks aria-hidden="true" size={16} />
+              나의 할 일 보기
+            </button>
+            <button type="button" className="btn wing-plan-start" onClick={onStartPlan}>
+              <CalendarPlus aria-hidden="true" size={16} />
+              계획 다시 세우기
+            </button>
+          </>
+        )}
       </section>
+
       <section className="wing-group">
         <h2>다가오는 마감</h2>
         <ul className="due-list">
@@ -52,67 +104,7 @@ export default function SideWing({
           })}
         </ul>
       </section>
-      <section className="wing-group">
-        <h2>이번 주 남은 할 일</h2>
-        <p className="wing-left">
-          {left > 0 ? (
-            <>
-              <b className="num">{left}</b>단계 남았어요
-            </>
-          ) : (
-            '모두 끝냈어요'
-          )}
-        </p>
-        {plan.length > 0 ? (
-          <div className="wing-plan">
-            <h3>이번 주 계획</h3>
-            <ul className="wing-plan-list">
-              {plan.map((entry) => {
-                const status = entryStatus(entry, stepCompletion)
-                return (
-                  <li key={entry.stepId} className={`is-${status}`}>
-                    <span className="wing-plan-when">
-                      {formatSlotLabel(slotFromIso(entry.slotIso, entry.nextWeek))}
-                    </span>
-                    <span className="wing-plan-what">
-                      <span className="wing-plan-step">
-                        {entry.subjectName} {entry.stepNumber}단계 · {entry.minutes}분
-                      </span>
-                      {status === 'done' ? (
-                        <span className="wing-plan-state is-done">
-                          <Check aria-hidden="true" size={13} />다 했어요
-                        </span>
-                      ) : status === 'missed' ? (
-                        <>
-                          <span className="wing-plan-state">아직이에요</span>
-                          <button type="button" className="btn wing-replan" onClick={() => onReplan(entry)}>
-                            <RotateCcw aria-hidden="true" size={13} />
-                            다시 정하기
-                          </button>
-                        </>
-                      ) : (
-                        <span className="wing-plan-sub">{entry.stepTitle}</span>
-                      )}
-                    </span>
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-        ) : null}
-        <button type="button" className="btn ghost wing-tasks" onClick={onOpenTasks}>
-          <ListChecks aria-hidden="true" size={16} />
-          나의 할 일 보기
-        </button>
-        <button
-          type="button"
-          className={plan.length > 0 ? 'btn wing-plan-start' : 'btn primary wing-plan-start'}
-          onClick={onStartPlan}
-        >
-          <CalendarPlus aria-hidden="true" size={16} />
-          {plan.length > 0 ? '계획 다시 세우기' : '이번 주 계획 세우기'}
-        </button>
-      </section>
+
       <button type="button" className="bear-fab" onClick={onOpenChat}>
         <img src="/brand/gomgomi-question.webp" alt="" />
         질문하기

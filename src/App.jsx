@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { CalendarDays, House, Plus, SquarePen } from 'lucide-react'
-import { data, assignmentForSubject, firstOpenStep, overallCounts } from './assignmentModel.js'
+import { data, assignmentForSubject, firstOpenStep } from './assignmentModel.js'
 import SubjectBoard from './components/SubjectBoard.jsx'
 import TodoPage from './components/TodoPage.jsx'
 import Timetable from './components/Timetable.jsx'
@@ -42,7 +42,6 @@ export default function App() {
   const [planPanelOpen, setPlanPanelOpen] = useState(false)
   const [replanEntry, setReplanEntry] = useState(null)
 
-  const counts = overallCounts(stepCompletion)
   const guideAssignment = assignmentForSubject(guideSubjectId)
   const guideSubject = data.subjects.find((subject) => subject.id === guideSubjectId)
   const currentStepId = activeStepId || firstOpenStep(guideAssignment, stepCompletion)?.id
@@ -237,7 +236,6 @@ export default function App() {
             ) : null}
           </div>
           <SideWing
-            counts={counts}
             stepCompletion={stepCompletion}
             planEntries={planEntries}
             onStartPlan={openPlanPanel}

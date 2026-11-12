@@ -141,7 +141,9 @@ The assignment steps are already split up. What this adds is deciding **when** t
 - **둘째 주부터:** 지난주 계획, 어땠나요? 일부만 or 못 했어요 leads to 시간을 더 짧게 / 단계를 더 적게 / 다른 시간에. 더 짧게 starts the duration at 10분; 더 적게 caps the week at two steps.
 - **1/2 고르기:** 2–3 steps, ordered by 마감이 가까운 것부터 or 어려운 것부터.
 - **2/2 언제:** a free hour from the timetable, then 10·20·40분, then 이렇게 할까요?
-- **완성:** the plan appears inside the same card, and 인쇄하기 puts it on one sheet for a notebook.
+- **완성:** the plan fills the 이번주 block, and 인쇄하기 puts it on one sheet for a notebook.
+
+이번주 and 이번 주 남은 할 일 are one block. It counts the week the learner took on, not every step in every assignment: 차곡 블록 are one per planned step and fill as those steps are ticked, so the squares stand for a week someone chose rather than a dozen handed over at the start. Before a plan exists the block has nothing to count and asks for one instead.
 
 목표일 is counted back from the deadline — the last step two days before it, each earlier step one day before the next — and the panel says so where the learner can read it. 나의 할 일 shows a target date on the step in hand only, so the list does not read as a wall of deadlines.
 
