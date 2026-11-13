@@ -10,10 +10,18 @@
 import { TutorApiError, tutorApi } from './tutorApi.js'
 import { mockTutorService } from './mockTutorService.js'
 
+// Set VITE_TUTOR_STRICT=1 on Preview to stop the fallback. Normally an
+// unreachable endpoint quietly becomes the demo questions, which is right for
+// a learner and wrong for a deployment check: a broken route, a refused
+// method and a missing key all look like a working screen. Strict mode lets
+// the error through so it can be read.
+const STRICT = import.meta.env?.VITE_TUTOR_STRICT === '1' || import.meta.env?.VITE_TUTOR_STRICT === 'true'
+
 async function withFallback(call, fallback) {
   try {
     return await call()
   } catch (error) {
+    if (STRICT) throw error
     if (error instanceof TutorApiError && error.isUnavailable) return fallback()
     throw error
   }
