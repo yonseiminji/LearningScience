@@ -210,6 +210,16 @@ export function fail(res, error) {
   // detail is for the server log, not the learner
   if (!(error instanceof ApiError)) console.error('[tutor]', error)
   else if (error.detail) console.error('[tutor]', error.message, error.detail)
+
+  // Under debug the cause rides along in the response. A 502 that says only
+  // '모델 응답을 받지 못했어요' is unreadable from the browser, and the reason
+  // Google gave — a model name it does not know, a key it refuses — is the
+  // whole answer. Off in Production, where the learner sees only `error`.
+  if (debugEnabled()) {
+    const detail = error instanceof ApiError ? error.detail : String(error?.stack || error)
+    sendJson(res, status, { error: message, code: status, model: MODEL, detail: detail ?? null })
+    return
+  }
   sendJson(res, status, { error: message, code: status })
 }
 
