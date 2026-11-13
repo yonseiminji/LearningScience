@@ -28,6 +28,36 @@ export class ApiError extends Error {
   }
 }
 
+// ─── observing the exchange ──────────────────────────────────────────────
+
+// Set TUTOR_DEBUG=1 on Preview only. It logs what was sent to the model and
+// what came back, so the two can be read side by side in Vercel's Runtime
+// Logs. The key is never logged, and nothing here changes the response body:
+// the raw model text holds the answers, so it stays in the server log.
+export function debugEnabled() {
+  return process.env.TUTOR_DEBUG === '1' || process.env.TUTOR_DEBUG === 'true'
+}
+
+// Short id so a request line and its response line can be paired in a log
+// stream that interleaves concurrent invocations.
+function traceId() {
+  return Math.random().toString(36).slice(2, 10)
+}
+
+// One JSON line per side. Vercel splits multi-line output into separate
+// entries, which scrambles the pairing, so each log is a single line.
+function logLine(tag, payload) {
+  try {
+    console.log(tag, JSON.stringify(payload))
+  } catch {
+    console.log(tag, '(직렬화할 수 없는 값)')
+  }
+}
+
+function finishReasonOf(response) {
+  return response?.candidates?.[0]?.finishReason || null
+}
+
 /**
  * Asks the model for JSON of a given shape and parses it.
  * `responseSchema` makes the model answer in that shape; the caller still
@@ -35,6 +65,23 @@ export class ApiError extends Error {
  */
 export async function generateJson({ systemInstruction, prompt, responseSchema, maxOutputTokens = 1200 }) {
   const ai = getClient()
+  const debug = debugEnabled()
+  const id = debug ? traceId() : null
+  const startedAt = Date.now()
+
+  if (debug) {
+    logLine('[tutor:req]', {
+      id,
+      model: MODEL,
+      maxOutputTokens,
+      temperature: 0.2,
+      systemChars: systemInstruction?.length ?? 0,
+      promptChars: prompt?.length ?? 0,
+      systemInstruction,
+      prompt,
+    })
+  }
+
   let response
   try {
     response = await ai.models.generateContent({
@@ -49,15 +96,44 @@ export async function generateJson({ systemInstruction, prompt, responseSchema, 
       },
     })
   } catch (error) {
+    if (debug) logLine('[tutor:err]', { id, ms: Date.now() - startedAt, error: String(error?.message || error) })
     throw new ApiError(502, '모델 응답을 받지 못했어요.', String(error?.message || error))
   }
 
+  const reason = finishReasonOf(response)
   const text = response?.text
-  if (!text) throw new ApiError(502, '모델이 빈 응답을 보냈어요.')
+
+  if (debug) {
+    const usage = response?.usageMetadata || {}
+    logLine('[tutor:res]', {
+      id,
+      ms: Date.now() - startedAt,
+      finishReason: reason,
+      promptTokens: usage.promptTokenCount ?? null,
+      outputTokens: usage.candidatesTokenCount ?? null,
+      totalTokens: usage.totalTokenCount ?? null,
+      textChars: text?.length ?? 0,
+      text: text ?? null,
+    })
+  }
+
+  // Why the model stopped decides what went wrong. Without this, a reply cut
+  // off at the token ceiling and a reply that broke the schema both arrive as
+  // 'not valid JSON' and the cause is unreadable.
+  if (reason === 'MAX_TOKENS') {
+    throw new ApiError(502, '모델 응답이 길이 제한에서 잘렸어요.', `finishReason=MAX_TOKENS maxOutputTokens=${maxOutputTokens} textChars=${text?.length ?? 0}`)
+  }
+  if (reason === 'SAFETY' || reason === 'PROHIBITED_CONTENT' || reason === 'RECITATION') {
+    throw new ApiError(502, '모델이 이 내용에는 응답하지 않았어요.', `finishReason=${reason}`)
+  }
+
+  if (!text) throw new ApiError(502, '모델이 빈 응답을 보냈어요.', `finishReason=${reason}`)
   try {
     return JSON.parse(text)
   } catch {
-    throw new ApiError(502, '모델 응답이 올바른 JSON이 아니에요.')
+    // The snippet goes to the server log through ApiError.detail, never to the
+    // learner: fail() sends only `message`.
+    throw new ApiError(502, '모델 응답이 올바른 JSON이 아니에요.', `finishReason=${reason} 앞부분=${text.slice(0, 300)}`)
   }
 }
 
@@ -99,7 +175,14 @@ export function fail(res, error) {
 /** Wraps a handler: POST only, body parsed, errors turned into JSON. */
 export function handler(fn) {
   return async (req, res) => {
-    if (req.method !== 'POST') return sendJson(res, 405, { error: 'POST만 받아요.', code: 405 })
+    // A refused method is logged under debug, because the browser turns a 405
+    // into the demo questions without a word and the refusal would otherwise
+    // leave no trace of itself.
+    if (req.method !== 'POST') {
+      if (debugEnabled()) logLine('[tutor:405]', { method: req.method, url: req.url })
+      return sendJson(res, 405, { error: 'POST만 받아요.', code: 405 })
+    }
+    if (debugEnabled()) logLine('[tutor:hit]', { method: req.method, url: req.url, hasApiKey: hasApiKey() })
     try {
       const body = await readJsonBody(req)
       await fn(req, res, body)
