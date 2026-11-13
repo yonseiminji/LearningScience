@@ -81,8 +81,19 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
     }
   }
 
+  // Returning without a word here is how a missing step looks like a broken
+  // feature: nothing is requested and nothing is said. Say which step is
+  // missing, and for a missing selection open the screen that fixes it.
   async function makeQuiz() {
-    if (!material || selectedChunkIds.length === 0) return
+    if (!material) {
+      setError('먼저 공부할 강의를 선택해 주세요.')
+      return
+    }
+    if (selectedChunkIds.length === 0) {
+      setError('문제로 풀어 볼 구간을 하나 이상 골라 주세요.')
+      setMode('select')
+      return
+    }
     const data = await run('quiz', () => tutorService.createQuiz({ material, chunkIds: selectedChunkIds }))
     if (!data) return
     setQuiz(data)
@@ -143,6 +154,14 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
   if (selectedChunkIds.length === 0 && !quiz) disabledModes.push('quiz')
   if (!quiz) disabledModes.push('support')
 
+  // A greyed-out card with no reason reads as a fault. Name the step that
+  // would turn it on.
+  const blockedHint = disabledModes.includes('quiz')
+    ? '‘강의 구간 선택하기’에서 구간을 고르면 문제를 만들 수 있어요.'
+    : disabledModes.includes('support')
+      ? '문제를 한 번 풀면 ‘부족한 부분 다시 학습하기’를 쓸 수 있어요.'
+      : ''
+
   return (
     <section className="review-study">
       {showHeading ? <h2>복습 및 개인 공부</h2> : null}
@@ -164,6 +183,7 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
             }}
           />
 
+          {blockedHint && !error ? <p className="review-muted">{blockedHint}</p> : null}
           {busy === 'quiz' ? <p role="status">고른 구간으로 문제를 만들고 있어요…</p> : null}
           {error ? (
             <p role="alert" className="review-error">
