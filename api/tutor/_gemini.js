@@ -4,6 +4,7 @@
 // browser talks only to /api/tutor/*. The model is named by GEMINI_MODEL so a
 // cheaper or newer Flash model can be swapped in without a deploy of code.
 
+import { createHash } from 'node:crypto'
 import { GoogleGenAI } from '@google/genai'
 
 export const MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash'
@@ -44,7 +45,7 @@ function traceId() {
   return Math.random().toString(36).slice(2, 10)
 }
 
-// One JSON line per side. Vercel splits multi-line output into separate
+// One JSON line per entry. Vercel splits multi-line output into separate
 // entries, which scrambles the pairing, so each log is a single line.
 function logLine(tag, payload) {
   try {
@@ -52,6 +53,45 @@ function logLine(tag, payload) {
   } catch {
     console.log(tag, '(직렬화할 수 없는 값)')
   }
+}
+
+// Vercel caps a runtime log line at 4KB and silently cuts the rest, and the
+// system instruction alone is past that. So long text goes out in numbered
+// parts, each inside the cap, and the metadata line says how many to expect.
+//
+// The budget is in bytes, not characters: a Korean syllable is three bytes in
+// UTF-8, so a 3000-character slice of a lecture is 9KB and would be cut.
+const LOG_PART_BYTES = 3400
+
+// Split by code point so a surrogate pair is never broken in half.
+function byteParts(text) {
+  const parts = []
+  let buffer = ''
+  let size = 0
+  for (const character of Array.from(String(text ?? ''))) {
+    const width = Buffer.byteLength(character, 'utf8')
+    if (size + width > LOG_PART_BYTES && buffer) {
+      parts.push(buffer)
+      buffer = ''
+      size = 0
+    }
+    buffer += character
+    size += width
+  }
+  if (buffer || parts.length === 0) parts.push(buffer)
+  return parts
+}
+
+function logText(tag, id, text) {
+  const parts = byteParts(text)
+  parts.forEach((part, at) => logLine(`${tag}:${at + 1}/${parts.length}`, { id, text: part }))
+  return parts.length
+}
+
+// The system instruction is the same on every call of a deploy and is in the
+// repo, so its fingerprint is enough to tell which version answered.
+function fingerprint(text) {
+  return createHash('sha256').update(String(text ?? ''), 'utf8').digest('hex').slice(0, 8)
 }
 
 function finishReasonOf(response) {
@@ -76,10 +116,11 @@ export async function generateJson({ systemInstruction, prompt, responseSchema, 
       maxOutputTokens,
       temperature: 0.2,
       systemChars: systemInstruction?.length ?? 0,
+      systemHash: fingerprint(systemInstruction),
       promptChars: prompt?.length ?? 0,
-      systemInstruction,
-      prompt,
+      promptBytes: Buffer.byteLength(String(prompt ?? ''), 'utf8'),
     })
+    logText('[tutor:prompt]', id, prompt)
   }
 
   let response
@@ -113,8 +154,8 @@ export async function generateJson({ systemInstruction, prompt, responseSchema, 
       outputTokens: usage.candidatesTokenCount ?? null,
       totalTokens: usage.totalTokenCount ?? null,
       textChars: text?.length ?? 0,
-      text: text ?? null,
     })
+    logText('[tutor:answer]', id, text)
   }
 
   // Why the model stopped decides what went wrong. Without this, a reply cut
