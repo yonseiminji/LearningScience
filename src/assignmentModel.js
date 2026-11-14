@@ -1,5 +1,63 @@
 import data from './data/assignments.mock.json'
 
+// The registry every other reader already consults.
+//
+// findStep, planCandidates, hydrateEntry, validatePlan, GuideView,
+// SubjectBoard, SideWing, TodoPage and ChatRoom all reach for
+// `data.assignments`. Appending here is what makes a newly chunked assignment
+// visible to the planner and the guide without touching any of them — the
+// alternative is threading an assignment list through the whole tree.
+//
+// Nothing in the mock is modified or removed; a registered assignment is
+// added beside it, and an id that already exists is rejected rather than
+// overwriting what is there.
+export function hasAssignmentId(id) {
+  return data.assignments.some((assignment) => assignment.id === id)
+}
+
+export function hasStepId(id) {
+  return data.assignments.some((assignment) => assignment.steps.some((step) => step.id === id))
+}
+
+/** A prefix no existing assignment or step is using, derived from `base`. */
+export function freeIdPrefix(base) {
+  let prefix = base
+  let at = 2
+  while (hasAssignmentId(prefix) || hasStepId(`${prefix}-s1`)) {
+    prefix = `${base}-${at}`
+    at += 1
+  }
+  return prefix
+}
+
+const TOKENS = ['brown', 'plum', 'sage']
+
+/** Finds the subject by name, or adds one. Returns its id. */
+export function ensureSubject(name) {
+  const clean = String(name || '').trim()
+  const existing = data.subjects.find((subject) => subject.name === clean)
+  if (existing) return existing.id
+  const id = freeIdPrefix(`subject-${data.subjects.length + 1}`)
+  data.subjects.push({
+    id,
+    name: clean,
+    icon: 'book',
+    colorToken: TOKENS[data.subjects.length % TOKENS.length],
+  })
+  return id
+}
+
+/**
+ * Adds an assignment to the registry. Callers must pass ids that are free —
+ * freeIdPrefix gives them — and the assignment is rejected rather than
+ * replacing an existing one.
+ */
+export function registerAssignment(assignment) {
+  if (!assignment?.id || hasAssignmentId(assignment.id)) return null
+  data.assignments.push(assignment)
+  return assignment
+}
+
 export function subjectById(id) {
   return data.subjects.find((subject) => subject.id === id) || null
 }

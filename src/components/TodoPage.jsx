@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CalendarCheck, Check, ChevronDown, ChevronRight, Circle, Play } from 'lucide-react'
+import { CalendarCheck, Check, ChevronDown, ChevronRight, Circle, Play, Scissors } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 import ProgressRing from './ProgressRing.jsx'
 import { data, ddayLabel, dueChipClass, formatDue } from '../assignmentModel.js'
@@ -8,7 +8,7 @@ import { formatMonthDay, formatSlotLabel, planBySubject, planEntriesOf } from '.
 // 나의 할 일 is this week's plan, not the whole backlog. It reads the plan
 // document the 곰곰이 conversation produced: only the steps the learner set
 // aside time for appear here, in the order they set them.
-export default function TodoPage({ plan, stepCompletion, focusSubjectId, onToggleStep, onOpen }) {
+export default function TodoPage({ plan, stepCompletion, focusSubjectId, onToggleStep, onOpen, onAddAssignment }) {
   const reduce = useReducedMotion()
   const groups = planBySubject(plan, stepCompletion)
   const [openId, setOpenId] = useState(focusSubjectId || groups[0]?.subjectId || null)
@@ -40,6 +40,12 @@ export default function TodoPage({ plan, stepCompletion, focusSubjectId, onToggl
               : '이번 주 계획을 세우면 여기에 모여요'}
           </p>
         </div>
+        {onAddAssignment ? (
+          <button type="button" className="btn todo-add-assignment" onClick={onAddAssignment}>
+            <Scissors aria-hidden="true" size={16} />
+            과제 단계 나누기
+          </button>
+        ) : null}
       </div>
 
       {ordered.length === 0 ? (

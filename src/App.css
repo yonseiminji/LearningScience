@@ -1328,3 +1328,4 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 @media (prefers-reduced-motion: reduce) {
   .commu-choice, .commu-state { transition: none; }
 }
+.todo-add-assignment { flex: none; }

@@ -7,6 +7,7 @@ import Timetable from './components/Timetable.jsx'
 import GuideView from './components/GuideView.jsx'
 import LecturePage from './components/LecturePage.jsx'
 import LectureBoard from './components/LectureBoard.jsx'
+import TaskChunkingPanel from './components/taskChunking/TaskChunkingPanel.jsx'
 import SideWing from './components/SideWing.jsx'
 import ChatRoom from './components/ChatRoom.jsx'
 import WeekPlanPanel from './components/WeekPlanPanel.jsx'
@@ -40,6 +41,10 @@ export default function App() {
   const [view, setView] = useState('home')
   // Survives a reload, so the 강의 cards still know what was last studied.
   const [studyHistory, setStudyHistory] = useState(readStudyHistory)
+  const [chunkingOpen, setChunkingOpen] = useState(false)
+  // registerAssignment mutates the shared registry that findStep and every
+  // board already read, so the tree needs a nudge to re-read it.
+  const [registryVersion, setRegistryVersion] = useState(0)
   const [learningTip] = useState(() => getRandomTip());
   const [focusSubjectId, setFocusSubjectId] = useState(null)
   const [guideSubjectId, setGuideSubjectId] = useState(data.subjects[0].id)
@@ -117,6 +122,12 @@ export default function App() {
   // and generating a quiz all leave the record alone.
   function noteStudied(entry) {
     setStudyHistory(recordStudy(entry))
+  }
+
+  function applyChunkedAssignment(assignment) {
+    setRegistryVersion((n) => n + 1)
+    setChunkingOpen(false)
+    openGuide(assignment.subjectId)
   }
 
   function addLectureNote(subjectId, note) {
@@ -265,13 +276,18 @@ export default function App() {
               </>
             ) : null}
             {view === 'lectures' ? <LectureBoard onOpen={openLecture} studyHistory={studyHistory} /> : null}
+            {view === 'tasks' && chunkingOpen ? (
+              <TaskChunkingPanel onApplied={applyChunkedAssignment} onClose={() => setChunkingOpen(false)} />
+            ) : null}
             {view === 'tasks' ? (
               <TodoPage
+                key={registryVersion}
                 plan={plan}
                 stepCompletion={stepCompletion}
                 focusSubjectId={focusSubjectId}
                 onToggleStep={toggleStep}
                 onOpen={openGuide}
+                onAddAssignment={() => setChunkingOpen(true)}
               />
             ) : null}
             {view === 'timetable' ? <Timetable onOpenSubject={openSubjectTasks} /> : null}
