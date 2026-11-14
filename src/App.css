@@ -1368,3 +1368,7 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 
 /* the keyword row packs its chips instead of running as one line of text */
 .req-keywords { display: flex; flex-wrap: wrap; gap: 6px; }
+/* 제출 조건 reads as points, not a paragraph */
+.req-points { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.req-points li { position: relative; padding-left: 12px; }
+.req-points li::before { position: absolute; left: 0; color: var(--muted); content: '·'; }
