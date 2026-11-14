@@ -56,7 +56,9 @@
 .chunk-levels label.is-on { border-color: var(--accent); background: var(--raised); }
 .chunk-levels input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--accent); flex: none; }
 .chunk-level-main { display: grid; gap: 2px; }
+.chunk-level-main > b { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
 .chunk-level-main span { color: var(--muted); font-size: 13px; }
+.chunk-level-range { font-weight: 400; }
 
 .chunk-loading { display: grid; justify-items: center; gap: 6px; padding: 20px; text-align: center; }
 .chunk-loading p { margin: 0; }
@@ -85,16 +87,21 @@
 .chunk-steps input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--done); flex: none; }
 .chunk-step-main { display: grid; gap: 2px; min-width: 0; }
 .chunk-step-main span { color: var(--muted); font-size: 13px; }
-.chunk-remove {
-  flex: none;
-  padding: 4px;
+.chunk-tools { display: flex; flex: none; gap: 2px; }
+.chunk-tool {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
   border: none;
   border-radius: 6px;
   background: transparent;
   color: var(--muted);
   cursor: pointer;
 }
-.chunk-remove:hover { background: var(--chip); color: var(--ink); }
+.chunk-tool:hover:not(:disabled) { background: var(--chip); color: var(--ink); }
+.chunk-tool:disabled { opacity: 0.3; cursor: default; }
 
 .chunk-add { display: flex; gap: 8px; }
 .chunk-add input {

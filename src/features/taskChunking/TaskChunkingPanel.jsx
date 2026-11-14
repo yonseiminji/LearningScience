@@ -1,5 +1,5 @@
-import { useMemo, useRef, useState } from 'react'
-import { Check, CheckSquare, Plus, RotateCcw, Square, Trash2, Upload } from 'lucide-react'
+import { useState } from 'react'
+import { ArrowDown, ArrowUp, Check, CheckSquare, Plus, RotateCcw, Square, Trash2 } from 'lucide-react'
 import {
   CHUNK_LEVELS,
   DEFAULT_LEVEL,
@@ -23,9 +23,9 @@ import './taskChunking.css'
 // last button, so a learner can regenerate and change their mind as often as
 // they like and the planner never sees a half-made assignment.
 //
-// The generated list and the learner's choices are kept apart: `proposal`
-// holds what the model returned, `excluded` and `added` hold what the learner
-// did about it. Regenerating replaces the first and clears the second.
+// What the model returned and what the learner did about it are kept apart.
+// `proposal` holds the generated list untouched; `rows` is the working copy
+// they reorder, uncheck and add to. Regenerating replaces both.
 export default function TaskChunkingPanel({ onApplied, onClose }) {
   const [step, setStep] = useState('input') // input | level | review
   const [text, setText] = useState('')
@@ -35,16 +35,9 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const [proposal, setProposal] = useState(null) // { steps, warnings, provider }
+  const [rows, setRows] = useState([])
   const [excluded, setExcluded] = useState(() => new Set())
-  const [added, setAdded] = useState([])
   const [draft, setDraft] = useState('')
-  const fileRef = useRef(null)
-
-  const rows = useMemo(() => {
-    const generated = (proposal?.steps || []).map((item, index) => ({ key: `g${index}`, ...item, source: 'gemini' }))
-    const mine = added.map((item, index) => ({ key: `u${index}`, ...item, source: 'user' }))
-    return [...generated, ...mine]
-  }, [proposal, added])
 
   const chosen = rows.filter((row) => !excluded.has(row.key))
 
@@ -65,13 +58,6 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
     setStep('level')
   }
 
-  async function pickFile(event) {
-    const file = event.target.files?.[0]
-    if (!file) return
-    readInput(await file.text())
-    event.target.value = ''
-  }
-
   async function generate() {
     if (!assignment || busy) return
     setBusy(true)
@@ -90,8 +76,8 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
         return
       }
       setProposal({ steps: checked.steps, warnings: checked.warnings, provider: data.provider })
+      setRows(checked.steps.map((item, index) => ({ key: `g${index}`, ...item, source: 'gemini' })))
       setExcluded(new Set())
-      setAdded([])
       setStep('review')
     } catch (failure) {
       setError(failure?.message || '단계를 만들지 못했어요. 잠시 뒤 다시 시도해 주세요.')
@@ -111,8 +97,22 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
   function addStep() {
     const made = userStep(draft)
     if (!made) return
-    setAdded((prev) => [...prev, made])
+    // A key that cannot collide with an existing one, however many have been
+    // added and removed along the way.
+    setRows((prev) => [...prev, { key: `u${Date.now().toString(36)}`, ...made }])
     setDraft('')
+  }
+
+  // Order is the learner's to set: the model proposes a sequence, but only
+  // they know what they want to do first.
+  function move(index, by) {
+    setRows((prev) => {
+      const at = index + by
+      if (at < 0 || at >= prev.length) return prev
+      const next = prev.slice()
+      ;[next[index], next[at]] = [next[at], next[index]]
+      return next
+    })
   }
 
   function apply() {
@@ -165,7 +165,7 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
 
       {step === 'input' ? (
         <div className="chunk-body">
-          <p className="section-lead">AI로 정리한 과제 JSON을 붙여넣거나 업로드해 주세요.</p>
+          <p className="section-lead">AI로 정리한 과제 JSON을 붙여넣어 주세요.</p>
           <textarea
             className="chunk-input"
             rows={10}
@@ -186,13 +186,8 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
             </div>
           ) : null}
           <div className="chunk-actions">
-            <button type="button" className="btn" onClick={() => fileRef.current?.click()}>
-              <Upload aria-hidden="true" size={16} />
-              파일 올리기
-            </button>
-            <input ref={fileRef} type="file" accept=".json,application/json" hidden onChange={pickFile} />
             <button type="button" className="btn primary" onClick={confirmInput} disabled={!text.trim()}>
-              과제 정보 확인하기
+              과제 올리기
             </button>
           </div>
         </div>
@@ -220,7 +215,12 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
                     onChange={() => setLevel(item.id)}
                   />
                   <span className="chunk-level-main">
-                    <b>{item.label}</b>
+                    <b>
+                      {item.label}
+                      <span className="chunk-level-range">
+                        {item.min}~{item.max}단계
+                      </span>
+                    </b>
                     <span>{item.blurb}</span>
                   </span>
                 </label>
@@ -251,6 +251,7 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
           <h3 className="chunk-question">이 단계대로 과제를 진행해 볼까요?</h3>
           <p className="section-lead">
             곰곰이가 나눈 단계를 확인해 보세요. 필요 없는 단계는 선택을 해제하고, 빠진 단계는 직접 추가할 수 있어요.
+            화살표로 순서도 바꿀 수 있어요.
           </p>
 
           {proposal.warnings.length > 0 ? (
@@ -276,7 +277,7 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
           </div>
 
           <ol className="chunk-steps">
-            {rows.map((row) => (
+            {rows.map((row, index) => (
               <li key={row.key} className={excluded.has(row.key) ? 'is-off' : ''}>
                 <label>
                   <input type="checkbox" checked={!excluded.has(row.key)} onChange={() => toggle(row.key)} />
@@ -285,16 +286,36 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
                     <span>{row.description}</span>
                   </span>
                 </label>
-                {row.source === 'user' ? (
+                <span className="chunk-tools">
                   <button
                     type="button"
-                    className="chunk-remove"
-                    aria-label={`${row.title} 지우기`}
-                    onClick={() => setAdded((prev) => prev.filter((_, at) => `u${at}` !== row.key))}
+                    className="chunk-tool"
+                    aria-label={`${row.title} 위로`}
+                    disabled={index === 0}
+                    onClick={() => move(index, -1)}
                   >
-                    <Trash2 aria-hidden="true" size={15} />
+                    <ArrowUp aria-hidden="true" size={15} />
                   </button>
-                ) : null}
+                  <button
+                    type="button"
+                    className="chunk-tool"
+                    aria-label={`${row.title} 아래로`}
+                    disabled={index === rows.length - 1}
+                    onClick={() => move(index, 1)}
+                  >
+                    <ArrowDown aria-hidden="true" size={15} />
+                  </button>
+                  {row.source === 'user' ? (
+                    <button
+                      type="button"
+                      className="chunk-tool"
+                      aria-label={`${row.title} 지우기`}
+                      onClick={() => setRows((prev) => prev.filter((item) => item.key !== row.key))}
+                    >
+                      <Trash2 aria-hidden="true" size={15} />
+                    </button>
+                  ) : null}
+                </span>
               </li>
             ))}
           </ol>

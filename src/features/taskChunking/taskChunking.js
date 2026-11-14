@@ -26,7 +26,7 @@ export const CHUNK_LEVELS = [
     label: '단계 많이',
     blurb: '작은 행동으로 자세하게 나눠요. 과제를 시작하기 막막할 때 추천해요.',
     min: 7,
-    max: 10,
+    max: 8,
   },
 ]
 
