@@ -161,9 +161,10 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 /* 나의 과제 says the time left with an icon instead of a D-number chip */
 .due-row svg { width: 15px; height: 15px; flex: none; stroke-width: 1.75; }
 .due-row.due-overdue { color: var(--soon); }
-/* 강의 cards carry one line of context and no deadline */
+/* 강의 cards carry the last study record and no deadline */
 .lecture-recent { margin: 0 0 12px; color: var(--text-2); font-size: var(--fs-body); }
-.lecture-blank { display: inline-block; width: 64px; margin: 0 2px; border-bottom: 1px dashed var(--block-line); vertical-align: baseline; }
+.lecture-recent p { margin: 0; }
+.lecture-recent p + p { margin-top: 2px; color: var(--muted); }
 /* round gauge for each subject's steps */
 .ring { position: relative; display: grid; place-items: center; width: 52px; height: 52px; }
 .ring svg { position: absolute; inset: 0; transform: rotate(-90deg); }

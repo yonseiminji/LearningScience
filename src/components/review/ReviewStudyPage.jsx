@@ -7,6 +7,7 @@ import QuizPanel from './QuizPanel.jsx'
 import SupportPanel from './SupportPanel.jsx'
 import { tutorService } from '../../services/tutorService.js'
 import { chunksByIds, retrieveChunks } from '../../utils/chunkSearch.js'
+import { ACTIVITY } from '../../studyHistory.js'
 import './reviewStudy.css'
 
 // 복습 및 개인 공부.
@@ -19,7 +20,7 @@ import './reviewStudy.css'
 // Errors are held apart from the work: a failed request shows a message and
 // leaves the quiz, the answers given so far and the selection exactly where
 // they were.
-export default function ReviewStudyPage({ courseId, materials = [], showHeading = true }) {
+export default function ReviewStudyPage({ courseId, materials = [], showHeading = true, onStudied }) {
   const [materialId, setMaterialId] = useState('')
   const [mode, setMode] = useState(null)
   const [selectedChunkIds, setSelectedChunkIds] = useState([])
@@ -114,6 +115,16 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
     )
     if (!data) return
     setResults((prev) => ({ ...prev, [question.questionId]: data }))
+    // Answering is the point at which something was studied. A quiz that was
+    // generated and then abandoned leaves no trace, which is why the tag has
+    // waited here since generation instead of being recorded on arrival.
+    // Whether the answer was right has no bearing on it.
+    onStudied?.({
+      subjectId: courseId,
+      topicTag: quiz.topicTag,
+      activityType: ACTIVITY.quizAnswer,
+      sourceChunkIds: question.sourceChunkIds,
+    })
   }
 
   async function requestSupport(question, result, supportType) {
@@ -137,6 +148,16 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
     )
     if (!data) return
     setSupport({ ...data, questionId: question.questionId })
+    // Only a supported answer counts: with no evidence there was nothing to
+    // study, and without a tag there is nothing to name.
+    if (data.status === 'supported' && data.topicTag?.trim()) {
+      onStudied?.({
+        subjectId: courseId,
+        topicTag: data.topicTag,
+        activityType: ACTIVITY.tutorSupport,
+        sourceChunkIds: data.sourceChunkIds,
+      })
+    }
   }
 
   function retryQuestion() {

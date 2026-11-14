@@ -17,6 +17,7 @@ export default function LecturePage({
   onRemoveNote,
   onBack,
   guideProps,
+  onStudied,
 }) {
   // the TXT files 강의 이해 지원 already holds, in the shape 복습 및 개인 공부
   // reads. One upload, two sections — no second uploader.
@@ -72,7 +73,7 @@ export default function LecturePage({
           ‘강의 이해 지원’에 올린 강의 기록으로 공부해요. 문제와 설명은 고른 구간의 <b>강의 원문만</b> 근거로 만들고,
           근거가 모자라면 만들지 않아요.
         </p>
-        <ReviewStudyPage courseId={subject?.id} materials={materials} showHeading={false} />
+        <ReviewStudyPage courseId={subject?.id} materials={materials} showHeading={false} onStudied={onStudied} />
       </section>
     </div>
   )

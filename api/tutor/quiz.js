@@ -67,12 +67,16 @@ For every candidate: is the proposition explicitly supported? can the answer be 
 
 ${FEW_SHOTS}
 
+## Topic tag
+Also return topicTag: a short Korean noun phrase naming what these chunks teach, such as 작업기억의 개념과 특징. It records what was studied; it says nothing about whether the learner understood it. Cover only what the supplied chunks actually discuss, and return an empty string when they are too thin to name a topic. Never put a subject name, a date, or a learner's result in it.
+
 ## Output
 Return only JSON matching the given schema — no Markdown fences, no preface, no extra commentary, and no fields beyond the schema's own. questionCount and questionTypes are targets; accurate grounding takes priority over hitting the count.`
 
 const SCHEMA = {
   type: Type.OBJECT,
   properties: {
+    topicTag: { type: Type.STRING },
     questions: {
       type: Type.ARRAY,
       items: {
@@ -214,6 +218,9 @@ ${passage}`,
     provider: 'gemini',
     quizId: `quiz-${Date.now().toString(36)}`,
     materialId,
+    // What the chunks were about, for the lecture card's study record. The
+    // subject and the time are the app's to supply, never the model's.
+    topicTag: typeof data.topicTag === 'string' ? data.topicTag.trim().slice(0, 60) : '',
     questions: kept.map(publicQuestion),
     droppedCount: dropped.length,
   })
