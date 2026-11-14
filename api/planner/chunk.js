@@ -124,7 +124,7 @@ instruction did not state.
 - stepId is step-001, step-002, in order, and no two repeat.
 - title is one concrete action, short and plain, such as VAE 구조 조사 및 설명 작성.
 - description is one short Korean sentence in 존댓말 saying what doing this involves, drawn from the instruction.
-- requirementIds lists the requirementIds this step carries out. Every requirement must appear under at least one step. A step that carries none gets an empty array.
+- requirementIds lists requirementIds you wrote in the requirements array above, copied exactly. Never write an id that is not in that array, and never invent a different prefix: if the list has req-001 to req-005, those five strings are the only ones that may appear here. Every requirement must appear under at least one step. A step that carries none gets an empty array.
 - completionCriteria: one or two checks the learner can answer about their own work. text is the check itself, short, such as 임계값 2개 이상 비교. placeholder is an example answer written as the learner would write it, beginning with 예) and ending in 해요 or 했어요 — for instance 예) 임계값 50과 150으로 비교했어요. It shows them what kind of answer fits; it is never advice or an instruction.
 - Order the steps as the work is done, and never repeat the same activity.
 

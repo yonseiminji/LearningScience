@@ -129,6 +129,18 @@ export function verifyChunkResult(data, { level, instruction = '' }) {
   if (requirements.length === 0) errors.push('과제 요구사항을 읽지 못했어요.')
 
   const known = new Set(requirements.map((item) => item.requirementId))
+  // The model writes the ids twice — once in the requirements list, once in
+  // each step — and the two drift: a step asks for get-006 when the list says
+  // req-006. When only the prefix slipped and the number points at a
+  // requirement that exists, that is a typo and is repaired. A number with no
+  // requirement behind it is a reference to something that was never written,
+  // and stays unknown.
+  const byNumber = new Map(requirements.map((item) => [String(item.requirementId).match(/(\d+)\s*$/)?.[1], item.requirementId]))
+  const resolve = (id) => {
+    if (known.has(id)) return id
+    const digits = String(id).match(/(\d+)\s*$/)?.[1]
+    return (digits && byNumber.get(digits)) || null
+  }
   const rawSteps = Array.isArray(data?.steps) ? data.steps : []
   if (rawSteps.length === 0) {
     return { ok: false, steps: [], requirements, errors: ['단계를 하나도 받지 못했어요.'], warnings, title: '', dueAt: null }
@@ -161,8 +173,14 @@ export function verifyChunkResult(data, { level, instruction = '' }) {
     if (stepId) seenIds.add(stepId)
     seenTitles.add(titleKey)
 
-    const ids = Array.isArray(step?.requirementIds) ? step.requirementIds.filter((id) => typeof id === 'string') : []
-    const unknown = ids.filter((id) => !known.has(id))
+    const raw = Array.isArray(step?.requirementIds) ? step.requirementIds.filter((id) => typeof id === 'string') : []
+    const ids = []
+    const unknown = []
+    for (const id of raw) {
+      const hit = resolve(id)
+      if (hit) ids.push(hit)
+      else unknown.push(id)
+    }
     if (unknown.length > 0) {
       warnings.push(`‘${title}’이(가) 없는 요구사항을 가리켜요: ${unknown.join(', ')}`)
     }
@@ -180,7 +198,7 @@ export function verifyChunkResult(data, { level, instruction = '' }) {
             }))
             .slice(0, 3)
         : [],
-      requirementIds: ids.filter((id) => known.has(id)),
+      requirementIds: [...new Set(ids)],
     })
   })
 

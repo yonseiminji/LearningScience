@@ -12,12 +12,16 @@ import {
   verifyChunkResult,
   verifyFinalSteps,
 } from './taskChunking.js'
-import { createSubject, data, freeIdPrefix, registerAssignment } from '../../assignmentModel.js'
+import { data, ensureSubject, freeIdPrefix, registerAssignment } from '../../assignmentModel.js'
 import { tutorService } from '../../services/tutorService.js'
 import Modal from '../../components/Modal.jsx'
 import './taskChunking.css'
 
 const NEW_SUBJECT = '__new__'
+
+// Shown as a placeholder, so it has to read like an assignment a first-year
+// would actually be set — not a topic that narrows who the example speaks to.
+const INSTRUCTION_EXAMPLE = `예) 본 과제는 교육의 기본 개념을 이해하고, 현대 사회에서 교육의 목적과 교사의 역할을 비판적으로 탐색하는 것을 목표로 한다. 강의에서 학습한 교육의 목적 중 두 가지를 선정하여 핵심 내용을 요약하고, 각 목적이 실제 학교 교육에서 어떻게 구현되는지 구체적인 사례를 제시하시오. 해당 사례에서 교사가 수행해야 할 역할을 분석하고, 바람직한 교육의 방향에 대한 자신의 견해를 근거와 함께 서술하시오. 참고자료를 활용한 경우 출처를 표기한다. 제출 마감일은 2026년 11월 29일(일) 23시 59분이다.`
 
 // 과제 단계 나누기.
 //
@@ -127,7 +131,8 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
       setError(checked.errors[0])
       return
     }
-    const subjectId = isNew ? createSubject(subjectName) : subjectChoice
+    const picked = isNew ? ensureSubject(subjectName) : { id: subjectChoice, created: false }
+    const subjectId = picked.id
     const made = registerAssignment({
       id: prefix,
       subjectId,
@@ -150,7 +155,7 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
       setError('같은 과제가 이미 있어요.')
       return
     }
-    onApplied?.(made, { subjectAdded: isNew, subjectName })
+    onApplied?.(made, { subjectAdded: picked.created, subjectName })
   }
 
   const listTransition = reduce ? { duration: 0 } : { type: 'spring', stiffness: 520, damping: 38 }
@@ -187,7 +192,7 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
                   type="text"
                   value={newSubject}
                   onChange={(event) => setNewSubject(event.target.value)}
-                  placeholder="예) 생성형 AI"
+                  placeholder="예) 교육학개론"
                 />
               </label>
             ) : null}
@@ -202,7 +207,7 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
                   setText(event.target.value)
                   setInputErrors([])
                 }}
-                placeholder="예) VAE와 GAN의 기본 원리를 조사하고 두 모델의 학습 방식을 비교하는 보고서를 A4 3장 이내로 작성하세요. 모델 구조를 설명하는 그림을 최소 1개 포함하고, 참고한 자료의 출처를 명시하세요."
+                placeholder={INSTRUCTION_EXAMPLE}
               />
             </label>
 
