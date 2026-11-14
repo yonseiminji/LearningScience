@@ -13,6 +13,7 @@ import WeekPlanPanel from './components/WeekPlanPanel.jsx'
 import ReplanPanel from './components/ReplanPanel.jsx'
 import { planEntriesOf, readHasPlanned, writeHasPlanned } from './weekPlan.js'
 import { emptySession } from './communication.js'
+import { readStudyHistory, recordStudy } from './studyHistory.js'
 
 const NAV = [
   { id: 'home', label: '홈', icon: House },
@@ -36,7 +37,9 @@ function getRandomTip() {
 }
 
 export default function App() {
-  const [view, setView] = useState('home');
+  const [view, setView] = useState('home')
+  // Survives a reload, so the 강의 cards still know what was last studied.
+  const [studyHistory, setStudyHistory] = useState(readStudyHistory)
   const [learningTip] = useState(() => getRandomTip());
   const [focusSubjectId, setFocusSubjectId] = useState(null)
   const [guideSubjectId, setGuideSubjectId] = useState(data.subjects[0].id)
@@ -107,6 +110,13 @@ export default function App() {
     setActiveStepId(firstOpenStep(assignment, stepCompletion)?.id || null)
     setView('lecture')
     window.scrollTo({ top: 0 })
+  }
+
+  // Called only when a Tutor activity actually finished: an answer submitted,
+  // or support that had evidence behind it. Opening the tab, uploading a file
+  // and generating a quiz all leave the record alone.
+  function noteStudied(entry) {
+    setStudyHistory(recordStudy(entry))
   }
 
   function addLectureNote(subjectId, note) {
@@ -254,7 +264,7 @@ export default function App() {
                 />
               </>
             ) : null}
-            {view === 'lectures' ? <LectureBoard onOpen={openLecture} /> : null}
+            {view === 'lectures' ? <LectureBoard onOpen={openLecture} studyHistory={studyHistory} /> : null}
             {view === 'tasks' ? (
               <TodoPage
                 plan={plan}
@@ -275,6 +285,7 @@ export default function App() {
                 notes={lectureNotes[guideSubjectId] || []}
                 onAddNote={(note) => addLectureNote(guideSubjectId, note)}
                 onRemoveNote={(fileId) => removeLectureNote(guideSubjectId, fileId)}
+                onStudied={noteStudied}
                 onBack={() => setView('home')}
                 guideProps={guideProps}
               />

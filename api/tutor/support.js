@@ -58,6 +58,7 @@ const COMMON = `당신은 한국 대학생이 강의 내용을 복습하고 스�
 - usedChunkIds는 실제 근거로 사용한 제공 청크 ID만 사용합니다.
 - sourceText는 제공된 청크 하나에서 연속된 원문을 정확히 복사합니다. 인용이 정답을 노출한다면 빈 문자열을 사용합니다.
 - 근거가 없을 때 사용하지 않은 청크를 임의로 인용하지 않습니다.
+- topicTag에는 이번에 다룬 학습 주제를 짧은 한국어 명사구로 적습니다. 예: 외재적 인지부하의 개념. 제공된 청크가 실제로 다룬 내용만 쓰고, 주제를 이름 붙일 근거가 부족하면 빈 문자열로 둡니다. 과목명, 날짜, 학생의 정답 여부는 넣지 않습니다. 이것은 공부한 내용의 기록일 뿐 이해 정도를 뜻하지 않습니다.
 - 정해진 JSON Schema의 필드만 반환하며 내부 점검 과정은 출력하지 않습니다.`
 
 const PROMPTS = {
@@ -115,6 +116,7 @@ const SCHEMA = {
     response: { type: Type.STRING },
     sourceText: { type: Type.STRING },
     usedChunkIds: { type: Type.ARRAY, items: { type: Type.STRING } },
+    topicTag: { type: Type.STRING },
   },
   required: ['status', 'response'],
 }
@@ -162,5 +164,8 @@ ${passage}`,
     // only chunks that were actually sent; a model naming another is ignored
     sourceChunkIds: usedChunkIds.length > 0 ? usedChunkIds : chunks.map((chunk) => chunk.chunkId),
     sourceText: typeof data.sourceText === 'string' ? data.sourceText.trim() : '',
+    // What was studied, for the lecture card. Only meaningful alongside a
+    // supported answer: with no evidence there is nothing to have studied.
+    topicTag: status === 'supported' && typeof data.topicTag === 'string' ? data.topicTag.trim().slice(0, 60) : '',
   })
 })

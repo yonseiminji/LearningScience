@@ -156,14 +156,15 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 .subject-open, .todo-open { border-color: transparent; background: var(--raised); color: var(--ink); }
 .btn.subject-open:hover, .btn.todo-open:hover { background: var(--chip); }
 .due-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 12px; color: var(--text-2); font-size: var(--fs-body); }
+.progress-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
 .due-chip { padding: 2px 8px; border-radius: 6px; background: var(--raised); color: var(--ink); font-size: 13px; font-weight: 600; white-space: nowrap; }
-/* 나의 과제 names the one step to do next. No fraction, so no denominator to
-   break when an instruction is chunked into some other number of steps. */
-.next-step { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; margin: 0 0 12px; color: var(--text-2); font-size: var(--fs-body); }
-.next-step-label { color: var(--muted); font-size: 13px; font-weight: 600; }
-/* 강의 cards carry one line of context and no deadline */
+/* 나의 과제 says the time left with an icon instead of a D-number chip */
+.due-row svg { width: 15px; height: 15px; flex: none; stroke-width: 1.75; }
+.due-row.due-overdue { color: var(--soon); }
+/* 강의 cards carry the last study record and no deadline */
 .lecture-recent { margin: 0 0 12px; color: var(--text-2); font-size: var(--fs-body); }
-.lecture-blank { display: inline-block; width: 64px; margin: 0 2px; border-bottom: 1px dashed var(--block-line); vertical-align: baseline; }
+.lecture-recent p { margin: 0; }
+.lecture-recent p + p { margin-top: 2px; color: var(--muted); }
 /* round gauge for each subject's steps */
 .ring { position: relative; display: grid; place-items: center; width: 52px; height: 52px; }
 .ring svg { position: absolute; inset: 0; transform: rotate(-90deg); }
@@ -315,12 +316,6 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 .due-date { margin-left: auto; color: var(--muted); font-size: 13px; }
 .due-list .due-chip { background: var(--raised); }
 .due-list .due-chip.is-near { background: var(--accent); color: var(--accent-ink); }
-/* icon + time left; the nearest open one is filled so the eye lands on it */
-.due-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 6px; background: var(--raised); color: var(--ink); font-size: 13px; font-weight: 600; white-space: nowrap; }
-.due-badge svg { flex: none; stroke-width: 1.75; }
-.due-badge.due-soon, .due-badge.due-overdue { background: var(--soon-bg); color: var(--soon); }
-.due-badge.is-near { background: var(--accent); color: var(--accent-ink); }
-.due-badge.due-soon.is-near, .due-badge.due-overdue.is-near { background: var(--soon); color: #fff; }
 /* deadline 7 days or closer: coral; the nearest one in the side panel is filled */
 .due-chip.is-soon, .due-list .due-chip.is-soon { background: var(--soon-bg); color: var(--soon); }
 .due-list .due-chip.is-soon.is-near { background: var(--soon); color: #fff; }
@@ -628,15 +623,16 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
   .subject-grid { gap: 12px; max-width: 760px; }
   .subject-card {
     display: grid;
-    grid-template-columns: 112px minmax(0, 1fr) auto;
+    grid-template-columns: 112px minmax(0, 1fr) auto auto;
     align-items: center;
     column-gap: 20px;
     padding: 16px 20px;
   }
   .subject-card .card-top { grid-column: 1; grid-row: 1 / 3; margin: 0; }
   .subject-card h3 { grid-column: 2; grid-row: 1; margin: 0 0 4px; }
-  .subject-card .next-step { grid-column: 2; grid-row: 2; margin: 0; }
-  .subject-card .btn { grid-column: 3; grid-row: 1 / 3; margin: 0; min-height: 36px; padding: 0 14px; }
+  .subject-card .due-row { grid-column: 2; grid-row: 2; margin: 0; }
+  .subject-card .progress-row { grid-column: 3; grid-row: 1 / 3; margin: 0; }
+  .subject-card .btn { grid-column: 4; grid-row: 1 / 3; margin: 0; min-height: 36px; padding: 0 14px; }
   /* 강의 rows have three parts, not four: subject | recent study | button */
   .lecture-card { grid-template-columns: 112px minmax(0, 1fr) auto; }
   .lecture-card .card-top { grid-row: 1; }
