@@ -1,4 +1,5 @@
-// The browser's side of /api/tutor/*.
+// The browser's side of the serverless functions: /api/tutor/* for the
+// lecture tutor, /api/task/* for splitting an assignment into steps.
 //
 // It never holds a key and never talks to Google: the server does both. If
 // these endpoints are not deployed — a local `vite dev` with no functions,
@@ -45,5 +46,5 @@ export const tutorApi = {
   quiz: (payload) => post('/api/tutor/quiz', payload),
   answer: (payload) => post('/api/tutor/answer', payload),
   support: (payload) => post('/api/tutor/support', payload),
-  chunk: (payload) => post('/api/tutor/chunk', payload),
+  chunk: (payload) => post('/api/task/chunk', payload),
 }

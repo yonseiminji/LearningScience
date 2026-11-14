@@ -1328,4 +1328,8 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 @media (prefers-reduced-motion: reduce) {
   .commu-choice, .commu-state { transition: none; }
 }
-.todo-add-assignment { flex: none; }
+
+/* 나의 과제 heading sits beside its one action */
+.board-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.board-head .board-title { margin: 0; }
+.board-add { flex: none; }

@@ -30,19 +30,22 @@ export function freeIdPrefix(base) {
   return prefix
 }
 
+// The three the stylesheet draws: dot-* and tone-* exist for these only.
 const TOKENS = ['brown', 'plum', 'sage']
 
-/** Finds the subject by name, or adds one. Returns its id. */
-export function ensureSubject(name) {
-  const clean = String(name || '').trim()
-  const existing = data.subjects.find((subject) => subject.name === clean)
-  if (existing) return existing.id
+/**
+ * Adds a subject and returns its id. Always a new one, even when the name
+ * matches an existing subject: the home board shows one assignment per
+ * subject, so attaching a second assignment to an existing subject would
+ * leave it with no card at all.
+ */
+export function createSubject(name) {
   const id = freeIdPrefix(`subject-${data.subjects.length + 1}`)
   data.subjects.push({
     id,
-    name: clean,
+    name: String(name || '').trim(),
     icon: 'book',
-    colorToken: TOKENS[data.subjects.length % TOKENS.length],
+    colorToken: TOKENS[Math.floor(Math.random() * TOKENS.length)],
   })
   return id
 }

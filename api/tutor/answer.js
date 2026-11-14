@@ -7,8 +7,8 @@
 // No model call: marking is a comparison, and spending a request on it would
 // make it slower, costlier and less predictable.
 
-import { ApiError, handler, sendJson } from './_gemini.js'
-import { checkRate, requireString } from './_limit.js'
+import { ApiError, handler, sendJson } from '../_lib/gemini.js'
+import { checkRate, requireString } from '../_lib/limit.js'
 import { gradeAnswer } from './_grade.js'
 import { unseal } from './_seal.js'
 

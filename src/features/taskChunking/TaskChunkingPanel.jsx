@@ -10,10 +10,10 @@ import {
   userStep,
   verifyFinalSteps,
   verifySteps,
-} from '../../taskChunking.js'
-import { ensureSubject, freeIdPrefix, registerAssignment } from '../../assignmentModel.js'
+} from './taskChunking.js'
+import { createSubject, freeIdPrefix, registerAssignment } from '../../assignmentModel.js'
 import { tutorService } from '../../services/tutorService.js'
-import { slugify } from '../../taskChunking.js'
+import { slugify } from './taskChunking.js'
 import './taskChunking.css'
 
 // 과제 단계 나누기.
@@ -124,7 +124,7 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
       setError(checked.errors[0])
       return
     }
-    const subjectId = ensureSubject(assignment.subjectName)
+    const subjectId = createSubject(assignment.subjectName)
     const made = registerAssignment({
       id: prefix,
       subjectId,

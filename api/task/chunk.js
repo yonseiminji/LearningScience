@@ -1,6 +1,6 @@
 import { Type } from '@google/genai'
-import { ApiError, generateJson, handler, sendJson } from './_gemini.js'
-import { checkRate, requireOneOf, requireString } from './_limit.js'
+import { ApiError, generateJson, handler, sendJson } from '../_lib/gemini.js'
+import { checkRate, requireOneOf, requireString } from '../_lib/limit.js'
 
 // Splits one assignment instruction into steps at the granularity the learner
 // picked. The instruction is the learner's material, never an instruction to

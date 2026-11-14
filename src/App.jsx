@@ -7,7 +7,7 @@ import Timetable from './components/Timetable.jsx'
 import GuideView from './components/GuideView.jsx'
 import LecturePage from './components/LecturePage.jsx'
 import LectureBoard from './components/LectureBoard.jsx'
-import TaskChunkingPanel from './components/taskChunking/TaskChunkingPanel.jsx'
+import TaskChunkingPanel from './features/taskChunking/TaskChunkingPanel.jsx'
 import SideWing from './components/SideWing.jsx'
 import ChatRoom from './components/ChatRoom.jsx'
 import WeekPlanPanel from './components/WeekPlanPanel.jsx'
@@ -268,17 +268,19 @@ export default function App() {
                     <strong>Tip:</strong> {learningTip}
                   </p>
                 </section>
+                {chunkingOpen ? (
+                  <TaskChunkingPanel onApplied={applyChunkedAssignment} onClose={() => setChunkingOpen(false)} />
+                ) : null}
                 <SubjectBoard
+                  key={registryVersion}
                   stepCompletion={stepCompletion}
                   onOpen={openLecture}
                   onOpenCommunication={() => openChat(null, 'commu')}
+                  onAddAssignment={() => setChunkingOpen(true)}
                 />
               </>
             ) : null}
             {view === 'lectures' ? <LectureBoard onOpen={openLecture} studyHistory={studyHistory} /> : null}
-            {view === 'tasks' && chunkingOpen ? (
-              <TaskChunkingPanel onApplied={applyChunkedAssignment} onClose={() => setChunkingOpen(false)} />
-            ) : null}
             {view === 'tasks' ? (
               <TodoPage
                 key={registryVersion}
@@ -287,7 +289,6 @@ export default function App() {
                 focusSubjectId={focusSubjectId}
                 onToggleStep={toggleStep}
                 onOpen={openGuide}
-                onAddAssignment={() => setChunkingOpen(true)}
               />
             ) : null}
             {view === 'timetable' ? <Timetable onOpenSubject={openSubjectTasks} /> : null}

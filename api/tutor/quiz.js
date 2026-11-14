@@ -10,9 +10,9 @@
 // an in-memory answer key cannot work across two Vercel Functions.
 
 import { Type } from '@google/genai'
-import { ApiError, generateJson, handler, sendJson } from './_gemini.js'
+import { ApiError, generateJson, handler, sendJson } from '../_lib/gemini.js'
 import { FEW_SHOTS } from './_fewshots.js'
-import { checkRate, requireChunks, requireOneOf, requireString } from './_limit.js'
+import { checkRate, requireChunks, requireOneOf, requireString } from '../_lib/limit.js'
 import { seal } from './_seal.js'
 
 const QUESTION_TYPES = ['ox', 'blank']
