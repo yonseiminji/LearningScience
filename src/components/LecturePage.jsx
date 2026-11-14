@@ -5,8 +5,10 @@ import LectureUnderstanding from './LectureUnderstanding.jsx'
 import ReviewStudyPage from './review/ReviewStudyPage.jsx'
 import { materialsFor } from '../lectureNotes.js'
 
-// One lecture, three kinds of work, stacked in the order a week runs:
-// understand the class, do the assignment, then review on your own.
+// One lecture, three kinds of work. The assignment comes first because it is
+// the thing with a deadline; the lecture record and private review follow.
+// 강의 이해 지원 still sits above 복습 및 개인 공부, which reads the files
+// uploaded there.
 // The page scrolls freely: the sections are told apart by their cards and
 // headings, not by pulling the viewport to a boundary.
 export default function LecturePage({
@@ -39,6 +41,18 @@ export default function LecturePage({
         <p className="lecture-lead">이 강의에서 할 일을 세 가지로 나누어 두었어요.</p>
       </header>
 
+      <section className="lecture-section" id="lecture-assignment" aria-labelledby="lecture-assignment-title">
+        <h2 className="lecture-section-title" id="lecture-assignment-title">
+          <ClipboardList aria-hidden="true" size={22} />
+          과제 수행
+        </h2>
+        {assignment ? (
+          <GuideView {...guideProps} assignment={assignment} subject={subject} embedded />
+        ) : (
+          <p className="hint">이 강의에는 등록된 과제가 없어요.</p>
+        )}
+      </section>
+
       <section className="lecture-section" id="lecture-understand" aria-labelledby="lecture-understand-title">
         <h2 className="lecture-section-title" id="lecture-understand-title">
           <Headphones aria-hidden="true" size={22} />
@@ -50,18 +64,6 @@ export default function LecturePage({
           onAddNote={onAddNote}
           onRemoveNote={onRemoveNote}
         />
-      </section>
-
-      <section className="lecture-section" id="lecture-assignment" aria-labelledby="lecture-assignment-title">
-        <h2 className="lecture-section-title" id="lecture-assignment-title">
-          <ClipboardList aria-hidden="true" size={22} />
-          과제 수행
-        </h2>
-        {assignment ? (
-          <GuideView {...guideProps} assignment={assignment} subject={subject} embedded />
-        ) : (
-          <p className="hint">이 강의에는 등록된 과제가 없어요.</p>
-        )}
       </section>
 
       <section className="lecture-section" id="lecture-review" aria-labelledby="lecture-review-title">
