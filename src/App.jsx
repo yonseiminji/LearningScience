@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { BookOpen, CalendarDays, House, Plus, SquarePen, X } from 'lucide-react'
-import { data, assignmentForSubject, firstOpenStep } from './assignmentModel.js'
+import { data, assignmentForSubject, assignmentsForSubject, firstOpenStep } from './assignmentModel.js'
 import SubjectBoard from './components/SubjectBoard.jsx'
 import TodoPage from './components/TodoPage.jsx'
 import Timetable from './components/Timetable.jsx'
@@ -43,6 +43,8 @@ export default function App() {
   const [studyHistory, setStudyHistory] = useState(readStudyHistory)
   const [chunkingOpen, setChunkingOpen] = useState(false)
   const [subjectNotice, setSubjectNotice] = useState(null)
+  // Which assignment the guide is on, when a subject holds more than one.
+  const [guideAssignmentId, setGuideAssignmentId] = useState(null)
   // registerAssignment mutates the shared registry that findStep and every
   // board already read, so the tree needs a nudge to re-read it.
   const [registryVersion, setRegistryVersion] = useState(0)
@@ -77,7 +79,9 @@ export default function App() {
   const [commuStep, setCommuStep] = useState(0)
   const [commuDraft, setCommuDraft] = useState(null)
 
-  const guideAssignment = assignmentForSubject(guideSubjectId)
+  const guideAssignment =
+    data.assignments.find((item) => item.id === guideAssignmentId && item.subjectId === guideSubjectId) ||
+    assignmentForSubject(guideSubjectId)
   const guideSubject = data.subjects.find((subject) => subject.id === guideSubjectId)
   const currentStepId = activeStepId || firstOpenStep(guideAssignment, stepCompletion)?.id
 
@@ -103,16 +107,18 @@ export default function App() {
     markStep(assignment, stepId, !stepCompletion[stepId])
   }
 
-  function openGuide(subjectId) {
-    const assignment = assignmentForSubject(subjectId)
+  function openGuide(subjectId, assignmentId = null) {
+    const assignment = data.assignments.find((item) => item.id === assignmentId) || assignmentForSubject(subjectId)
     setGuideSubjectId(subjectId)
+    setGuideAssignmentId(assignment?.id || null)
     setActiveStepId(firstOpenStep(assignment, stepCompletion)?.id || null)
     setView('guide')
   }
 
-  function openLecture(subjectId) {
-    const assignment = assignmentForSubject(subjectId)
+  function openLecture(subjectId, assignmentId = null) {
+    const assignment = data.assignments.find((item) => item.id === assignmentId) || assignmentForSubject(subjectId)
     setGuideSubjectId(subjectId)
+    setGuideAssignmentId(assignment?.id || null)
     setActiveStepId(firstOpenStep(assignment, stepCompletion)?.id || null)
     setView('lecture')
     window.scrollTo({ top: 0 })
@@ -131,7 +137,7 @@ export default function App() {
     // Said once, on the home board, because a card appearing for a subject
     // that was not there a moment ago is otherwise a small surprise.
     setSubjectNotice(subjectAdded ? subjectName : null)
-    openGuide(assignment.subjectId)
+    openGuide(assignment.subjectId, assignment.id)
   }
 
   function addLectureNote(subjectId, note) {
@@ -310,7 +316,7 @@ export default function App() {
             {view === 'lecture' ? (
               <LecturePage
                 subject={guideSubject}
-                assignment={guideAssignment}
+                assignments={assignmentsForSubject(guideSubjectId)}
                 notes={lectureNotes[guideSubjectId] || []}
                 onAddNote={(note) => addLectureNote(guideSubjectId, note)}
                 onRemoveNote={(fileId) => removeLectureNote(guideSubjectId, fileId)}

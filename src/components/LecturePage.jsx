@@ -13,7 +13,7 @@ import { materialsFor } from '../lectureNotes.js'
 // headings, not by pulling the viewport to a boundary.
 export default function LecturePage({
   subject,
-  assignment,
+  assignments = [],
   notes,
   onAddNote,
   onRemoveNote,
@@ -38,7 +38,10 @@ export default function LecturePage({
           {subject?.name}
         </p>
         <h1>{subject?.name} 강의탭</h1>
-        <p className="lecture-lead">이 강의에서 할 일을 세 가지로 나누어 두었어요.</p>
+        <p className="lecture-lead">
+          이 강의에서 할 일을 세 가지로 나누어 두었어요.
+          {assignments.length > 1 ? ` 등록된 과제는 ${assignments.length}개예요.` : ''}
+        </p>
       </header>
 
       <section className="lecture-section" id="lecture-assignment" aria-labelledby="lecture-assignment-title">
@@ -46,8 +49,13 @@ export default function LecturePage({
           <ClipboardList aria-hidden="true" size={22} />
           과제 수행
         </h2>
-        {assignment ? (
-          <GuideView {...guideProps} assignment={assignment} subject={subject} embedded />
+        {/* Every assignment under this subject, together. The home board
+            keeps them apart because each is its own thing to do; here they
+            are the same course's work and belong on one page. */}
+        {assignments.length > 0 ? (
+          assignments.map((item) => (
+            <GuideView key={item.id} {...guideProps} assignment={item} subject={subject} embedded />
+          ))
         ) : (
           <p className="hint">이 강의에는 등록된 과제가 없어요.</p>
         )}

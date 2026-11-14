@@ -28,14 +28,17 @@ export default function SubjectBoard({ stepCompletion, onOpen, onOpenCommunicati
         ) : null}
       </div>
       <div className="subject-grid">
-        {data.subjects.map((subject) => {
-          const assignment = data.assignments.find((item) => item.subjectId === subject.id)
-          if (!assignment) return null
+        {/* One card per assignment, not per subject. Two assignments under
+            the same subject are two things to do, and hiding the second
+            behind the first is how a newly added one went missing. */}
+        {data.assignments.map((assignment) => {
+          const subject = data.subjects.find((item) => item.id === assignment.subjectId)
+          if (!subject) return null
           const counts = stepCounts(assignment, stepCompletion)
           const due = dueStatus(assignment.dueAt)
           const DueIcon = due.tone === 'overdue' ? AlertCircle : Clock
           return (
-            <article key={subject.id} id={`subject-${subject.id}`} className={`subject-card tone-${subject.colorToken}`}>
+            <article key={assignment.id} id={`subject-${subject.id}`} className={`subject-card tone-${subject.colorToken}`}>
               <div className="card-top">
                 <span className={`subject-dot dot-${subject.colorToken}`} aria-hidden="true" />
                 <span>{subject.name}</span>
@@ -50,7 +53,7 @@ export default function SubjectBoard({ stepCompletion, onOpen, onOpenCommunicati
               <div className="progress-row">
                 <ProgressRing done={counts.done} total={counts.total} />
               </div>
-              <button type="button" className="btn subject-open" onClick={() => onOpen(subject.id)}>
+              <button type="button" className="btn subject-open" onClick={() => onOpen(subject.id, assignment.id)}>
                 강의탭 이동
                 <ChevronRight aria-hidden="true" size={16} />
               </button>

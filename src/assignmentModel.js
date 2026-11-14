@@ -34,20 +34,26 @@ export function freeIdPrefix(base) {
 const TOKENS = ['brown', 'plum', 'sage']
 
 /**
- * Adds a subject and returns its id. Always a new one, even when the name
- * matches an existing subject: the home board shows one assignment per
- * subject, so attaching a second assignment to an existing subject would
- * leave it with no card at all.
+ * The subject by that name, adding one if it is new. Returns `{ id, created }`
+ * so the screen can say when a subject appeared.
+ *
+ * A matching name joins the existing subject rather than making a second one
+ * with the same label. That is safe now the home board lists assignments
+ * rather than subjects: the new assignment gets its own card there, and the
+ * lecture tab shows the subject's assignments together.
  */
-export function createSubject(name) {
+export function ensureSubject(name) {
+  const clean = String(name || '').trim()
+  const existing = data.subjects.find((subject) => subject.name === clean)
+  if (existing) return { id: existing.id, created: false }
   const id = freeIdPrefix(`subject-${data.subjects.length + 1}`)
   data.subjects.push({
     id,
-    name: String(name || '').trim(),
+    name: clean,
     icon: 'book',
     colorToken: TOKENS[Math.floor(Math.random() * TOKENS.length)],
   })
-  return id
+  return { id, created: true }
 }
 
 /**
@@ -67,6 +73,11 @@ export function subjectById(id) {
 
 export function assignmentForSubject(subjectId) {
   return data.assignments.find((assignment) => assignment.subjectId === subjectId) || null
+}
+
+/** Every assignment under one subject, in registration order. */
+export function assignmentsForSubject(subjectId) {
+  return data.assignments.filter((assignment) => assignment.subjectId === subjectId)
 }
 
 /**
