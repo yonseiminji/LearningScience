@@ -1,7 +1,6 @@
-import { AlertCircle, ArrowRight, ChevronRight, Clock, MessageCircle } from 'lucide-react'
+import { ArrowRight, ChevronRight, MessageCircle } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
-import { data, dueStatus, formatDue, stepCounts } from '../assignmentModel.js'
-import ProgressRing from './ProgressRing.jsx'
+import { data } from '../assignmentModel.js'
 import { COPY } from '../communication.js'
 
 export default function SubjectBoard({ stepCompletion, onOpen, onOpenCommunication }) {
@@ -23,9 +22,10 @@ export default function SubjectBoard({ stepCompletion, onOpen, onOpenCommunicati
         {data.subjects.map((subject) => {
           const assignment = data.assignments.find((item) => item.subjectId === subject.id)
           if (!assignment) return null
-          const counts = stepCounts(assignment, stepCompletion)
-          const due = dueStatus(assignment.dueAt)
-          const DueIcon = due.tone === 'overdue' ? AlertCircle : Clock
+          // firstOpenStep falls back to the last step so navigation always has
+          // somewhere to go. Here an absent next step has to stay absent, or a
+          // finished assignment would advertise work that is already done.
+          const nextStep = assignment.steps.find((step) => !stepCompletion[step.id])
           return (
             <article key={subject.id} id={`subject-${subject.id}`} className={`subject-card tone-${subject.colorToken}`}>
               <div className="card-top">
@@ -33,15 +33,20 @@ export default function SubjectBoard({ stepCompletion, onOpen, onOpenCommunicati
                 <span>{subject.name}</span>
               </div>
               <h3>{assignment.title}</h3>
-              {/* The exact date stays on hover; the line itself only has to
-                  answer 'how much time do I have'. */}
-              <p className={`due-row due-${due.tone}`} title={formatDue(assignment.dueAt)}>
-                <DueIcon aria-hidden="true" size={15} />
-                <span>{due.label}</span>
+              {/* One step, not a fraction. A fraction needs a denominator,
+                  and once an instruction is chunked automatically there is no
+                  telling what that denominator will be; a step name also says
+                  plainly that this is the assignment's progress and not the
+                  subject's. */}
+              <p className="next-step">
+                {nextStep ? (
+                  <>
+                    <span className="next-step-label">다음단계:</span> {nextStep.title}
+                  </>
+                ) : (
+                  '모든 단계를 마쳤어요.'
+                )}
               </p>
-              <div className="progress-row">
-                <ProgressRing done={counts.done} total={counts.total} />
-              </div>
               <button type="button" className="btn subject-open" onClick={() => onOpen(subject.id)}>
                 강의탭 이동
                 <ChevronRight aria-hidden="true" size={16} />
