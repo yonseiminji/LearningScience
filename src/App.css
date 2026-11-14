@@ -620,7 +620,10 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 
 /* one row per subject: subject | assignment and deadline | blocks | button */
 @media (min-width: 721px) {
-  .subject-grid { gap: 12px; max-width: 760px; }
+  /* the heading row ends where the cards end, so the button lines up with
+     their right edge instead of running past it */
+  .subject-grid, .board-head { max-width: 760px; }
+  .subject-grid { gap: 12px; }
   .subject-card {
     display: grid;
     grid-template-columns: 112px minmax(0, 1fr) auto auto;

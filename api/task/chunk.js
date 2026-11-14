@@ -16,7 +16,7 @@ export const LEVELS = ['low', 'medium', 'high']
 const SHAPE = {
   low: { min: 3, max: 4, how: 'Group related activities together and follow the overall flow of the assignment. Suited to someone who already knows how work like this goes.' },
   medium: { min: 5, max: 6, how: 'Separate the main activities into concrete actions, one action per step.' },
-  high: { min: 7, max: 10, how: 'Break complex activities into smaller actions, keeping preparation, doing and checking apart. Each step must be something the learner can start on immediately.' },
+  high: { min: 7, max: 8, how: 'Break complex activities into smaller actions, keeping preparation, doing and checking apart. Each step must be something the learner can start on immediately.' },
 }
 
 const SCHEMA = {
