@@ -707,25 +707,6 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 .guide.is-embedded { margin-top: 16px; }
 .guide.is-embedded .guide-head h3 { margin: 2px 0 6px; font-size: 20px; }
 
-.placeholder-card {
-  margin-top: 16px;
-  padding: 20px;
-  border: 1px dashed var(--block-line);
-  border-radius: 14px;
-  background: var(--raised);
-}
-.placeholder-card p { margin: 0 0 8px; }
-.placeholder-card p:last-child { margin-bottom: 0; }
-.placeholder-tag {
-  display: inline-block;
-  padding: 2px 10px;
-  border-radius: 999px;
-  background: var(--track);
-  color: var(--text-2);
-  font-size: 12px;
-  font-weight: 600;
-}
-
 /* 강의 이해 지원 */
 .understand-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .understand-hint { margin: 12px 0 0; }

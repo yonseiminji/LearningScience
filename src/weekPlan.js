@@ -38,7 +38,6 @@ export const DURATIONS = [10, 20, 40]
 export const DEFAULT_MINUTES = 20
 export const SHORT_MINUTES = 10
 export const MAX_PICKS = null // no cap: a learner takes on what they can
-export const FEWER_PICKS = 2
 export const PLAN_SCHEMA_VERSION = 1
 
 export const SORT_MODES = [
