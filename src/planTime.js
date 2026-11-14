@@ -12,7 +12,6 @@
 // Pure: no React, no DOM. The backend can run these unchanged.
 
 export const SEOUL_OFFSET_MINUTES = 9 * 60
-export const SEOUL_TIME_ZONE = 'Asia/Seoul'
 
 const MINUTE_MS = 60000
 const DAY_MS = 86400000
@@ -182,6 +181,3 @@ function dateOnlyFields(value) {
   return { year, month, day }
 }
 
-export function dateOnly(value) {
-  return dateOnlyFields(value)
-}

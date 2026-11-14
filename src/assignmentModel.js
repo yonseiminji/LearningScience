@@ -63,25 +63,6 @@ export function stepCounts(assignment, stepCompletion) {
   return { done, total }
 }
 
-export function overallCounts(stepCompletion) {
-  return data.assignments.reduce(
-    (sum, assignment) => {
-      const counts = stepCounts(assignment, stepCompletion)
-      return { done: sum.done + counts.done, total: sum.total + counts.total }
-    },
-    { done: 0, total: 0 },
-  )
-}
-
-export function nextOpenAssignment(stepCompletion) {
-  return (
-    data.assignments
-      .filter((assignment) => assignment.steps.some((step) => !stepCompletion[step.id]))
-      .slice()
-      .sort((a, b) => a.dueAt.localeCompare(b.dueAt))[0] || null
-  )
-}
-
 export function firstOpenStep(assignment, stepCompletion) {
   if (!assignment) return null
   return assignment.steps.find((step) => !stepCompletion[step.id]) || assignment.steps.at(-1) || null

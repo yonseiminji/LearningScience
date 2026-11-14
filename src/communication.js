@@ -59,10 +59,6 @@ export function channelsFor(recipientId) {
   return allowed.map((id) => mock.channels.find((channel) => channel.id === id)).filter(Boolean)
 }
 
-export function channelLabel(channelId) {
-  return mock.channels.find((channel) => channel.id === channelId)?.label || ''
-}
-
 export function exampleContextFor(recipientId, situationId) {
   return situationById(recipientId, situationId)?.exampleContext || ''
 }
