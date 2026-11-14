@@ -35,6 +35,19 @@ export function ddayLabel(iso, today = seoulToday()) {
   return `D-${diff}`
 }
 
+// How much time is left, said plainly. 'D-5' has to be decoded before it means
+// anything; '5일 남음' does not, which is the whole point for this reader.
+// ddayLabel stays where it is — the sidebar, 나의 할 일 and 강의 보기 still use it.
+export function dueStatus(iso, today = seoulToday()) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || '')
+  if (!match) return { label: '', tone: 'none' }
+  const due = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]))
+  const diff = Math.round((due.getTime() - today.getTime()) / 86400000)
+  if (diff < 0) return { label: '마감 지남', tone: 'overdue' }
+  if (diff === 0) return { label: '오늘 마감', tone: 'overdue' }
+  return { label: `${diff}일 남음`, tone: diff <= 7 ? 'soon' : 'later' }
+}
+
 // D-day chip turns coral when the due date is 7 days away or closer
 export function dueChipClass(iso, today = seoulToday()) {
   const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || '')
