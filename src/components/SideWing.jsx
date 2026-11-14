@@ -1,11 +1,24 @@
-import { CalendarPlus, Check, ListChecks, RotateCcw } from 'lucide-react'
+import { AlertCircle, CalendarPlus, Check, Clock, ListChecks, RotateCcw } from 'lucide-react'
 import ChagokBlocks from './ChagokBlocks.jsx'
-import { data, ddayLabel, dueChipClass, subjectById } from '../assignmentModel.js'
+import { data, dueStatus, subjectById } from '../assignmentModel.js'
 import { entryStatus, formatSlotLabel, sortEntries } from '../weekPlan.js'
 
 function dueDate(iso) {
   const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || '')
   return match ? `${Number(match[2])}월 ${Number(match[3])}일` : ''
+}
+
+// The side panel is now the only place a deadline appears, so it carries the
+// icon form: '1일 남음' rather than 'D-1', which has to be decoded first.
+function DueBadge({ dueAt, near }) {
+  const due = dueStatus(dueAt)
+  const Icon = due.tone === 'overdue' ? AlertCircle : Clock
+  return (
+    <span className={`due-badge due-${due.tone}${near ? ' is-near' : ''}`}>
+      <Icon aria-hidden="true" size={14} />
+      {due.label}
+    </span>
+  )
 }
 
 export default function SideWing({ stepCompletion, planEntries = [], onStartPlan, onReplan, onOpenTasks, onOpenChat }) {
@@ -96,9 +109,7 @@ export default function SideWing({ stepCompletion, planEntries = [], onStartPlan
                 <span className={`subject-dot dot-${subject?.colorToken}`} aria-hidden="true" />
                 <span className="due-name">{subject?.name}</span>
                 <span className="due-date">{finished ? '완료' : dueDate(assignment.dueAt)}</span>
-                <span className={`${dueChipClass(assignment.dueAt)}${assignment.id === nearestOpenId ? ' is-near' : ''}`}>
-                  {ddayLabel(assignment.dueAt)}
-                </span>
+                {finished ? null : <DueBadge dueAt={assignment.dueAt} near={assignment.id === nearestOpenId} />}
               </li>
             )
           })}
