@@ -103,7 +103,7 @@ function finishReasonOf(response) {
  * `responseSchema` makes the model answer in that shape; the caller still
  * checks the result, because a well-shaped answer can still be wrong.
  */
-export async function generateJson({ systemInstruction, prompt, responseSchema, maxOutputTokens = 1200 }) {
+export async function generateJson({ systemInstruction, prompt, responseSchema, maxOutputTokens = 1200, model = MODEL }) {
   const ai = getClient()
   const debug = debugEnabled()
   const id = debug ? traceId() : null
@@ -112,7 +112,7 @@ export async function generateJson({ systemInstruction, prompt, responseSchema, 
   if (debug) {
     logLine('[tutor:req]', {
       id,
-      model: MODEL,
+      model,
       maxOutputTokens,
       temperature: 0.2,
       systemChars: systemInstruction?.length ?? 0,
@@ -126,7 +126,7 @@ export async function generateJson({ systemInstruction, prompt, responseSchema, 
   let response
   try {
     response = await ai.models.generateContent({
-      model: MODEL,
+      model,
       contents: prompt,
       config: {
         systemInstruction,

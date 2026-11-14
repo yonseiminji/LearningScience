@@ -75,20 +75,13 @@ export const tutorService = {
 
   /** Steps for one assignment, at the granularity the learner asked for.
    *  Nothing is stored: what comes back is a proposal for them to edit. */
-  createSteps({ assignment, level }) {
+  createSteps({ subjectId, subjectName, instruction, chunkingLevel }) {
     return withFallback(
       () =>
         tutorApi
-          .chunk({
-            level,
-            subjectName: assignment.subjectName,
-            assignmentTitle: assignment.assignmentTitle,
-            instruction: assignment.instruction,
-            requirements: assignment.requirements,
-            dueAt: assignment.dueAt,
-          })
+          .chunk({ subjectId, subjectName, instruction, chunkingLevel })
           .then((data) => ({ ...data, provider: 'gemini' })),
-      () => mockTutorService.createSteps({ assignment, level }),
+      () => mockTutorService.createSteps(),
     )
   },
 }
