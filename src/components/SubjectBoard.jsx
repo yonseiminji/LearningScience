@@ -1,6 +1,6 @@
-import { ArrowRight, ChevronRight, MessageCircle } from 'lucide-react'
+import { AlertCircle, ArrowRight, ChevronRight, Clock, MessageCircle } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
-import { data, ddayLabel, dueChipClass, formatDue, stepCounts } from '../assignmentModel.js'
+import { data, dueStatus, formatDue, stepCounts } from '../assignmentModel.js'
 import ProgressRing from './ProgressRing.jsx'
 import { COPY } from '../communication.js'
 
@@ -17,13 +17,15 @@ export default function SubjectBoard({ stepCompletion, onOpen, onOpenCommunicati
       transition={reduce ? { duration: 0 } : { duration: 0.45, ease: [0.2, 0, 0, 1] }}
     >
       <h2 id="now-heading" className="board-title">
-        무엇부터 할까요?
+        나의 과제
       </h2>
       <div className="subject-grid">
         {data.subjects.map((subject) => {
           const assignment = data.assignments.find((item) => item.subjectId === subject.id)
           if (!assignment) return null
           const counts = stepCounts(assignment, stepCompletion)
+          const due = dueStatus(assignment.dueAt)
+          const DueIcon = due.tone === 'overdue' ? AlertCircle : Clock
           return (
             <article key={subject.id} id={`subject-${subject.id}`} className={`subject-card tone-${subject.colorToken}`}>
               <div className="card-top">
@@ -31,9 +33,11 @@ export default function SubjectBoard({ stepCompletion, onOpen, onOpenCommunicati
                 <span>{subject.name}</span>
               </div>
               <h3>{assignment.title}</h3>
-              <p className="due-row">
-                <span className={dueChipClass(assignment.dueAt)}>{ddayLabel(assignment.dueAt)}</span>{' '}
-                <span>{formatDue(assignment.dueAt)}</span>
+              {/* The exact date stays on hover; the line itself only has to
+                  answer 'how much time do I have'. */}
+              <p className={`due-row due-${due.tone}`} title={formatDue(assignment.dueAt)}>
+                <DueIcon aria-hidden="true" size={15} />
+                <span>{due.label}</span>
               </p>
               <div className="progress-row">
                 <ProgressRing done={counts.done} total={counts.total} />

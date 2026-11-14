@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { CalendarDays, House, Plus, SquarePen } from 'lucide-react'
+import { BookOpen, CalendarDays, House, Plus, SquarePen } from 'lucide-react'
 import { data, assignmentForSubject, firstOpenStep } from './assignmentModel.js'
 import SubjectBoard from './components/SubjectBoard.jsx'
 import TodoPage from './components/TodoPage.jsx'
 import Timetable from './components/Timetable.jsx'
 import GuideView from './components/GuideView.jsx'
 import LecturePage from './components/LecturePage.jsx'
+import LectureBoard from './components/LectureBoard.jsx'
 import SideWing from './components/SideWing.jsx'
 import ChatRoom from './components/ChatRoom.jsx'
 import WeekPlanPanel from './components/WeekPlanPanel.jsx'
@@ -15,6 +16,7 @@ import { emptySession } from './communication.js'
 
 const NAV = [
   { id: 'home', label: '홈', icon: House },
+  { id: 'lectures', label: '강의', icon: BookOpen },
   { id: 'tasks', label: '나의 할 일', icon: SquarePen },
   { id: 'timetable', label: '시간표', icon: CalendarDays },
 ]
@@ -184,6 +186,8 @@ export default function App() {
   }
 
   const isFocusView = view === 'guide' || view === 'lecture'
+  // Opening one lecture is still being in 강의, so the tab stays marked.
+  const navCurrent = view === 'lecture' ? 'lectures' : view
 
   return (
     <div className={isFocusView ? 'shell is-guide' : 'shell'}>
@@ -197,7 +201,7 @@ export default function App() {
                   key={item.id}
                   type="button"
                   className="nav-btn"
-                  aria-current={view === item.id ? 'page' : undefined}
+                  aria-current={navCurrent === item.id ? 'page' : undefined}
                   onClick={() => {
                     setFocusSubjectId(null)
                     setView(item.id)
@@ -233,6 +237,7 @@ export default function App() {
                 />
               </>
             ) : null}
+            {view === 'lectures' ? <LectureBoard onOpen={openLecture} /> : null}
             {view === 'tasks' ? (
               <TodoPage
                 plan={plan}
