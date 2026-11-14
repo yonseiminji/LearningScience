@@ -43,6 +43,7 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
   const [rows, setRows] = useState([])
   const [excluded, setExcluded] = useState(() => new Set())
   const [draft, setDraft] = useState('')
+  const [draftNote, setDraftNote] = useState('')
 
   const isNew = subjectChoice === NEW_SUBJECT
   const subjectName = isNew ? newSubject.trim() : data.subjects.find((s) => s.id === subjectChoice)?.name || ''
@@ -97,11 +98,12 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
   }
 
   function addStep() {
-    const made = userStep(draft)
+    const made = userStep(draft, draftNote)
     if (!made) return
     // A key that cannot collide however many have been added and removed.
     setRows((prev) => [...prev, { key: `u${Date.now().toString(36)}`, ...made }])
     setDraft('')
+    setDraftNote('')
   }
 
   // Order is the learner's to set: the model proposes a sequence, but only
@@ -136,10 +138,10 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
       instructions: [text.trim()],
       requirements: result.requirements.map((item, index) => ({
         id: `${prefix}-r${index + 1}`,
-        label: item.text.slice(0, 20),
+        label: item.keyword,
         text: item.text,
         highlight: '',
-        kind: 'content',
+        kind: item.kind,
       })),
       steps,
       source: 'task-chunking',
@@ -363,11 +365,25 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
                 onKeyDown={(event) => {
                   if (event.key === 'Enter') {
                     event.preventDefault()
+                    document.getElementById('chunk-add-note')?.focus()
+                  }
+                }}
+                placeholder="새로운 단계 제목"
+                aria-label="새로운 단계 제목"
+              />
+              <input
+                id="chunk-add-note"
+                type="text"
+                value={draftNote}
+                onChange={(event) => setDraftNote(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault()
                     addStep()
                   }
                 }}
-                placeholder="새로운 단계 추가"
-                aria-label="새로운 단계 제목"
+                placeholder="설명 (선택)"
+                aria-label="새로운 단계 설명"
               />
               <button type="button" className="btn" onClick={addStep} disabled={!draft.trim()}>
                 <Plus aria-hidden="true" size={16} />
