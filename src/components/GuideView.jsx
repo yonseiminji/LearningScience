@@ -25,6 +25,10 @@ export default function GuideView({
   const StepTitle = embedded ? 'h4' : 'h2'
   const reduce = useReducedMotion()
   const [instructionOpen, setInstructionOpen] = useState(false)
+  // 'content' is what the work must say; everything else — 분량, 글자 크기,
+  // 파일 형식, 제출처 — is about handing it in.
+  const submission = assignment.requirements.filter((item) => item.kind !== 'content')
+  const keywords = assignment.requirements.filter((item) => item.kind === 'content')
   const step = assignment.steps.find((item) => item.id === activeStepId) || assignment.steps[0]
   const stepIndex = assignment.steps.findIndex((item) => item.id === step.id)
   const counts = stepCounts(assignment, stepCompletion)
@@ -119,13 +123,33 @@ export default function GuideView({
                 ),
               )}
             </p>
-            <ul className="req-legend" aria-label="표시된 요구사항">
-              {assignment.requirements.map((requirement) => (
-                <li key={requirement.id}>
-                  <span className="req-label">{requirement.label}</span>
-                  <span>{requirement.text}</span>
+            {/* Three things to carry out of the instruction: when it is due,
+                what handing it in demands, and what it is about. One row per
+                requirement made a long list of truncated labels; this is the
+                summary a learner can hold in their head. */}
+            <ul className="req-legend" aria-label="과제 요건 요약">
+              <li>
+                <span className="req-label">마감일</span>
+                <span>{assignment.dueAt ? formatDue(assignment.dueAt) : '정해지지 않았어요'}</span>
+              </li>
+              {submission.length > 0 ? (
+                <li>
+                  <span className="req-label">제출 조건</span>
+                  <span>{submission.map((item) => item.text).join(' · ')}</span>
                 </li>
-              ))}
+              ) : null}
+              {keywords.length > 0 ? (
+                <li>
+                  <span className="req-label">키워드</span>
+                  <span className="req-keywords">
+                    {keywords.map((item) => (
+                      <span key={item.id} className="fold-chip">
+                        {item.label}
+                      </span>
+                    ))}
+                  </span>
+                </li>
+              ) : null}
             </ul>
           </div>
         ) : null}

@@ -1365,3 +1365,6 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
   cursor: pointer;
 }
 .subject-notice button:hover { background: var(--chip); color: var(--ink); }
+
+/* the keyword row packs its chips instead of running as one line of text */
+.req-keywords { display: flex; flex-wrap: wrap; gap: 6px; }

@@ -88,7 +88,15 @@ export function verifyChunkResult(data, { level, instruction = '' }) {
   const rawRequirements = Array.isArray(data?.assignment?.requirements) ? data.assignment.requirements : []
   const requirements = rawRequirements
     .filter((item) => filled(item?.requirementId) && filled(item?.text))
-    .map((item) => ({ requirementId: item.requirementId.trim(), text: item.text.trim() }))
+    .map((item) => ({
+      requirementId: item.requirementId.trim(),
+      // The keyword is what the chips and the summary table show. A missing
+      // one falls back to the full text rather than to a truncation of it:
+      // a cut-off clause reads as a mistake, a long chip only reads as long.
+      keyword: filled(item?.keyword) ? item.keyword.trim().slice(0, 24) : item.text.trim(),
+      text: item.text.trim(),
+      kind: item?.kind === 'submission' ? 'submission' : 'content',
+    }))
   if (requirements.length === 0) errors.push('과제 요구사항을 읽지 못했어요.')
 
   const known = new Set(requirements.map((item) => item.requirementId))
@@ -134,7 +142,15 @@ export function verifyChunkResult(data, { level, instruction = '' }) {
       title,
       description,
       prerequisiteTip: '',
-      criteria: [],
+      criteria: Array.isArray(step?.completionCriteria)
+        ? step.completionCriteria
+            .filter((item) => filled(item?.text))
+            .map((item) => ({
+              text: item.text.trim(),
+              placeholder: filled(item?.placeholder) ? item.placeholder.trim() : '',
+            }))
+            .slice(0, 3)
+        : [],
       requirementIds: ids.filter((id) => known.has(id)),
     })
   })
@@ -188,12 +204,14 @@ export function slugify(text) {
   return ascii || `tc${Date.now().toString(36)}`
 }
 
-function criterion(id, text) {
+function criterion(id, text, placeholder = '') {
   return {
     id,
     text,
     inputLabel: '완료되었나요?',
-    placeholder: '',
+    // What a finished answer looks like, in the learner's own voice. Empty
+    // when nothing was written for it; the field simply shows no example.
+    placeholder,
     inputType: 'text',
     required: false,
   }
@@ -209,8 +227,12 @@ function criterion(id, text) {
 export function toAssignmentStep(step, { prefix, index, source = 'gemini' }) {
   const id = `${prefix}-s${index + 1}`
   const criteria = step.criteria?.length
-    ? step.criteria.map((text, at) => criterion(`${id}-c${at + 1}`, text))
-    : [criterion(`${id}-c1`, `‘${step.title}’을 마쳤나요?`)]
+    ? step.criteria.map((item, at) =>
+        typeof item === 'string'
+          ? criterion(`${id}-c${at + 1}`, item)
+          : criterion(`${id}-c${at + 1}`, item.text, item.placeholder),
+      )
+    : [criterion(`${id}-c1`, `‘${step.title}’을 마쳤나요?`, '예) 어떻게 마쳤는지 적어 보세요.')]
   return {
     id,
     title: step.title,
@@ -221,13 +243,18 @@ export function toAssignmentStep(step, { prefix, index, source = 'gemini' }) {
   }
 }
 
-/** A step the learner typed. No description is invented for it. */
-export function userStep(title) {
+/**
+ * A step the learner typed. The description is theirs too; when they leave it
+ * blank it says only that they added it, because nothing else is known about
+ * it and guessing would put words in their mouth.
+ */
+export function userStep(title, description = '') {
   const clean = String(title || '').trim()
   if (!clean) return null
+  const note = String(description || '').trim()
   return {
     title: clean,
-    description: '직접 추가한 단계예요.',
+    description: note || '직접 추가한 단계예요.',
     prerequisiteTip: '',
     criteria: [],
     requirementIds: [],
