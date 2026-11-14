@@ -1,13 +1,21 @@
-.chunk-panel {
-  padding: 24px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface);
-  box-shadow: var(--shadow-sm);
-}
+/* the dialog itself: the shared .modal-panel places and sizes it, this only
+   says how wide it may get and lets a long step list scroll inside */
+.chunk-modal { width: min(680px, calc(100vw - 32px)); max-height: calc(100vh - 64px); overflow-y: auto; }
+.chunk-panel { padding: 24px; }
 .chunk-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
 .chunk-head h2 { margin: 0; font-size: 20px; font-weight: 500; }
 .chunk-body { display: grid; gap: 16px; }
+.chunk-field { display: grid; gap: 6px; }
+.chunk-field > span { color: var(--text-2); font-size: 13px; font-weight: 600; }
+.chunk-field select, .chunk-field > input {
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--fs-body);
+}
+.chunk-field select:focus-visible, .chunk-field > input:focus-visible { outline: 2px solid var(--hi); outline-offset: 1px; }
 .chunk-question { margin: 0; font-size: 17px; font-weight: 500; }
 
 .chunk-input {
@@ -80,7 +88,7 @@
 .chunk-count { margin-left: auto; color: var(--text-2); font-size: var(--fs-body); font-weight: 600; }
 .chunk-count .num { color: var(--muted); font-weight: 400; }
 
-.chunk-steps { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; counter-reset: chunk; }
+.chunk-steps { display: grid; gap: 6px; position: relative; margin: 0; padding: 0; list-style: none; counter-reset: chunk; }
 .chunk-steps li { display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; border-radius: 10px; background: var(--hover); }
 .chunk-steps li.is-off { opacity: 0.55; }
 .chunk-steps label { display: flex; flex: 1; gap: 12px; align-items: flex-start; min-width: 0; cursor: pointer; }

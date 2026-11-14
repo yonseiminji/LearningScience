@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BookOpen, CalendarDays, House, Plus, SquarePen } from 'lucide-react'
+import { BookOpen, CalendarDays, House, Plus, SquarePen, X } from 'lucide-react'
 import { data, assignmentForSubject, firstOpenStep } from './assignmentModel.js'
 import SubjectBoard from './components/SubjectBoard.jsx'
 import TodoPage from './components/TodoPage.jsx'
@@ -42,6 +42,7 @@ export default function App() {
   // Survives a reload, so the 강의 cards still know what was last studied.
   const [studyHistory, setStudyHistory] = useState(readStudyHistory)
   const [chunkingOpen, setChunkingOpen] = useState(false)
+  const [subjectNotice, setSubjectNotice] = useState(null)
   // registerAssignment mutates the shared registry that findStep and every
   // board already read, so the tree needs a nudge to re-read it.
   const [registryVersion, setRegistryVersion] = useState(0)
@@ -124,9 +125,12 @@ export default function App() {
     setStudyHistory(recordStudy(entry))
   }
 
-  function applyChunkedAssignment(assignment) {
+  function applyChunkedAssignment(assignment, { subjectAdded, subjectName } = {}) {
     setRegistryVersion((n) => n + 1)
     setChunkingOpen(false)
+    // Said once, on the home board, because a card appearing for a subject
+    // that was not there a moment ago is otherwise a small surprise.
+    setSubjectNotice(subjectAdded ? subjectName : null)
     openGuide(assignment.subjectId)
   }
 
@@ -270,6 +274,14 @@ export default function App() {
                 </section>
                 {chunkingOpen ? (
                   <TaskChunkingPanel onApplied={applyChunkedAssignment} onClose={() => setChunkingOpen(false)} />
+                ) : null}
+                {subjectNotice ? (
+                  <p className="subject-notice" role="status">
+                    ‘{subjectNotice}’은 새로운 과목이어서 과목을 추가했어요.
+                    <button type="button" onClick={() => setSubjectNotice(null)} aria-label="알림 닫기">
+                      <X aria-hidden="true" size={15} />
+                    </button>
+                  </p>
                 ) : null}
                 <SubjectBoard
                   key={registryVersion}

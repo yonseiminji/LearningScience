@@ -36,74 +36,33 @@ export function levelById(id) {
   return CHUNK_LEVELS.find((level) => level.id === id) || null
 }
 
-export const INPUT_ERROR = '과제 정보를 읽지 못했어요. JSON 형식과 필수 항목을 확인한 뒤 다시 업로드해 주세요.'
+export const INPUT_ERROR = '과제 단계를 만들지 못했어요. 다시 시도해 주세요.'
 
-// ─── what the learner uploads ────────────────────────────────────────────
+export const MAX_INSTRUCTION = 6000
 
-const ISO_LIKE = /^\d{4}-\d{2}-\d{2}([T ]\d{2}:\d{2}(:\d{2})?)?/
+// ─── what the learner types ──────────────────────────────────────────────
 
 function filled(value) {
   return typeof value === 'string' && value.trim().length > 0
 }
 
 /**
- * Checks an uploaded assignment JSON. Returns `{ ok, assignment, errors }`.
- *
- * `errors` names the field at fault so the screen can say more than that
- * something was wrong. A null dueAt is not a fault: an assignment with no
- * stated deadline stays without one rather than being given an invented date.
+ * Checks the instruction before any model call. Returns `{ ok, instruction,
+ * errors }`. There is no JSON to parse now — the learner pastes the
+ * assignment as their lecturer wrote it.
  */
-export function parseAssignmentInput(text) {
-  let raw
-  try {
-    raw = JSON.parse(text)
-  } catch {
-    return { ok: false, assignment: null, errors: [{ field: null, message: 'JSON 형식이 올바르지 않아요.' }] }
-  }
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
-    return { ok: false, assignment: null, errors: [{ field: null, message: '가장 바깥이 객체 하나여야 해요.' }] }
-  }
-
+export function parseInstruction(text, { subjectName } = {}) {
   const errors = []
-  const need = (field, label) => {
-    if (!(field in raw)) errors.push({ field, message: `${label}이(가) 없어요.` })
-    else if (!filled(raw[field])) errors.push({ field, message: `${label}이(가) 비어 있어요.` })
+  const clean = typeof text === 'string' ? text.trim() : ''
+  if (!clean) errors.push({ field: 'instruction', message: '과제 지시문을 입력해 주세요.' })
+  else if (clean.length < 10) errors.push({ field: 'instruction', message: '지시문이 너무 짧아요. 과제 내용을 조금 더 적어 주세요.' })
+  else if (clean.length > MAX_INSTRUCTION) {
+    errors.push({ field: 'instruction', message: `지시문은 ${MAX_INSTRUCTION}자까지 넣을 수 있어요. 지금은 ${clean.length}자예요.` })
   }
-  need('subjectName', '과목 이름')
-  need('assignmentTitle', '과제 제목')
-  need('instruction', '과제 지시문')
-
-  if (!('requirements' in raw)) {
-    errors.push({ field: 'requirements', message: '요구사항이 없어요.' })
-  } else if (!Array.isArray(raw.requirements)) {
-    errors.push({ field: 'requirements', message: '요구사항은 문자열 배열이어야 해요.' })
-  } else if (raw.requirements.length === 0) {
-    errors.push({ field: 'requirements', message: '요구사항이 하나 이상 있어야 해요.' })
-  } else if (!raw.requirements.every(filled)) {
-    errors.push({ field: 'requirements', message: '비어 있는 요구사항이 있어요.' })
+  if (subjectName !== undefined && !filled(subjectName)) {
+    errors.push({ field: 'subject', message: '과목을 고르거나 새 과목 이름을 적어 주세요.' })
   }
-
-  if (!('dueAt' in raw)) {
-    errors.push({ field: 'dueAt', message: '마감일 항목이 없어요. 없다면 null로 적어 주세요.' })
-  } else if (raw.dueAt !== null) {
-    if (typeof raw.dueAt !== 'string' || !ISO_LIKE.test(raw.dueAt) || Number.isNaN(Date.parse(raw.dueAt))) {
-      errors.push({ field: 'dueAt', message: '마감일이 날짜 형식이 아니에요. 없다면 null로 적어 주세요.' })
-    }
-  }
-
-  if (errors.length > 0) return { ok: false, assignment: null, errors }
-
-  return {
-    ok: true,
-    errors: [],
-    assignment: {
-      subjectName: raw.subjectName.trim(),
-      assignmentTitle: raw.assignmentTitle.trim(),
-      instruction: raw.instruction.trim(),
-      requirements: raw.requirements.map((item) => item.trim()),
-      dueAt: raw.dueAt === null ? null : raw.dueAt,
-    },
-  }
+  return { ok: errors.length === 0, instruction: clean, errors }
 }
 
 // ─── what the model sends back ───────────────────────────────────────────
@@ -111,51 +70,72 @@ export function parseAssignmentInput(text) {
 const DATE_IN_TEXT = /\d{1,4}\s*[년/.-]\s*\d{1,2}\s*[월/.-]\s*\d{1,2}|\d{4}-\d{2}-\d{2}|\d{1,2}월\s*\d{1,2}일/
 
 /**
- * Checks generated steps against the request they came from.
+ * Checks a whole chunking result against the request it came from.
  *
- * Two of these cannot be settled by inspection — whether every requirement is
- * covered, and whether a submission condition was invented — so they come back
- * as warnings for the learner to judge, not as rejections. Everything that CAN
- * be decided mechanically is decided here and rejected.
+ * Rejected outright: anything decidable by inspection — missing titles or
+ * descriptions, duplicate step ids, requirement ids pointing at nothing.
+ *
+ * Returned as warnings: a step count outside the chosen range, a date absent
+ * from the instruction, a requirement no step carries. Those are judgements
+ * about meaning that a schema check cannot settle, and the learner is the one
+ * who can see whether they matter.
  */
-export function verifySteps(rawSteps, { level, instruction = '', requirements = [] }) {
+export function verifyChunkResult(data, { level, instruction = '' }) {
   const want = levelById(level)
   const errors = []
   const warnings = []
 
-  if (!Array.isArray(rawSteps) || rawSteps.length === 0) {
-    return { ok: false, steps: [], errors: ['단계를 하나도 받지 못했어요.'], warnings }
+  const rawRequirements = Array.isArray(data?.assignment?.requirements) ? data.assignment.requirements : []
+  const requirements = rawRequirements
+    .filter((item) => filled(item?.requirementId) && filled(item?.text))
+    .map((item) => ({ requirementId: item.requirementId.trim(), text: item.text.trim() }))
+  if (requirements.length === 0) errors.push('과제 요구사항을 읽지 못했어요.')
+
+  const known = new Set(requirements.map((item) => item.requirementId))
+  const rawSteps = Array.isArray(data?.steps) ? data.steps : []
+  if (rawSteps.length === 0) {
+    return { ok: false, steps: [], requirements, errors: ['단계를 하나도 받지 못했어요.'], warnings, title: '', dueAt: null }
   }
 
-  const seen = new Set()
+  const seenIds = new Set()
+  const seenTitles = new Set()
   const steps = []
   rawSteps.forEach((step, index) => {
     const title = typeof step?.title === 'string' ? step.title.trim() : ''
     const description = typeof step?.description === 'string' ? step.description.trim() : ''
+    const stepId = typeof step?.stepId === 'string' ? step.stepId.trim() : ''
     if (!title) {
       errors.push(`${index + 1}번째 단계에 제목이 없어요.`)
       return
     }
     if (!description) {
-      errors.push(`'${title}' 단계에 설명이 없어요.`)
+      errors.push(`‘${title}’ 단계에 설명이 없어요.`)
       return
     }
-    const key = title.replace(/\s+/g, '')
-    if (seen.has(key)) {
-      errors.push(`'${title}' 단계가 중복돼요.`)
+    if (stepId && seenIds.has(stepId)) {
+      errors.push(`단계 ID가 겹쳐요: ${stepId}`)
       return
     }
-    seen.add(key)
+    const titleKey = title.replace(/\s+/g, '')
+    if (seenTitles.has(titleKey)) {
+      errors.push(`‘${title}’ 단계가 중복돼요.`)
+      return
+    }
+    if (stepId) seenIds.add(stepId)
+    seenTitles.add(titleKey)
+
+    const ids = Array.isArray(step?.requirementIds) ? step.requirementIds.filter((id) => typeof id === 'string') : []
+    const unknown = ids.filter((id) => !known.has(id))
+    if (unknown.length > 0) {
+      warnings.push(`‘${title}’이(가) 없는 요구사항을 가리켜요: ${unknown.join(', ')}`)
+    }
     steps.push({
+      stepId,
       title,
       description,
-      prerequisiteTip: typeof step?.prerequisiteTip === 'string' ? step.prerequisiteTip.trim() : '',
-      criteria: Array.isArray(step?.completionCriteria)
-        ? step.completionCriteria.filter(filled).map((text) => text.trim()).slice(0, 3)
-        : [],
-      requirementIndexes: Array.isArray(step?.requirementIndexes)
-        ? step.requirementIndexes.filter((n) => Number.isInteger(n) && n >= 0 && n < requirements.length)
-        : [],
+      prerequisiteTip: '',
+      criteria: [],
+      requirementIds: ids.filter((id) => known.has(id)),
     })
   })
 
@@ -168,20 +148,34 @@ export function verifySteps(rawSteps, { level, instruction = '', requirements = 
   // assignment. Flagged rather than dropped: the learner can see the step and
   // decide, and a step is not worthless for carrying one wrong clause.
   for (const step of steps) {
-    const text = `${step.title} ${step.description}`
-    const found = text.match(DATE_IN_TEXT)
+    const found = `${step.title} ${step.description}`.match(DATE_IN_TEXT)
     if (found && !instruction.includes(found[0])) {
       warnings.push(`‘${step.title}’에 과제 지시문에 없는 날짜가 있어요. 확인해 주세요.`)
     }
   }
 
-  const covered = new Set(steps.flatMap((step) => step.requirementIndexes))
-  const missing = requirements.map((text, index) => ({ text, index })).filter(({ index }) => !covered.has(index))
+  const covered = new Set(steps.flatMap((step) => step.requirementIds))
+  const missing = requirements.filter((item) => !covered.has(item.requirementId))
   if (missing.length > 0) {
     warnings.push(`요구사항 ${missing.length}개가 어느 단계에도 연결되지 않았어요: ${missing.map((m) => m.text).join(', ')}`)
   }
 
-  return { ok: errors.length === 0, steps, errors, warnings }
+  return {
+    ok: errors.length === 0,
+    steps,
+    requirements,
+    errors,
+    warnings,
+    title: String(data?.assignment?.assignmentTitle || '').trim(),
+    dueAt: data?.assignment?.dueAt || null,
+  }
+}
+
+/** Which requirements lose their only step when `kept` is what gets applied. */
+export function droppedRequirements(allSteps, kept, requirements) {
+  const keptKeys = new Set(kept.map((row) => row.key))
+  const covered = new Set(allSteps.filter((row) => keptKeys.has(row.key)).flatMap((row) => row.requirementIds || []))
+  return requirements.filter((item) => !covered.has(item.requirementId))
 }
 
 // ─── turning them into Assignment.steps[] ────────────────────────────────
@@ -236,7 +230,7 @@ export function userStep(title) {
     description: '직접 추가한 단계예요.',
     prerequisiteTip: '',
     criteria: [],
-    requirementIndexes: [],
+    requirementIds: [],
     source: 'user',
   }
 }

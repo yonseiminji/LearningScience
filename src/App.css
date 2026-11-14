@@ -1336,3 +1336,32 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 .board-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
 .board-head .board-title { margin: 0; }
 .board-add { flex: none; }
+
+/* a card appearing for a subject that was not there a moment ago */
+.subject-notice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 760px;
+  margin: 0 0 12px;
+  padding: 10px 12px 10px 16px;
+  border-left: 3px solid var(--accent);
+  background: var(--kraft);
+  color: var(--text-2);
+  font-size: var(--fs-body);
+}
+.subject-notice button {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  margin-left: auto;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.subject-notice button:hover { background: var(--chip); color: var(--ink); }
