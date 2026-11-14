@@ -19,8 +19,23 @@ const NAV = [
   { id: 'timetable', label: '시간표', icon: CalendarDays },
 ]
 
+const LEARNING_TIPS = [
+  "학습자료가 익숙하다고 모두 이해한 건 아니에요. 자료를 덮고 내 말로 설명해 볼까요?",
+  "방금 공부한 내용을 보지 않고 떠올려 보세요. 기억에서 꺼내는 연습은 기억에 도움이 돼요.",
+  "한 번에 오래 공부하기보다 여러 날에 나눠 복습해 보세요.",
+  "어려운 개념은 예시 하나와 함께 설명해 보세요. 설명하기 힘든 부분이 복습할 부분이에요.",
+  "오늘 배운 내용을 내일 다시 떠올려 보세요. 기억나지 않는 부분부터 복습해도 좋아요.",
+  "메타인지란 무엇을 알고, 무엇을 모르는지 파악하는 능력입니다. 오늘은 무엇을 배웠나요?"
+];
+
+function getRandomTip() {
+  const index = Math.floor(Math.random() * LEARNING_TIPS.length);
+  return LEARNING_TIPS[index];
+}
+
 export default function App() {
-  const [view, setView] = useState('home')
+  const [view, setView] = useState('home');
+  const [learningTip] = useState(() => getRandomTip());
   const [focusSubjectId, setFocusSubjectId] = useState(null)
   const [guideSubjectId, setGuideSubjectId] = useState(data.subjects[0].id)
   const [activeStepId, setActiveStepId] = useState(null)
@@ -224,7 +239,9 @@ export default function App() {
                 <section className="hero">
                   <h1 className="sr-only">차곡차곡: 느린학습자를 위한 학습 플래너</h1>
                   <img className="hero-banner" src="/brand/hero-banner.webp" alt="곰곰이와 함께 한 단계씩 공부를 정리해요" />
-                  <p className="hint">{data.notes[0]}</p>
+                  <p className="hint">
+                    <strong>Tip:</strong> {learningTip}
+                  </p>
                 </section>
                 <SubjectBoard
                   stepCompletion={stepCompletion}
