@@ -69,6 +69,18 @@ export function assignmentForSubject(subjectId) {
   return data.assignments.find((assignment) => assignment.subjectId === subjectId) || null
 }
 
+/**
+ * The deadline as a learner reads it, with the time only when the assignment
+ * actually set one. A date alone stays a date rather than acquiring a 23:59
+ * nobody wrote.
+ */
+export function formatDueLabel(iso) {
+  const full = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(iso || '')
+  if (full) return `${Number(full[2])}월 ${Number(full[3])}일 ${full[4]}:${full[5]}`
+  const day = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || '')
+  return day ? `${Number(day[2])}월 ${Number(day[3])}일` : ''
+}
+
 export function formatDue(iso) {
   const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(iso || '')
   if (!match) return ''

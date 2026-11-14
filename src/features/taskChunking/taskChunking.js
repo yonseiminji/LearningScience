@@ -40,6 +40,35 @@ export const INPUT_ERROR = '과제 단계를 만들지 못했어요. 다시 시�
 
 export const MAX_INSTRUCTION = 6000
 
+/**
+ * Turns whatever the model wrote for a deadline into an ISO string the rest
+ * of the app can read, or null.
+ *
+ * The prompt asks for ISO, but a date is the one field a model reliably
+ * answers in the language it was reading — 2026년 11월 29일 23시 59분 — and a
+ * deadline that silently vanishes is worse than one parsed generously. The
+ * time is kept only when the instruction gave one; a date on its own stays a
+ * date, because 23:59 would be a deadline nobody set.
+ */
+export function normalizeDueAt(value) {
+  const raw = String(value || '').trim()
+  if (!raw) return null
+  const pad = (n) => String(n).padStart(2, '0')
+  const build = (y, mo, d, h, mi) =>
+    h === undefined || h === null || h === '' ? `${y}-${pad(mo)}-${pad(d)}` : `${y}-${pad(mo)}-${pad(d)}T${pad(h)}:${pad(mi || 0)}`
+
+  const iso = /^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T ](\d{1,2}):(\d{2}))?/.exec(raw)
+  if (iso) return build(iso[1], iso[2], iso[3], iso[4], iso[5])
+
+  const ko = /(\d{4})\s*년\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일(?:\s*(\d{1,2})\s*시(?:\s*(\d{1,2})\s*분)?)?/.exec(raw)
+  if (ko) return build(ko[1], ko[2], ko[3], ko[4], ko[5])
+
+  const dotted = /(\d{4})\s*[./]\s*(\d{1,2})\s*[./]\s*(\d{1,2})(?:\s+(\d{1,2}):(\d{2}))?/.exec(raw)
+  if (dotted) return build(dotted[1], dotted[2], dotted[3], dotted[4], dotted[5])
+
+  return null
+}
+
 // ─── what the learner types ──────────────────────────────────────────────
 
 function filled(value) {
@@ -183,7 +212,7 @@ export function verifyChunkResult(data, { level, instruction = '' }) {
     errors,
     warnings,
     title: String(data?.assignment?.assignmentTitle || '').trim(),
-    dueAt: data?.assignment?.dueAt || null,
+    dueAt: normalizeDueAt(data?.assignment?.dueAt),
   }
 }
 

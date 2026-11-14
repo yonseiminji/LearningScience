@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { Check, ChevronDown, ChevronLeft, CircleCheck, FileText, Lightbulb, Save } from 'lucide-react'
+import { Check, ChevronDown, ChevronLeft, CircleCheck, FileText, Lightbulb } from 'lucide-react'
 import ProgressRing from './ProgressRing.jsx'
-import { ddayLabel, dueChipClass, formatDue, segmentInstruction, stepCounts } from '../assignmentModel.js'
+import { ddayLabel, dueChipClass, formatDue, formatDueLabel, segmentInstruction, stepCounts } from '../assignmentModel.js'
 
 export default function GuideView({
   assignment,
@@ -130,12 +130,18 @@ export default function GuideView({
             <ul className="req-legend" aria-label="과제 요건 요약">
               <li>
                 <span className="req-label">마감일</span>
-                <span>{assignment.dueAt ? formatDue(assignment.dueAt) : '정해지지 않았어요'}</span>
+                <span>{formatDueLabel(assignment.dueAt) || '정해지지 않았어요'}</span>
               </li>
               {submission.length > 0 ? (
                 <li>
                   <span className="req-label">제출 조건</span>
-                  <span>{submission.map((item) => item.text).join(' · ')}</span>
+                  <ul className="req-points">
+                    {submission.map((item) => (
+                      <li key={item.id} title={item.text}>
+                        {item.label || item.text}
+                      </li>
+                    ))}
+                  </ul>
                 </li>
               ) : null}
               {keywords.length > 0 ? (
@@ -203,8 +209,8 @@ export default function GuideView({
                       onChange={(event) => onChangeResponse(criterion.id, event.target.value)}
                     />
                     <button type="submit" className={done ? 'btn ghost criterion-save is-done' : 'btn ghost criterion-save'}>
-                      {done ? <Check aria-hidden="true" size={16} /> : <Save aria-hidden="true" size={16} />}
-                      {done ? '저장됨' : '저장'}
+                      {done ? <Check aria-hidden="true" size={16} /> : <CircleCheck aria-hidden="true" size={16} />}
+                      {done ? '완료됨' : '완료'}
                     </button>
                   </div>
                 </form>
