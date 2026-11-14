@@ -72,6 +72,25 @@ export const tutorService = {
       () => mockTutorService.requestSupport({ supportType, chunks }),
     )
   },
+
+  /** Steps for one assignment, at the granularity the learner asked for.
+   *  Nothing is stored: what comes back is a proposal for them to edit. */
+  createSteps({ assignment, level }) {
+    return withFallback(
+      () =>
+        tutorApi
+          .chunk({
+            level,
+            subjectName: assignment.subjectName,
+            assignmentTitle: assignment.assignmentTitle,
+            instruction: assignment.instruction,
+            requirements: assignment.requirements,
+            dueAt: assignment.dueAt,
+          })
+          .then((data) => ({ ...data, provider: 'gemini' })),
+      () => mockTutorService.createSteps({ assignment, level }),
+    )
+  },
 }
 
 export const SUPPORT_TYPES = [

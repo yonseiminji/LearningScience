@@ -5,7 +5,7 @@
 // instance recycles. Enough to stop a loop or an open tab from running up a
 // cost; a real deployment needs a shared store.
 
-import { ApiError } from './_gemini.js'
+import { ApiError } from './gemini.js'
 
 const WINDOW_MS = 60_000
 const MAX_PER_WINDOW = 20

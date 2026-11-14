@@ -1,0 +1,111 @@
+.chunk-panel {
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+.chunk-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.chunk-head h2 { margin: 0; font-size: 20px; font-weight: 500; }
+.chunk-body { display: grid; gap: 16px; }
+.chunk-question { margin: 0; font-size: 17px; font-weight: 500; }
+
+.chunk-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--hover);
+  color: var(--ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  resize: vertical;
+}
+.chunk-input:focus-visible { outline: 2px solid var(--hi); outline-offset: 1px; }
+
+.chunk-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.chunk-assignment { display: grid; gap: 2px; margin: 0; padding: 14px 16px; border-radius: 12px; background: var(--raised); }
+.chunk-assignment span { color: var(--muted); font-size: 13px; }
+
+.chunk-errors, .chunk-warnings {
+  padding: 12px 16px;
+  border-left: 3px solid var(--soon);
+  border-radius: 0;
+  background: var(--soon-bg);
+  color: var(--soon);
+  font-size: var(--fs-body);
+}
+.chunk-warnings { border-left-color: var(--accent); background: var(--kraft); color: var(--text-2); }
+.chunk-errors p, .chunk-warnings p { margin: 0 0 6px; }
+.chunk-errors p:last-child, .chunk-warnings p:last-child { margin-bottom: 0; }
+.chunk-errors ul { margin: 0; padding-left: 18px; }
+.chunk-errors code { font-size: 12px; }
+.chunk-error { margin: 0; color: var(--soon); font-size: var(--fs-body); }
+
+.chunk-levels { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.chunk-levels label {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  cursor: pointer;
+}
+.chunk-levels label.is-on { border-color: var(--accent); background: var(--raised); }
+.chunk-levels input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--accent); flex: none; }
+.chunk-level-main { display: grid; gap: 2px; }
+.chunk-level-main span { color: var(--muted); font-size: 13px; }
+
+.chunk-loading { display: grid; justify-items: center; gap: 6px; padding: 20px; text-align: center; }
+.chunk-loading p { margin: 0; }
+.chunk-loading-sub { color: var(--muted); font-size: 13px; }
+.chunk-spinner {
+  width: 26px;
+  height: 26px;
+  border: 3px solid var(--track);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: chunk-spin 900ms linear infinite;
+}
+@keyframes chunk-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .chunk-spinner { animation-duration: 2400ms; }
+}
+
+.chunk-bulk { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.chunk-count { margin-left: auto; color: var(--text-2); font-size: var(--fs-body); font-weight: 600; }
+.chunk-count .num { color: var(--muted); font-weight: 400; }
+
+.chunk-steps { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; counter-reset: chunk; }
+.chunk-steps li { display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; border-radius: 10px; background: var(--hover); }
+.chunk-steps li.is-off { opacity: 0.55; }
+.chunk-steps label { display: flex; flex: 1; gap: 12px; align-items: flex-start; min-width: 0; cursor: pointer; }
+.chunk-steps input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--done); flex: none; }
+.chunk-step-main { display: grid; gap: 2px; min-width: 0; }
+.chunk-step-main span { color: var(--muted); font-size: 13px; }
+.chunk-remove {
+  flex: none;
+  padding: 4px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.chunk-remove:hover { background: var(--chip); color: var(--ink); }
+
+.chunk-add { display: flex; gap: 8px; }
+.chunk-add input {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: var(--fs-body);
+}
+.chunk-add input:focus-visible { outline: 2px solid var(--hi); outline-offset: 1px; }
+.chunk-note { margin: 0; color: var(--muted); font-size: 13px; }

@@ -1,10 +1,10 @@
-import { AlertCircle, ArrowRight, ChevronRight, Clock, MessageCircle } from 'lucide-react'
+import { AlertCircle, ArrowRight, ChevronRight, Clock, MessageCircle, Scissors } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 import { data, dueStatus, formatDue, stepCounts } from '../assignmentModel.js'
 import ProgressRing from './ProgressRing.jsx'
 import { COPY } from '../communication.js'
 
-export default function SubjectBoard({ stepCompletion, onOpen, onOpenCommunication }) {
+export default function SubjectBoard({ stepCompletion, onOpen, onOpenCommunication, onAddAssignment }) {
   const reduce = useReducedMotion()
 
   return (
@@ -16,9 +16,17 @@ export default function SubjectBoard({ stepCompletion, onOpen, onOpenCommunicati
       viewport={{ once: true, amount: 0.25 }}
       transition={reduce ? { duration: 0 } : { duration: 0.45, ease: [0.2, 0, 0, 1] }}
     >
-      <h2 id="now-heading" className="board-title">
-        나의 과제
-      </h2>
+      <div className="board-head">
+        <h2 id="now-heading" className="board-title">
+          나의 과제
+        </h2>
+        {onAddAssignment ? (
+          <button type="button" className="btn board-add" onClick={onAddAssignment}>
+            <Scissors aria-hidden="true" size={16} />
+            과제 단계 나누기
+          </button>
+        ) : null}
+      </div>
       <div className="subject-grid">
         {data.subjects.map((subject) => {
           const assignment = data.assignments.find((item) => item.subjectId === subject.id)

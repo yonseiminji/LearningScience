@@ -10,8 +10,8 @@
 // going to retry the question.
 
 import { Type } from '@google/genai'
-import { generateJson, handler, sendJson } from './_gemini.js'
-import { checkRate, requireChunks, requireOneOf, requireString } from './_limit.js'
+import { generateJson, handler, sendJson } from '../_lib/gemini.js'
+import { checkRate, requireChunks, requireOneOf, requireString } from '../_lib/limit.js'
 
 export const SUPPORT_TYPES = ['term', 'comparison', 'question']
 

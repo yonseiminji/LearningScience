@@ -12,7 +12,7 @@
 // redeploy, and nothing expires out from under a learner mid-quiz.
 
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto'
-import { ApiError } from './_gemini.js'
+import { ApiError } from '../_lib/gemini.js'
 
 const TTL_MS = 6 * 60 * 60 * 1000 // six hours: long enough for any one sitting
 

@@ -110,6 +110,16 @@ export const mockTutorService = {
     }
   },
 
+  // Chunking cannot be faked. Quiz has hand-vetted questions about known
+  // paragraphs to fall back on; an assignment the learner just uploaded has
+  // nothing prepared, and splitting it without reading it would be making
+  // steps up. So this says plainly that the Tutor is not connected.
+  async createSteps() {
+    const error = new Error('Tutor가 연결되지 않아 과제를 단계로 나눌 수 없어요. 잠시 뒤 다시 시도해 주세요.')
+    error.code = 'tutor-unavailable'
+    throw error
+  },
+
   // No model, so no explanation is written. The lecture text is shown instead,
   // which is what the support is ultimately pointing at anyway.
   async requestSupport({ supportType, chunks = [] }) {
