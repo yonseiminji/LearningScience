@@ -1420,3 +1420,76 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 @media (prefers-reduced-motion: reduce) {
   .pick-group-head > svg { transition: none; }
 }
+
+/* ── 계획 세우기: the week as a grid, with the study block on it ── */
+.plan-grid-wrap { display: grid; gap: 10px; }
+.plan-grid-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.plan-grid-hint { margin: 0; color: var(--muted); font-size: 13px; }
+.plan-grid { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 6px; }
+.plan-grid-hours { position: relative; }
+.plan-grid-hours span {
+  position: absolute;
+  right: 0;
+  transform: translateY(16px);
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.plan-grid-days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 3px;
+  touch-action: none;
+}
+.plan-grid-day {
+  position: relative;
+  padding-top: 22px;
+  border-radius: 8px;
+  background: var(--hover);
+  background-image: repeating-linear-gradient(to bottom, transparent 0, transparent calc(100% / 9 - 1px), var(--line) calc(100% / 9 - 1px), var(--line) calc(100% / 9));
+  background-position: 0 22px;
+  background-size: 100% calc(100% - 22px);
+  background-repeat: no-repeat;
+}
+.plan-grid-dayname {
+  position: absolute;
+  top: 4px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.plan-grid-dayname b { color: var(--text-2); }
+.plan-grid-class, .plan-grid-taken, .plan-grid-block {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  display: grid;
+  place-items: center;
+  margin-top: 22px;
+  padding: 0 2px;
+  border-radius: 6px;
+  font-size: 11px;
+  line-height: 1.2;
+  overflow: hidden;
+  text-align: center;
+}
+.plan-grid-class { background: var(--chip); color: var(--muted); }
+.plan-grid-taken { background: var(--track); color: var(--text-2); }
+.plan-grid-block {
+  border: none;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+  cursor: grab;
+  touch-action: none;
+}
+.plan-grid-block.is-dragging { cursor: grabbing; box-shadow: var(--shadow-sm); }
+.plan-grid-block:focus-visible { outline: 2px solid var(--hi); outline-offset: 2px; }
+@media (max-width: 560px) {
+  .plan-grid { grid-template-columns: 34px minmax(0, 1fr); }
+  .plan-grid-class, .plan-grid-taken, .plan-grid-block { font-size: 10px; }
+}

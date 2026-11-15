@@ -197,6 +197,71 @@ function freeHoursOn(dateString, now) {
   return hours
 }
 
+export const SNAP_MINUTES = 30
+
+// The week as a grid: seven days from Monday, each with its classes and the
+// stretches the timetable leaves open.
+//
+// Weekends are included here even though no class falls on one. The old slot
+// list dropped them, which quietly told a learner that Saturday is not for
+// studying; the grid shows them empty and lets them decide.
+export function weekGrid(now = new Date(), weekOffset = 0) {
+  const monday = seoulMondayOf(now)
+  if (!monday) return []
+  const days = []
+  for (let dayOffset = 0; dayOffset < 7; dayOffset += 1) {
+    const dateString = addSeoulDays(monday, dayOffset + weekOffset * 7)
+    const weekday = seoulWeekday(fromSeoulDate(dateString, 12))
+    days.push({
+      dateString,
+      weekday,
+      classes: classesOn(weekday)
+        .map((item) => ({ ...item, from: clockMinutes(item.start), to: clockMinutes(item.end) }))
+        .sort((a, b) => a.from - b.from),
+    })
+  }
+  return days
+}
+
+/** Is a sitting of `minutes` at this day and time inside the day and clear of class? */
+export function blockFits(dateString, startMinutes, minutes) {
+  if (startMinutes < DAY_START || startMinutes + minutes > DAY_END) return false
+  const weekday = seoulWeekday(fromSeoulDate(dateString, 12))
+  return !classesOn(weekday).some(
+    (item) => startMinutes < clockMinutes(item.end) && startMinutes + minutes > clockMinutes(item.start),
+  )
+}
+
+/**
+ * Where to put a block of `minutes` so the learner starts from somewhere
+ * rather than from an empty grid.
+ *
+ * Earliest open time on the earliest day that still has room, skipping
+ * anything already past and anything another step has taken. Returns
+ * `{ dateString, startMinutes }`, or null when the fortnight has no room.
+ */
+export function suggestBlock(minutes, { now = new Date(), taken = [] } = {}) {
+  const nowDate = toDate(now)
+  for (let weekOffset = 0; weekOffset < 2; weekOffset += 1) {
+    for (const day of weekGrid(now, weekOffset)) {
+      for (let at = DAY_START; at + minutes <= DAY_END; at += SNAP_MINUTES) {
+        if (!blockFits(day.dateString, at, minutes)) continue
+        const start = fromSeoulDate(day.dateString, Math.floor(at / 60), at % 60)
+        if (!start || start.getTime() <= nowDate.getTime()) continue
+        const clash = taken.some(
+          (other) =>
+            other.dateString === day.dateString &&
+            at < other.startMinutes + other.minutes &&
+            at + minutes > other.startMinutes,
+        )
+        if (clash) continue
+        return { dateString: day.dateString, startMinutes: at }
+      }
+    }
+  }
+  return null
+}
+
 // Weekday hours the timetable leaves empty, from now on, over this week and
 // the next.
 //
