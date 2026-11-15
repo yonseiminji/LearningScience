@@ -1,6 +1,6 @@
 import { CalendarPlus, Check, ListChecks, RotateCcw } from 'lucide-react'
 import ChagokBlocks from './ChagokBlocks.jsx'
-import { data, ddayLabel, dueChipClass, subjectById } from '../assignmentModel.js'
+import { compareByDue, data, ddayLabel, dueChipClass, subjectById } from '../assignmentModel.js'
 import { entryStatus, formatSlotLabel, sortEntries } from '../weekPlan.js'
 
 function dueDate(iso) {
