@@ -281,6 +281,8 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 .criterion-text { position: relative; display: flex; align-items: center; gap: 8px; min-height: 28px; margin: 0; font-weight: 600; }
 .criterion-num { position: absolute; top: 0; left: -40px; display: grid; place-items: center; width: 28px; height: 28px; border: 2px solid var(--accent); border-radius: 50%; background: var(--surface); color: var(--accent); font-size: 13px; font-weight: 600; }
 .criterion-num.is-done { border-color: var(--done); background: var(--done); color: #fff; }
+.criterion-ask { display: flex; align-items: center; gap: 6px; margin: -2px 0 0; color: var(--muted); font-size: 13px; }
+.criterion-ask svg { flex: none; }
 .criterion-field { display: flex; gap: 8px; }
 .criterion input, .chat-form input {
   width: 100%;

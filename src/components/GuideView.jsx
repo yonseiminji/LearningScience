@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { Check, ChevronDown, ChevronLeft, CircleCheck, FileText, Lightbulb } from 'lucide-react'
+import { Check, ChevronDown, ChevronLeft, CircleCheck, FileText, Lightbulb, SquarePen } from 'lucide-react'
 import ProgressRing from './ProgressRing.jsx'
 import { ddayLabel, dueChipClass, formatDue, formatDueLabel, segmentInstruction, stepCounts } from '../assignmentModel.js'
 
-// One prompt for every completion box. A per-criterion example answer sounded
-// different each time and read as part of the question; this asks the same
-// thing everywhere, so the box is a box and the question is above it.
+// The fallback prompt, for a criterion that carries no example of its own.
+// A criterion that does carry one says what to write in its inputLabel and
+// shows the kind of thing in its placeholder, which beats one wording for
+// every box; this is what a box falls back to when those are missing.
 const ANSWER_PROMPT = '어떻게 마쳤는지 적어보세요'
 
 export default function GuideView({
@@ -205,12 +206,18 @@ export default function GuideView({
                     </span>
                     {criterion.text}
                   </label>
+                  {criterion.inputLabel ? (
+                    <p className="criterion-ask">
+                      <SquarePen aria-hidden="true" size={14} />
+                      {criterion.inputLabel}
+                    </p>
+                  ) : null}
                   <div className="criterion-field">
                     <input
                       id={criterion.id}
                       type="text"
                       value={criterionResponses[criterion.id] ?? ''}
-                      placeholder={ANSWER_PROMPT}
+                      placeholder={criterion.placeholder || ANSWER_PROMPT}
                       onChange={(event) => onChangeResponse(criterion.id, event.target.value)}
                     />
                     <button type="submit" className={done ? 'btn ghost criterion-save is-done' : 'btn ghost criterion-save'}>
