@@ -142,7 +142,21 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 }
 .subject-card { display: flex; flex-direction: column; }
 /* home rows: the subject name is the heading of each row */
-.subject-card .card-top { color: var(--ink); font-size: 19px; font-weight: 600; }
+/* A long subject name — 생성형인공지능 — used to run out of its 112px column
+   and sit on top of the assignment title. Smaller, and allowed to wrap and
+   to break mid-word, so the column holds it however long it is. */
+.subject-card .card-top {
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 600;
+  align-items: flex-start;
+  min-width: 0;
+  line-height: 1.35;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.subject-card .card-top > span:last-child { min-width: 0; }
+.subject-card .subject-dot { margin-top: 5px; }
 .subject-card .subject-dot { width: 10px; height: 10px; border-radius: 3px; }
 .card-top, .card-course { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; color: var(--muted); font-size: var(--fs-body); font-weight: 500; }
 .card-top svg, .card-course svg { width: 16px; height: 16px; stroke-width: 1.75; }

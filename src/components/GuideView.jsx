@@ -4,6 +4,11 @@ import { Check, ChevronDown, ChevronLeft, CircleCheck, FileText, Lightbulb } fro
 import ProgressRing from './ProgressRing.jsx'
 import { ddayLabel, dueChipClass, formatDue, formatDueLabel, segmentInstruction, stepCounts } from '../assignmentModel.js'
 
+// One prompt for every completion box. A per-criterion example answer sounded
+// different each time and read as part of the question; this asks the same
+// thing everywhere, so the box is a box and the question is above it.
+const ANSWER_PROMPT = '어떻게 마쳤는지 적어보세요'
+
 export default function GuideView({
   assignment,
   subject,
@@ -138,7 +143,7 @@ export default function GuideView({
                   <ul className="req-points">
                     {submission.map((item) => (
                       <li key={item.id} title={item.text}>
-                        {item.label || item.text}
+                        {item.highlight || item.label || item.text}
                       </li>
                     ))}
                   </ul>
@@ -149,8 +154,8 @@ export default function GuideView({
                   <span className="req-label">키워드</span>
                   <span className="req-keywords">
                     {keywords.map((item) => (
-                      <span key={item.id} className="fold-chip">
-                        {item.label}
+                      <span key={item.id} className="fold-chip" title={item.text}>
+                        {item.highlight || item.label}
                       </span>
                     ))}
                   </span>
@@ -205,7 +210,7 @@ export default function GuideView({
                       id={criterion.id}
                       type="text"
                       value={criterionResponses[criterion.id] ?? ''}
-                      placeholder={criterion.placeholder}
+                      placeholder={ANSWER_PROMPT}
                       onChange={(event) => onChangeResponse(criterion.id, event.target.value)}
                     />
                     <button type="submit" className={done ? 'btn ghost criterion-save is-done' : 'btn ghost criterion-save'}>

@@ -192,10 +192,7 @@ export function verifyChunkResult(data, { level, instruction = '' }) {
       criteria: Array.isArray(step?.completionCriteria)
         ? step.completionCriteria
             .filter((item) => filled(item?.text))
-            .map((item) => ({
-              text: item.text.trim(),
-              placeholder: filled(item?.placeholder) ? item.placeholder.trim() : '',
-            }))
+            .map((item) => ({ text: item.text.trim() }))
             .slice(0, 3)
         : [],
       requirementIds: [...new Set(ids)],
@@ -251,14 +248,14 @@ export function slugify(text) {
   return ascii || `tc${Date.now().toString(36)}`
 }
 
-function criterion(id, text, placeholder = '') {
+function criterion(id, text) {
   return {
     id,
     text,
     inputLabel: '완료되었나요?',
-    // What a finished answer looks like, in the learner's own voice. Empty
-    // when nothing was written for it; the field simply shows no example.
-    placeholder,
+    // The box's own prompt is the same everywhere and lives in GuideView, so
+    // nothing is stored here for it.
+    placeholder: '',
     inputType: 'text',
     required: false,
   }
@@ -274,12 +271,8 @@ function criterion(id, text, placeholder = '') {
 export function toAssignmentStep(step, { prefix, index, source = 'gemini' }) {
   const id = `${prefix}-s${index + 1}`
   const criteria = step.criteria?.length
-    ? step.criteria.map((item, at) =>
-        typeof item === 'string'
-          ? criterion(`${id}-c${at + 1}`, item)
-          : criterion(`${id}-c${at + 1}`, item.text, item.placeholder),
-      )
-    : [criterion(`${id}-c1`, `‘${step.title}’을 마쳤나요?`, '예) 어떻게 마쳤는지 적어 보세요.')]
+    ? step.criteria.map((item, at) => criterion(`${id}-c${at + 1}`, typeof item === 'string' ? item : item.text))
+    : [criterion(`${id}-c1`, `‘${step.title}’을 마쳤나요?`)]
   return {
     id,
     title: step.title,

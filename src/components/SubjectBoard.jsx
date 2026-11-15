@@ -30,8 +30,13 @@ export default function SubjectBoard({ stepCompletion, onOpen, onOpenCommunicati
       <div className="subject-grid">
         {/* One card per assignment, not per subject. Two assignments under
             the same subject are two things to do, and hiding the second
-            behind the first is how a newly added one went missing. */}
-        {data.assignments.map((assignment) => {
+            behind the first is how a newly added one went missing.
+            Soonest first, so the list answers 'what next' by its order. An
+            assignment with no stated deadline sorts last rather than first,
+            which is where an empty string would have put it. */}
+        {[...data.assignments]
+          .sort((a, b) => (a.dueAt || '9999').localeCompare(b.dueAt || '9999'))
+          .map((assignment) => {
           const subject = data.subjects.find((item) => item.id === assignment.subjectId)
           if (!subject) return null
           const counts = stepCounts(assignment, stepCompletion)
