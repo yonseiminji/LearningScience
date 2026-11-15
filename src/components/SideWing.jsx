@@ -15,7 +15,7 @@ export default function SideWing({ stepCompletion, planEntries = [], onStartPlan
   const plan = sortEntries(planEntries)
   const planned = plan.length
   const done = plan.filter((entry) => stepCompletion[entry.stepId]).length
-  const upcoming = data.assignments.slice().sort((a, b) => a.dueAt.localeCompare(b.dueAt))
+  const upcoming = data.assignments.slice().sort(compareByDue)
   const nearestOpenId = upcoming.find((assignment) => assignment.steps.some((step) => !stepCompletion[step.id]))?.id
 
   return (

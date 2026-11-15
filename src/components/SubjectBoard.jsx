@@ -1,6 +1,6 @@
 import { AlertCircle, ArrowRight, ChevronRight, Clock, MessageCircle, Scissors } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
-import { data, dueStatus, formatDue, stepCounts } from '../assignmentModel.js'
+import { compareByDue, data, dueStatus, formatDue, stepCounts } from '../assignmentModel.js'
 import ProgressRing from './ProgressRing.jsx'
 import { COPY } from '../communication.js'
 
@@ -35,7 +35,7 @@ export default function SubjectBoard({ stepCompletion, onOpen, onOpenCommunicati
             assignment with no stated deadline sorts last rather than first,
             which is where an empty string would have put it. */}
         {[...data.assignments]
-          .sort((a, b) => (a.dueAt || '9999').localeCompare(b.dueAt || '9999'))
+          .sort(compareByDue)
           .map((assignment) => {
           const subject = data.subjects.find((item) => item.id === assignment.subjectId)
           if (!subject) return null

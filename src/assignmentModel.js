@@ -67,6 +67,18 @@ export function registerAssignment(assignment) {
   return assignment
 }
 
+/**
+ * Soonest deadline first, with no stated deadline last.
+ *
+ * A chunked assignment genuinely has none when its instruction gave none, and
+ * every sort in the app used to call localeCompare on the value directly —
+ * which throws on null, and would sort an empty string to the very top if it
+ * did not. Both wrong, so the comparison lives in one place.
+ */
+export function compareByDue(a, b) {
+  return (a?.dueAt || '9999').localeCompare(b?.dueAt || '9999')
+}
+
 export function subjectById(id) {
   return data.subjects.find((subject) => subject.id === id) || null
 }
