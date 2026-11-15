@@ -232,6 +232,39 @@ export function blockFits(dateString, startMinutes, minutes) {
   )
 }
 
+export const CELL_MINUTES = 60
+
+/**
+ * Where inside one hour cell a block of `minutes` can start, or null.
+ *
+ * The cell is the thing the learner aims at, because an hour-tall box is a
+ * target you can hit and a 20-minute block is not. But a class that runs to
+ * 11:15 would make the whole 11:00 cell unusable if the block had to start on
+ * the hour, throwing away three quarters of an hour. So the cell decides the
+ * hour and this decides the minute: the earliest start inside the cell that
+ * clears the classes and whatever other steps already hold.
+ */
+export function fitInCell(dateString, hourStart, minutes, taken = []) {
+  const weekday = seoulWeekday(fromSeoulDate(dateString, 12))
+  if (weekday === null) return null
+  const ends = [
+    ...classesOn(weekday).map((item) => clockMinutes(item.end)),
+    ...taken.filter((item) => item.dateString === dateString).map((item) => item.startMinutes + item.minutes),
+  ]
+  const starts = [hourStart, ...ends].filter((start) => start >= hourStart && start < hourStart + CELL_MINUTES)
+  for (const start of starts.sort((a, b) => a - b)) {
+    if (!blockFits(dateString, start, minutes)) continue
+    const clash = taken.some(
+      (item) =>
+        item.dateString === dateString &&
+        start < item.startMinutes + item.minutes &&
+        start + minutes > item.startMinutes,
+    )
+    if (!clash) return start
+  }
+  return null
+}
+
 /**
  * Where to put a block of `minutes` so the learner starts from somewhere
  * rather than from an empty grid.

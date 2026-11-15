@@ -420,23 +420,12 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, previousPlan
             minutes={currentMinutes}
             onChange={setBlock}
             busy={busyBlocks}
+            durations={DURATIONS}
+            onMinutesChange={setMinutes}
+            durationLabel={scheduleTurn.durationLabel}
           />
           {!block ? <p className="plan-note">{scheduleTurn.emptyNote}</p> : null}
 
-          <div className="plan-sort">
-            <span className="plan-sort-label">{scheduleTurn.durationLabel}</span>
-            {DURATIONS.map((value) => (
-              <button
-                key={value}
-                type="button"
-                className={value === currentMinutes ? 'chat-chip is-on' : 'chat-chip'}
-                aria-pressed={value === currentMinutes}
-                onClick={() => setMinutes(value)}
-              >
-                {value}분
-              </button>
-            ))}
-          </div>
           {answers.adjust === 'shorter' && minutes === null ? (
             <p className="plan-note">{scheduleTurn.effectNote.shorter}</p>
           ) : null}
