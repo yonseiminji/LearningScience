@@ -1422,54 +1422,76 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 }
 
 /* ── 계획 세우기: the week as a grid, with the study block on it ── */
-.plan-grid-wrap { display: grid; gap: 10px; }
+.plan-grid-wrap { display: grid; gap: 10px; padding-bottom: 6px; --plan-hour: 46px; --plan-names: 22px; }
+.plan-grid-length { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.plan-grid-length-label { color: var(--muted); font-size: 13px; }
 .plan-grid-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .plan-grid-hint { margin: 0; color: var(--muted); font-size: 13px; }
-.plan-grid { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 6px; }
-.plan-grid-hours { position: relative; }
+
+/* Two columns, two rows: the day names and the hour labels each get their own
+   track, so the hour text lines up with the grid lines because they share the
+   same row sizing, not because a percentage was tuned to match. */
+.plan-grid {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  grid-template-rows: var(--plan-names) auto;
+  column-gap: 6px;
+}
+.plan-grid-corner { grid-column: 1; grid-row: 1; }
+.plan-grid-names { grid-column: 2; grid-row: 1; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+.plan-grid-name { display: flex; justify-content: center; gap: 3px; color: var(--muted); font-size: 11px; }
+.plan-grid-name b { color: var(--text-2); }
+
+.plan-grid-hours {
+  grid-column: 1;
+  grid-row: 2;
+  position: relative;
+  display: grid;
+  grid-template-rows: repeat(9, var(--plan-hour));
+}
 .plan-grid-hours span {
-  position: absolute;
-  right: 0;
-  transform: translateY(16px);
+  justify-self: end;
+  transform: translateY(-50%);
   color: var(--muted);
   font-size: 11px;
   font-variant-numeric: tabular-nums;
 }
-.plan-grid-days {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 3px;
-  touch-action: none;
-}
+/* Centred on the closing line like every other label, which leaves half of
+   it below the grid; the wrap carries the padding for that. */
+.plan-grid-hour-last { position: absolute; right: 0; bottom: 0; transform: translateY(50%); }
+
+.plan-grid-days { grid-column: 2; grid-row: 2; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
 .plan-grid-day {
   position: relative;
-  padding-top: 22px;
+  display: grid;
+  grid-template-rows: repeat(9, var(--plan-hour));
   border-radius: 8px;
+  overflow: hidden;
   background: var(--hover);
-  background-image: repeating-linear-gradient(to bottom, transparent 0, transparent calc(100% / 9 - 1px), var(--line) calc(100% / 9 - 1px), var(--line) calc(100% / 9));
-  background-position: 0 22px;
-  background-size: 100% calc(100% - 22px);
-  background-repeat: no-repeat;
 }
-.plan-grid-dayname {
-  position: absolute;
-  top: 4px;
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: center;
-  gap: 3px;
-  color: var(--muted);
-  font-size: 11px;
+
+/* Each hour is its own drop target. The lines are these cells' edges, so an
+   hour line cannot drift away from its label. */
+.plan-grid-cell {
+  border: none;
+  border-top: 1px solid var(--line);
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
 }
-.plan-grid-dayname b { color: var(--text-2); }
-.plan-grid-class, .plan-grid-taken, .plan-grid-block {
+.plan-grid-cell:first-child { border-top: none; }
+.plan-grid-cell:hover:not(:disabled) { background: var(--chip); }
+.plan-grid-cell.is-shut { cursor: default; }
+.plan-grid-cell.is-over { background: var(--chip); box-shadow: inset 0 0 0 2px var(--accent); }
+.plan-grid-cell.is-over-shut { box-shadow: inset 0 0 0 2px var(--line); }
+.plan-grid-cell:focus-visible { outline: 2px solid var(--hi); outline-offset: -3px; }
+
+.plan-grid-class, .plan-grid-taken, .plan-grid-block, .plan-grid-ghost {
   position: absolute;
   left: 2px;
   right: 2px;
   display: grid;
   place-items: center;
-  margin-top: 22px;
   padding: 0 2px;
   border-radius: 6px;
   font-size: 11px;
@@ -1477,8 +1499,10 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
   overflow: hidden;
   text-align: center;
 }
+.plan-grid-class, .plan-grid-taken, .plan-grid-ghost { pointer-events: none; }
 .plan-grid-class { background: var(--chip); color: var(--muted); }
 .plan-grid-taken { background: var(--track); color: var(--text-2); }
+.plan-grid-ghost { background: transparent; border: 2px dashed var(--accent); color: var(--accent); font-weight: 600; }
 .plan-grid-block {
   border: none;
   background: var(--accent);
@@ -1487,9 +1511,12 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
   cursor: grab;
   touch-action: none;
 }
-.plan-grid-block.is-dragging { cursor: grabbing; box-shadow: var(--shadow-sm); }
+/* Out of the way of elementFromPoint while it is being dragged, or the block
+   would always be the thing under the pointer and never a cell. */
+.plan-grid-block.is-dragging { cursor: grabbing; opacity: 0.4; pointer-events: none; box-shadow: var(--shadow-sm); }
 .plan-grid-block:focus-visible { outline: 2px solid var(--hi); outline-offset: 2px; }
 @media (max-width: 560px) {
+  .plan-grid-wrap { --plan-hour: 40px; }
   .plan-grid { grid-template-columns: 34px minmax(0, 1fr); }
-  .plan-grid-class, .plan-grid-taken, .plan-grid-block { font-size: 10px; }
+  .plan-grid-class, .plan-grid-taken, .plan-grid-block, .plan-grid-ghost { font-size: 10px; }
 }

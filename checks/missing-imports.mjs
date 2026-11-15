@@ -71,8 +71,9 @@ for (const file of files) {
 
   for (const [name, source] of exported) {
     if (source === file || known.has(name)) continue
-    // Used as a bare identifier, not as `.name` or `name:`.
-    const used = new RegExp(`(?<![.\\w$])${name}(?![\\w$:])`).test(code)
+    // A bare identifier, not `.name`, `name:`, or a JSX attribute like
+    // `data-cell` where the hyphen makes it part of a longer name.
+    const used = new RegExp(`(?<![-.\\w$])${name}(?![-\\w$:])`).test(code)
     if (used) problems.push({ file: file.replace(ROOT, 'src'), name, source: source.replace(ROOT, 'src') })
   }
 }
