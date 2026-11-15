@@ -1386,3 +1386,31 @@ h3 { margin: 0 0 8px; font-size: var(--fs-section); font-weight: 600; line-heigh
 .req-points { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
 .req-points li { position: relative; padding-left: 12px; }
 .req-points li::before { position: absolute; left: 0; color: var(--muted); content: '·'; }
+
+/* 계획 세우기: steps gathered under the assignment they belong to */
+.pick-group { display: block; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); overflow: hidden; }
+.pick-group + .pick-group { margin-top: 8px; }
+.pick-group-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.pick-group-head:hover { background: var(--hover); }
+.pick-group-head > svg { flex: none; color: var(--muted); transition: transform 160ms ease; }
+.pick-group-head > svg.is-open { transform: rotate(90deg); }
+.pick-group-main { display: grid; gap: 2px; min-width: 0; }
+.pick-group-title { font-size: 15px; font-weight: 600; }
+.pick-group-sub { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; }
+.pick-group-count { margin-left: auto; flex: none; color: var(--text-2); font-size: 13px; font-weight: 600; }
+.pick-steps { display: grid; gap: 2px; margin: 0; padding: 0 10px 10px; list-style: none; }
+.pick-step-no { color: var(--muted); font-size: 12px; font-weight: 600; }
+@media (prefers-reduced-motion: reduce) {
+  .pick-group-head > svg { transition: none; }
+}

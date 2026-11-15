@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { CalendarPlus, Check, Eye, Printer, TriangleAlert } from 'lucide-react'
+import { CalendarPlus, Check, ChevronRight, Eye, Printer, TriangleAlert } from 'lucide-react'
 import BearPanel from './BearPanel.jsx'
 import PlanSheet from './PlanSheet.jsx'
 import { PLAN_AGENT_TITLE, effectsOf, fill, firstTurnId, getTurn, labelOf, nextTurnId } from '../planAgent.js'
@@ -15,6 +15,7 @@ import {
   formatSlotSentence,
   freeSlots,
   hydrateEntry,
+  groupByAssignment,
   labelFor,
   planCandidates,
   sortCandidates,
@@ -54,6 +55,8 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, previousPlan
   const [effects, setEffects] = useState({})
   const [exampleOpen, setExampleOpen] = useState(false)
   const [sortMode, setSortMode] = useState('due')
+  // Which assignments are open. Absent means the default: the first one.
+  const [openGroups, setOpenGroups] = useState({})
   const [picked, setPicked] = useState([])
   // the proposal being assembled: { stepId, scheduledAt, minutes } only
   const [draft, setDraft] = useState([])
@@ -63,6 +66,7 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, previousPlan
 
   const candidates = useMemo(() => planCandidates(stepCompletion), [stepCompletion])
   const sorted = useMemo(() => sortCandidates(candidates, sortMode), [candidates, sortMode])
+  const groups = useMemo(() => groupByAssignment(sorted), [sorted])
   const slots = useMemo(() => freeSlots(new Date(), Math.max(8, picked.length * 2)), [picked.length])
   const example = useMemo(() => {
     const rows = sortCandidates(planCandidates(stepCompletion), 'due').slice(0, 3)
@@ -273,33 +277,67 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, previousPlan
               </button>
             ))}
           </div>
+          {/* Steps gathered under the assignment they belong to. The list
+              was one flat run of 학습과학 1단계 … 4단계 … 사회학 1단계, which
+              reads as one long sequence rather than three pieces of work.
+              The first group opens so the mechanism is visible; the rest
+              report how many are picked without being opened. */}
           <ul className="pick-list">
-            {sorted.map((row) => {
-              const on = picked.includes(row.stepId)
+            {groups.map((group, groupIndex) => {
               const locked = reached('schedule')
-              const full = !on && maxPicks !== null && picked.length >= maxPicks
-              if (locked && !on) return null
+              const rows = locked ? group.rows.filter((row) => picked.includes(row.stepId)) : group.rows
+              if (rows.length === 0) return null
+              const chosen = group.rows.filter((row) => picked.includes(row.stepId)).length
+              const open = openGroups[group.assignmentId] ?? groupIndex === 0
               return (
-                <li key={row.stepId}>
-                  <label className={`pick-item${on ? ' is-on' : ''}${full ? ' is-full' : ''}`}>
-                    <input
-                      type="checkbox"
-                      checked={on}
-                      disabled={full || locked}
-                      onChange={() => togglePick(row.stepId)}
-                    />
-                    <span className="pick-box" aria-hidden="true">
-                      {on ? <Check size={14} /> : null}
+                <li key={group.assignmentId} className="pick-group">
+                  <button
+                    type="button"
+                    className="pick-group-head"
+                    aria-expanded={open}
+                    onClick={() =>
+                      setOpenGroups((prev) => ({ ...prev, [group.assignmentId]: !open }))
+                    }
+                  >
+                    <ChevronRight aria-hidden="true" size={16} className={open ? 'is-open' : ''} />
+                    <span className="pick-group-main">
+                      <span className="pick-group-title">{group.assignmentTitle}</span>
+                      <span className="pick-group-sub">
+                        <span className={`subject-dot dot-${group.colorToken}`} aria-hidden="true" />
+                        {group.subjectName} · 마감 {formatMonthDay(group.dueDate)}
+                      </span>
                     </span>
-                    <span className="pick-main">
-                      <span className="pick-title">{labelFor(row)}</span>
-                      <span className="pick-sub">{row.stepTitle}</span>
+                    <span className="pick-group-count">
+                      {chosen > 0 ? `${chosen}개 선택` : `${rows.length}단계`}
                     </span>
-                    <span className="pick-dates">
-                      <span className="pick-target">목표 {formatMonthDay(row.targetDate)}</span>
-                      <span className="pick-due">마감 {formatMonthDay(row.dueDate)}</span>
-                    </span>
-                  </label>
+                  </button>
+                  {open ? (
+                    <ul className="pick-steps">
+                      {rows.map((row) => {
+                        const on = picked.includes(row.stepId)
+                        const full = !on && maxPicks !== null && picked.length >= maxPicks
+                        return (
+                          <li key={row.stepId}>
+                            <label className={`pick-item${on ? ' is-on' : ''}${full ? ' is-full' : ''}`}>
+                              <input
+                                type="checkbox"
+                                checked={on}
+                                disabled={full || locked}
+                                onChange={() => togglePick(row.stepId)}
+                              />
+                              <span className="pick-box" aria-hidden="true">
+                                {on ? <Check size={14} /> : null}
+                              </span>
+                              <span className="pick-main">
+                                <span className="pick-step-no">{row.stepNumber}단계</span>
+                                <span className="pick-sub">{row.stepTitle}</span>
+                              </span>
+                            </label>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  ) : null}
                 </li>
               )
             })}
