@@ -5,6 +5,7 @@ import LectureChunks from './LectureChunks.jsx'
 import ChunkSelector from './ChunkSelector.jsx'
 import QuizPanel from './QuizPanel.jsx'
 import SupportPanel from './SupportPanel.jsx'
+import ConceptPanel from './ConceptPanel.jsx'
 import { tutorService } from '../../services/tutorService.js'
 import { chunksByIds, retrieveChunks } from '../../utils/chunkSearch.js'
 import { ACTIVITY } from '../../studyHistory.js'
@@ -29,6 +30,8 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
   const [support, setSupport] = useState(null)
   const [busy, setBusy] = useState(null) // null | 'quiz' | 'answer' | 'support'
   const [error, setError] = useState(null)
+  const [explanation, setExplanation] = useState(null)
+  const [diagram, setDiagram] = useState(null)
   const requestId = useRef(0)
 
   const available = useMemo(() => materials.filter((item) => item.courseId === courseId), [materials, courseId])
@@ -160,6 +163,27 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
     }
   }
 
+  async function explainConcept({ conceptId, supportType, chunkIds }) {
+    setExplanation(null)
+    const picked = chunksByIds(chunks, chunkIds)
+    const data = await run('explain', () =>
+      tutorService.explainConcept({ material, conceptId, supportType, chunks: picked }),
+    )
+    if (data) {
+      setExplanation(data)
+      onStudied?.(ACTIVITY.support, { topicTag: data.conceptId })
+    }
+  }
+
+  async function showDiagram({ conceptId, visualId, chunkIds }) {
+    setDiagram(null)
+    const picked = chunksByIds(chunks, chunkIds)
+    const data = await run('diagram', () =>
+      tutorService.conceptDiagram({ material, conceptId, visualId, chunks: picked }),
+    )
+    if (data) setDiagram(data)
+  }
+
   function retryQuestion() {
     if (!support) return
     setResults((prev) => {
@@ -232,6 +256,19 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
               busy={busy === 'answer'}
               onSubmit={submitAnswer}
               onFinish={() => setMode('support')}
+            />
+          ) : null}
+
+          {mode === 'concept' ? (
+            <ConceptPanel
+              material={material}
+              chunks={selectedChunkIds.length ? chunksByIds(chunks, selectedChunkIds) : chunks}
+              busy={busy === 'explain' ? 'explain' : busy === 'diagram' ? 'diagram' : null}
+              error={error}
+              explanation={explanation}
+              diagram={diagram}
+              onExplain={explainConcept}
+              onDiagram={showDiagram}
             />
           ) : null}
 
