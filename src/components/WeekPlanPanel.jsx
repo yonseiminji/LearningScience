@@ -304,7 +304,7 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, previousPlan
                       <span className="pick-group-title">{group.assignmentTitle}</span>
                       <span className="pick-group-sub">
                         <span className={`subject-dot dot-${group.colorToken}`} aria-hidden="true" />
-                        {group.subjectName} · 마감 {formatMonthDay(group.dueDate)}
+                        {group.subjectName} · {group.dueDate ? `마감 ${formatMonthDay(group.dueDate)}` : '마감일 없음'}
                       </span>
                     </span>
                     <span className="pick-group-count">

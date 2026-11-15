@@ -18,7 +18,7 @@
 //
 // Pure: no React, no DOM.
 
-import { DAY_END, DAY_START, clockMinutes, data, subjectById } from './assignmentModel.js'
+import { DAY_END, DAY_START, clockMinutes, compareByDue, data, subjectById } from './assignmentModel.js'
 import {
   addSeoulDays,
   fromSeoulDate,
@@ -120,9 +120,9 @@ export function planCandidates(stepCompletion) {
 export function sortCandidates(rows, mode) {
   const sorted = rows.slice()
   if (mode === 'difficulty') {
-    sorted.sort((a, b) => b.difficulty - a.difficulty || a.dueAt.localeCompare(b.dueAt))
+    sorted.sort((a, b) => b.difficulty - a.difficulty || compareByDue(a, b))
   } else {
-    sorted.sort((a, b) => a.dueAt.localeCompare(b.dueAt) || a.stepNumber - b.stepNumber)
+    sorted.sort((a, b) => compareByDue(a, b) || a.stepNumber - b.stepNumber)
   }
   return sorted
 }
