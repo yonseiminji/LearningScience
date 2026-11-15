@@ -55,15 +55,16 @@ export {
 
 // ─── target dates ────────────────────────────────────────────────────────
 
-// Counted back from the deadline in Seoul: the last step lands two days
-// before it, each earlier step one day before the next. Returns 'YYYY-MM-DD'.
-// A target already in the past is left as it is — that is what 계획 다시 짜기
-// is for, and validation allows it.
-export function stepTargetDate(assignment, stepIndex) {
-  const due = seoulDateString(assignment?.dueAt)
-  if (!due) return null
-  const total = assignment.steps.length
-  return addSeoulDays(due, -(2 + (total - 1 - stepIndex)))
+// No per-step target date is handed out any more.
+//
+// This used to count back from the deadline — last step two days before it,
+// each earlier one a day earlier again — and show the result as 목표 11/7. A
+// learner reads that as a date somebody set, and nobody had: the assignment
+// has one deadline and the steps inside it have none. The field stays in the
+// plan document, nullable, so plans saved earlier still validate and still
+// show the target they were made with.
+export function stepTargetDate() {
+  return null
 }
 
 // ─── the steps a learner can plan ────────────────────────────────────────
@@ -96,6 +97,10 @@ function rowFor(assignment, step, index) {
     subjectName: subject?.name || '',
     colorToken: subject?.colorToken || '',
     dueAt: toUtcIso(assignment.dueAt),
+    // The assignment's deadline as a Seoul calendar date, for display. It was
+    // being read as row.dueDate and never set, so the pick list showed 마감
+    // with nothing after it.
+    dueDate: seoulDateString(assignment.dueAt),
     targetDate: stepTargetDate(assignment, index),
     difficulty: difficultyRank(step, index),
   }
@@ -123,7 +128,34 @@ export function sortCandidates(rows, mode) {
 }
 
 export function labelFor(row) {
-  return `${row.subjectName} ${row.stepNumber}단계`
+  return `${row.assignmentTitle} ${row.stepNumber}단계`
+}
+
+/**
+ * The candidate rows grouped by assignment, keeping whatever order they
+ * arrived in — so the sort the learner chose decides both which assignment
+ * comes first and the order inside it.
+ */
+export function groupByAssignment(rows) {
+  const groups = []
+  const byId = new Map()
+  for (const row of rows) {
+    let group = byId.get(row.assignmentId)
+    if (!group) {
+      group = {
+        assignmentId: row.assignmentId,
+        assignmentTitle: row.assignmentTitle,
+        subjectName: row.subjectName,
+        colorToken: row.colorToken,
+        dueDate: row.dueDate,
+        rows: [],
+      }
+      byId.set(row.assignmentId, group)
+      groups.push(group)
+    }
+    group.rows.push(row)
+  }
+  return groups
 }
 
 // ─── free time in the timetable ──────────────────────────────────────────
