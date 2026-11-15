@@ -102,13 +102,17 @@ const prefix = freeIdPrefix('tc-test')
 // 검증을 거친 단계를 쓴다 — 패널이 실제로 넘기는 것과 같은 값
 const converted = okCheck.steps.map((s, i) => toAssignmentStep(s, { prefix, index: i }))
 check('Assignment.steps 스키마 필드', Object.keys(converted[0]).sort().join(',') ===
-  'completionCriteria,description,id,prerequisiteTip,source,title')
+  'completionCriteria,description,id,prerequisiteTip,requirementIds,source,title')
 check('완료 조건이 비지 않음', converted.every((s) => s.completionCriteria.length > 0))
 check('완료 조건 질문이 단계로 전달됨', converted[0].completionCriteria[0].text === '구조 설명 정리')
 check('완료 조건이 없던 단계도 질문 하나를 받음',
   converted[1].completionCriteria[0].text.includes('GAN 구조 조사'))
-check('단계에 placeholder 를 담지 않음 — 화면이 한 가지로 묻는다',
+// 이 응답에는 placeholder 가 없으므로 빈 값이 맞다. 모델이 보내면 담긴다 —
+// criterion-fields.mjs 가 그쪽을 본다.
+check('placeholder 가 없으면 빈 값',
   converted.every((s) => s.completionCriteria.every((c) => c.placeholder === '')))
+check('난이도 점수를 매길 수 있는 모양',
+  converted.every((s) => Array.isArray(s.requirementIds)))
 check('ID 고유', new Set(converted.map((s) => s.id)).size === converted.length)
 const mine = userStep('  내가 쓴 단계  ', '  내가 쓴 설명  ')
 check('직접 추가 단계 생성', mine?.title === '내가 쓴 단계' && mine.source === 'user')

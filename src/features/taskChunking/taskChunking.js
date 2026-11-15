@@ -304,6 +304,9 @@ export function toAssignmentStep(step, { prefix, index, source = 'gemini' }) {
     description: step.description,
     prerequisiteTip: step.prerequisiteTip || '',
     completionCriteria: criteria,
+    // Kept on the step because difficulty scoring reads it: how many separate
+    // requirements a step carries is half of how much work it is.
+    requirementIds: step.requirementIds || [],
     source,
   }
 }

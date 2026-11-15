@@ -19,6 +19,7 @@
 // Pure: no React, no DOM.
 
 import { DAY_END, DAY_START, clockMinutes, compareByDue, data, subjectById } from './assignmentModel.js'
+import { calculateDifficulty, sortByDifficulty } from './utils/difficulty.js'
 import {
   addSeoulDays,
   fromSeoulDate,
@@ -69,14 +70,6 @@ export function stepTargetDate() {
 
 // ─── the steps a learner can plan ────────────────────────────────────────
 
-// How hard a step looks from the data we have: more completion criteria means
-// more to satisfy, and a later step builds on the ones before it. There is no
-// difficulty field in the assignment file, and this does not invent one — it
-// is only an ordering for the '어려운 것부터' toggle.
-function difficultyRank(step, stepIndex) {
-  return step.completionCriteria.length * 10 + stepIndex
-}
-
 export function findStep(stepId) {
   for (const assignment of data.assignments) {
     const index = assignment.steps.findIndex((step) => step.id === stepId)
@@ -102,7 +95,11 @@ function rowFor(assignment, step, index) {
     // with nothing after it.
     dueDate: seoulDateString(assignment.dueAt),
     targetDate: stepTargetDate(assignment, index),
-    difficulty: difficultyRank(step, index),
+    // What the step looks like to do, from its wording and how much it
+    // carries. Scored in utils/difficulty.js; the score is kept rather than
+    // the 1–5 rank so steps a rank apart still order against each other.
+    difficulty: calculateDifficulty(step).difficultyScore,
+    difficultyLabel: calculateDifficulty(step).difficultyLabel,
   }
 }
 
@@ -120,10 +117,12 @@ export function planCandidates(stepCompletion) {
 export function sortCandidates(rows, mode) {
   const sorted = rows.slice()
   if (mode === 'difficulty') {
-    sorted.sort((a, b) => b.difficulty - a.difficulty || compareByDue(a, b))
-  } else {
-    sorted.sort((a, b) => compareByDue(a, b) || a.stepNumber - b.stepNumber)
+    // The rows carry no step of their own, so the sorter is told how to find
+    // one. Without this it would read each row as a step, find no title on it
+    // and call every single one unrated.
+    return sortByDifficulty(sorted, (row) => findStep(row.stepId)?.step ?? null)
   }
+  sorted.sort((a, b) => compareByDue(a, b) || a.stepNumber - b.stepNumber)
   return sorted
 }
 
