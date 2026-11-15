@@ -188,11 +188,15 @@ export function verifyChunkResult(data, { level, instruction = '' }) {
       stepId,
       title,
       description,
-      prerequisiteTip: '',
+      prerequisiteTip: filled(step?.tip) ? step.tip.trim() : '',
       criteria: Array.isArray(step?.completionCriteria)
         ? step.completionCriteria
             .filter((item) => filled(item?.text))
-            .map((item) => ({ text: item.text.trim() }))
+            .map((item) => ({
+              text: item.text.trim(),
+              inputLabel: filled(item?.inputLabel) ? item.inputLabel.trim() : '',
+              placeholder: nounPhrase(item?.placeholder),
+            }))
             .slice(0, 3)
         : [],
       requirementIds: [...new Set(ids)],
@@ -248,14 +252,31 @@ export function slugify(text) {
   return ascii || `tc${Date.now().toString(36)}`
 }
 
-function criterion(id, text) {
+/**
+ * The example inside the answer box, kept to a noun phrase.
+ *
+ * A learner reading 예) 리뷰 논문 1편을 찾았어요. copies the sentence instead of
+ * answering, so the example shows the kind of thing to write and not a whole
+ * answer. The model is told this, and a 요/다 ending means it wrote a sentence
+ * anyway; rather than show one, the box falls back to its own prompt.
+ */
+function nounPhrase(value) {
+  const text = String(value || '').trim()
+  if (!text) return ''
+  const body = text.replace(/^예\s*\)\s*/, '').replace(/[.。]\s*$/, '')
+  if (!body) return ''
+  if (/(요|다|죠|네|까)$/.test(body)) return ''
+  return `예) ${body}`
+}
+
+function criterion(id, text, { inputLabel = '', placeholder = '' } = {}) {
   return {
     id,
     text,
-    inputLabel: '완료되었나요?',
-    // The box's own prompt is the same everywhere and lives in GuideView, so
-    // nothing is stored here for it.
-    placeholder: '',
+    // Empty means GuideView uses its own wording; both are written there so
+    // a generated step and a built-in one read the same.
+    inputLabel,
+    placeholder,
     inputType: 'text',
     required: false,
   }
@@ -271,7 +292,11 @@ function criterion(id, text) {
 export function toAssignmentStep(step, { prefix, index, source = 'gemini' }) {
   const id = `${prefix}-s${index + 1}`
   const criteria = step.criteria?.length
-    ? step.criteria.map((item, at) => criterion(`${id}-c${at + 1}`, typeof item === 'string' ? item : item.text))
+    ? step.criteria.map((item, at) =>
+        typeof item === 'string'
+          ? criterion(`${id}-c${at + 1}`, item)
+          : criterion(`${id}-c${at + 1}`, item.text, { inputLabel: item.inputLabel, placeholder: item.placeholder }),
+      )
     : [criterion(`${id}-c1`, `‘${step.title}’을 마쳤나요?`)]
   return {
     id,
