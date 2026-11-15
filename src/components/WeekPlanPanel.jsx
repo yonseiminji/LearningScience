@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { CalendarPlus, Check, ChevronRight, Eye, Printer, TriangleAlert } from 'lucide-react'
 import BearPanel from './BearPanel.jsx'
 import PlanSheet from './PlanSheet.jsx'
+import PlanGrid from './PlanGrid.jsx'
 import { PLAN_AGENT_TITLE, effectsOf, fill, firstTurnId, getTurn, labelOf, nextTurnId } from '../planAgent.js'
 import {
   DEFAULT_MINUTES,
@@ -19,8 +20,10 @@ import {
   labelFor,
   planCandidates,
   sortCandidates,
+  suggestBlock,
 } from '../weekPlan.js'
 import { CLASS_CHECK, validatePlan } from '../planValidation.js'
+import { fromSeoulDate, seoulDateString, seoulMinutesOfDay } from '../planTime.js'
 
 const BEAR = '/brand/gomgomi-question.webp'
 // the order the conversation runs in, so earlier turns stay on screen
@@ -60,14 +63,15 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, previousPlan
   const [picked, setPicked] = useState([])
   // the proposal being assembled: { stepId, scheduledAt, minutes } only
   const [draft, setDraft] = useState([])
-  const [slotId, setSlotId] = useState(null)
+  // Where the block for the step being scheduled currently sits.
+  const [block, setBlock] = useState(null)
   const [minutes, setMinutes] = useState(null)
   const [refusal, setRefusal] = useState(null)
 
   const candidates = useMemo(() => planCandidates(stepCompletion), [stepCompletion])
   const sorted = useMemo(() => sortCandidates(candidates, sortMode), [candidates, sortMode])
   const groups = useMemo(() => groupByAssignment(sorted), [sorted])
-  const slots = useMemo(() => freeSlots(new Date(), Math.max(8, picked.length * 2)), [picked.length])
+
   const example = useMemo(() => {
     const rows = sortCandidates(planCandidates(stepCompletion), 'due').slice(0, 3)
     const free = freeSlots(new Date(), 6)
@@ -93,8 +97,32 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, previousPlan
     ? pickedRows.find((row) => !draft.some((entry) => entry.stepId === row.stepId)) || null
     : null
   const currentMinutes = minutes ?? defaultMinutes
-  const chosenSlot = slots.find((slot) => slot.id === slotId) || null
-  const usedSlotIds = new Set(draft.map((entry) => entry.scheduledAt))
+  // The blocks already settled, so the grid can show them and refuse to let
+  // this one land on top of one.
+  const busyBlocks = useMemo(
+    () =>
+      draft.map((entry) => {
+        const filled = hydrateEntry(entry)
+        return {
+          dateString: seoulDateString(entry.scheduledAt),
+          startMinutes: seoulMinutesOfDay(entry.scheduledAt),
+          minutes: entry.minutes,
+          label: filled ? `${filled.stepNumber}단계` : '',
+        }
+      }),
+    [draft],
+  )
+
+  // A step arrives with a block already on the grid, worked out from the gaps
+  // in the timetable, so the learner adjusts a proposal rather than facing an
+  // empty week. Re-proposed when the step changes or the sitting gets longer,
+  // since a longer block may no longer fit where the last one did.
+  useEffect(() => {
+    if (!currentRow) return
+    setBlock(suggestBlock(currentMinutes, { taken: busyBlocks }))
+  }, [currentRow?.stepId, currentMinutes])
+
+  const chosenAt = block ? fromSeoulDate(block.dateString, Math.floor(block.startMinutes / 60), block.startMinutes % 60) : null
   const scheduledCount = draft.length
   const minPicks = Math.min(1, sorted.length)
 
@@ -122,10 +150,10 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, previousPlan
   }
 
   function commitSlot() {
-    if (!currentRow || !chosenSlot) return
-    const next = [...draft, { stepId: currentRow.stepId, scheduledAt: chosenSlot.id, minutes: currentMinutes }]
+    if (!currentRow || !chosenAt) return
+    const next = [...draft, { stepId: currentRow.stepId, scheduledAt: chosenAt.toISOString(), minutes: currentMinutes }]
     setDraft(next)
-    setSlotId(null)
+    setBlock(null)
     setMinutes(null)
     setRefusal(null)
     if (next.length >= pickedRows.length) setStage(nextTurnId('schedule') || 'done')
@@ -160,7 +188,7 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, previousPlan
   const preview = stage === 'done' ? validatePlan(plan, { stepCompletion, previousPlan }) : null
   const warnings = refusal ? [] : preview?.warnings || []
   const classCheckSkipped = preview?.checks.classConflict === CLASS_CHECK.SKIPPED_NO_TIMETABLE
-  const scrollKey = `${stage}-${draft.length}-${answers.lastWeek}-${answers.adjust}-${exampleOpen}-${slotId}-${refusal ? 'x' : ''}`
+  const scrollKey = `${stage}-${draft.length}-${answers.lastWeek}-${answers.adjust}-${exampleOpen}-${block?.dateString}-${block?.startMinutes}-${refusal ? 'x' : ''}`
 
   return (
     <BearPanel
@@ -387,25 +415,13 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, previousPlan
           <Bear>
             <p>{fill(scheduleTurn.ask, { step: labelFor(currentRow) })}</p>
           </Bear>
-          <div className="slot-grid">
-            {slots.map((slot) => {
-              const used = usedSlotIds.has(slot.id)
-              return (
-                <button
-                  key={slot.id}
-                  type="button"
-                  className={slot.id === slotId ? 'slot-chip is-on' : 'slot-chip'}
-                  aria-pressed={slot.id === slotId}
-                  disabled={used}
-                  onClick={() => setSlotId(slot.id)}
-                >
-                  {formatSlotDateTime(slot.date)}
-                  {used ? <span className="slot-used">이미 정함</span> : null}
-                </button>
-              )
-            })}
-          </div>
-          {slots.length === 0 ? <p className="plan-note">{scheduleTurn.emptyNote}</p> : null}
+          <PlanGrid
+            value={block}
+            minutes={currentMinutes}
+            onChange={setBlock}
+            busy={busyBlocks}
+          />
+          {!block ? <p className="plan-note">{scheduleTurn.emptyNote}</p> : null}
 
           <div className="plan-sort">
             <span className="plan-sort-label">{scheduleTurn.durationLabel}</span>
@@ -425,13 +441,13 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, previousPlan
             <p className="plan-note">{scheduleTurn.effectNote.shorter}</p>
           ) : null}
 
-          {chosenSlot ? (
+          {chosenAt ? (
             <>
               <Bear>
                 {scheduleTurn.confirmSay.map((line) => (
                   <p key={line}>
                     {fill(line, {
-                      slot: formatSlotSentence(chosenSlot.date),
+                      slot: formatSlotSentence(chosenAt),
                       step: labelFor(currentRow),
                       minutes: currentMinutes,
                     })}
@@ -444,7 +460,7 @@ export default function WeekPlanPanel({ stepCompletion, hasPlanned, previousPlan
                     key={option.id}
                     type="button"
                     className="chat-chip"
-                    onClick={() => (option.action === 'commitSlot' ? commitSlot() : setSlotId(null))}
+                    onClick={() => (option.action === 'commitSlot' ? commitSlot() : setBlock(null))}
                   >
                     {option.label}
                   </button>
