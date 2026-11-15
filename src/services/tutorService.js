@@ -73,6 +73,36 @@ export const tutorService = {
     )
   },
 
+  /**
+   * 개념 이해 지원. No mock fallback, on purpose.
+   *
+   * Everywhere else a dead endpoint quietly becomes the demo content, which
+   * keeps a learner moving. Here it would be a lie with a citation on it: the
+   * screen already shows the checked definition, so a failure can surface as
+   * a failure and still leave something correct on the page.
+   */
+  explainConcept({ material, conceptId, supportType, chunks }) {
+    return tutorApi
+      .explain({
+        materialId: material.id,
+        conceptId,
+        supportType,
+        lectureChunks: chunks.map(({ chunkId, text }) => ({ chunkId, text })),
+      })
+      .then((data) => ({ ...data, provider: 'gemini' }))
+  },
+
+  /** 관계도. template mode calls no model, so there is nothing to mock. */
+  conceptDiagram({ material, conceptId, visualId, chunks }) {
+    return tutorApi.diagram({
+      materialId: material.id,
+      conceptId,
+      visualId,
+      mode: 'template',
+      lectureChunks: chunks.map(({ chunkId, text }) => ({ chunkId, text })),
+    })
+  },
+
   /** Steps for one assignment, at the granularity the learner asked for.
    *  Nothing is stored: what comes back is a proposal for them to edit. */
   createSteps({ subjectId, subjectName, instruction, chunkingLevel }) {

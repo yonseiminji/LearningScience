@@ -2,9 +2,23 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
   "functions": {
-    "api/tutor/quiz.js": { "maxDuration": 30 },
-    "api/tutor/answer.js": { "maxDuration": 10 },
-    "api/tutor/support.js": { "maxDuration": 30 },
-    "api/planner/chunk.js": { "maxDuration": 45 }
+    "api/tutor/quiz.js": {
+      "maxDuration": 30
+    },
+    "api/tutor/answer.js": {
+      "maxDuration": 10
+    },
+    "api/tutor/support.js": {
+      "maxDuration": 30
+    },
+    "api/planner/chunk.js": {
+      "maxDuration": 45
+    },
+    "api/tutor/explain.js": {
+      "maxDuration": 30
+    },
+    "api/tutor/diagram.js": {
+      "maxDuration": 10
+    }
   }
 }

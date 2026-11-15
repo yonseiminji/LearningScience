@@ -197,3 +197,36 @@
 }
 .review-quote small { color: var(--muted); font-size: 12px; }
 .review-quote p { margin: 4px 0 0; line-height: 1.7; }
+
+/* ─── 개념 이해 ──────────────────────────────────────────────────────── */
+
+.concept-panel { display: grid; gap: 12px; }
+.concept-head { margin: 0; font-size: 15px; }
+.concept-picker { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.concept-card { display: grid; gap: 8px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); }
+.concept-term { display: flex; align-items: center; gap: 6px; margin: 0; font-weight: 700; }
+.concept-term span { color: var(--muted); font-weight: 400; font-size: 13px; }
+.concept-def { margin: 0; line-height: 1.6; }
+.concept-points { margin: 0; padding-left: 18px; display: grid; gap: 4px; color: var(--text-2); font-size: 14px; }
+.concept-source { margin: 0; color: var(--muted); font-size: 12px; }
+
+.concept-watch { display: flex; align-items: flex-start; gap: 6px; margin: 0; color: var(--text-2); font-size: 13px; line-height: 1.5; }
+.concept-watch svg { flex: none; margin-top: 2px; }
+.concept-note { margin: 0; color: var(--muted); font-size: 13px; }
+.concept-error { margin: 0; color: var(--danger, #b4504a); font-size: 14px; }
+
+.concept-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.concept-actions .btn { display: inline-flex; align-items: center; gap: 5px; }
+
+.concept-answer { display: grid; gap: 8px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--hover); }
+.concept-answer h4 { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 14px; }
+.concept-answer p { margin: 0; line-height: 1.6; }
+.concept-flag { display: flex; align-items: center; gap: 5px; color: var(--muted); font-size: 12px; }
+
+.concept-diagram { display: grid; gap: 8px; margin: 0; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); }
+.concept-diagram figcaption { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 14px; }
+/* Scrolls sideways rather than shrinking, so labels stay readable on a phone. */
+.concept-diagram-canvas { overflow-x: auto; }
+.concept-diagram-canvas svg { max-width: none; height: auto; }
+.concept-diagram-alt { margin: 0; line-height: 1.6; }

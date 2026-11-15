@@ -1,11 +1,12 @@
-import { FileText, ListChecks, ListTree, RefreshCw } from 'lucide-react'
+import { FileText, ListChecks, ListTree, Network, RefreshCw } from 'lucide-react'
 
-// The four ways in, in the order a sitting runs: read it, choose a stretch of
+// The five ways in, in the order a sitting runs: read it, choose a stretch of
 // it, test yourself on that stretch, then go back to whatever did not stick.
 const MODES = [
   { id: 'source', title: '강의 내용 확인하기', description: '강의 원문 확인하기', Icon: FileText },
   { id: 'select', title: '강의 구간 선택하기', description: '공부할 내용 선택하기', Icon: ListTree },
   { id: 'quiz', title: '이해 여부 점검하기', description: 'AI가 만든 OX·빈칸 문제 풀기', Icon: ListChecks },
+  { id: 'concept', title: '개념 이해하기', description: '개념 뜻·사례·관계도 보기', Icon: Network },
   { id: 'support', title: '부족한 부분 다시 학습하기', description: '어려운 부분을 선택하고 원문 다시 보기', Icon: RefreshCw },
 ]
 
