@@ -32,7 +32,6 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
   const [busy, setBusy] = useState(null) // null | 'quiz' | 'answer' | 'support'
   const [error, setError] = useState(null)
   const [explanation, setExplanation] = useState(null)
-  const [diagram, setDiagram] = useState(null)
   const [recall, setRecall] = useState(null)
   const requestId = useRef(0)
 
@@ -51,7 +50,6 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
     setSupport(null)
     setRecall(null)
     setExplanation(null)
-    setDiagram(null)
     setBusy(null)
     setError(null)
   }
@@ -212,15 +210,6 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
     onStudied?.(ACTIVITY.quiz, { topicTag: conceptId || data.covered?.[0]?.conceptId })
   }
 
-  async function showDiagram({ conceptId, visualId, chunkIds }) {
-    setDiagram(null)
-    const picked = chunksByIds(chunks, chunkIds)
-    const data = await run('diagram', () =>
-      tutorService.conceptDiagram({ material, conceptId, visualId, chunks: picked }),
-    )
-    if (data) setDiagram(data)
-  }
-
   function retryQuestion() {
     if (!support) return
     setResults((prev) => {
@@ -290,12 +279,10 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
             <ConceptPanel
               material={material}
               chunks={selectedChunkIds.length ? chunksByIds(chunks, selectedChunkIds) : chunks}
-              busy={busy === 'explain' ? 'explain' : busy === 'diagram' ? 'diagram' : null}
+              busy={busy === 'explain' ? 'explain' : null}
               error={error}
               explanation={explanation}
-              diagram={diagram}
               onExplain={explainConcept}
-              onDiagram={showDiagram}
             />
           ) : null}
 

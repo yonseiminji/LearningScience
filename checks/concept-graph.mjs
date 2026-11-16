@@ -68,6 +68,21 @@ is('REL-30 은 저장소가 추가한 것으로 표시', added?.provenance, 'str
 ok('REL-30 근거 줄이 놀이 단계보다 뒤',
   added.sourceLines[0] > LEXICON.relations.find((r) => r.id === 'REL-13').sourceLines[0])
 
+console.log('\n[A4] 쪽수는 화면에도 프롬프트에도 닿지 않는다')
+// The bundle's page numbers survive in claimedPrintPages and inside the
+// bundle's own validationNote text, because they are its claim about its own
+// work. What matters is that no field the picture or a prompt reads carries
+// one. Checked by field, not by hope.
+const READ_BY_GRAPH = ['subjectKo', 'objectKo', 'relationKo', 'relationType', 'semanticNote', 'sourceLines', 'sourceSection', 'diagramIds', 'id']
+const pageish = /\bpp?\.\s*\d/
+for (const relation of LEXICON.relations) {
+  const read = Object.fromEntries(READ_BY_GRAPH.map((key) => [key, relation[key]]))
+  ok(`${relation.id} 그려지는 필드에 쪽수 없음`, !pageish.test(JSON.stringify(read)))
+}
+const graphJson = JSON.stringify(DIAGRAMS.map((item) => graphFor(item.diagramId)))
+ok('완성된 관계도 어디에도 쪽수 없음', !pageish.test(graphJson))
+ok('관계도가 사전 metadata 를 들고 나가지 않음', !graphJson.includes('claimedPrintPages'))
+
 console.log('\n[B] 근거 없는 유형은 지어내지 않는다')
 is('CAUSES 항목', LEXICON.relations.filter((r) => r.relationType === 'CAUSES').length, 0)
 is('CONTRASTS_WITH 항목', LEXICON.relations.filter((r) => r.relationType === 'CONTRASTS_WITH').length, 0)

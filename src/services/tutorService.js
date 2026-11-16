@@ -101,17 +101,6 @@ export const tutorService = {
     return tutorApi.recall({ materialId: material.materialId, attempt, conceptId, rubricId })
   },
 
-  /** 관계도. template mode calls no model, so there is nothing to mock. */
-  conceptDiagram({ material, conceptId, visualId, chunks }) {
-    return tutorApi.diagram({
-      materialId: material.materialId,
-      conceptId,
-      visualId,
-      mode: 'template',
-      lectureChunks: chunks.map(({ chunkId, text }) => ({ chunkId, text })),
-    })
-  },
-
   /** Steps for one assignment, at the granularity the learner asked for.
    *  Nothing is stored: what comes back is a proposal for them to edit. */
   createSteps({ subjectId, subjectName, instruction, chunkingLevel }) {

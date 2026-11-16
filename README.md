@@ -463,6 +463,23 @@ v2.1을 `scripts/anchor-lexicon.mjs`로 저장소 코퍼스에 다시 앵커했�
 node scripts/anchor-lexicon.mjs <relation_lexicon.json>
 ```
 
+### 관계도는 SVG로 그립니다 (Mermaid 아님)
+
+관계도 4개(기관 · 미드 단계 · 잠재적 교육과정 · 예기↔재사회화)는
+`src/features/conceptGraph/`가 사전에서 **브라우저에서 직접 SVG로** 그립니다.
+모델 호출도, 서버 왕복도 없습니다.
+
+Mermaid 경로가 한동안 같이 있었지만 세 군데서 끊겨 있었습니다 — 패키지가
+설치되지 않았고, `@vite-ignore` 때문에 번들에 `import("mermaid")`가 bare
+specifier로 남아 설치해도 브라우저가 해석할 수 없었고, 호출하는 버튼이
+없었습니다. 호출되면 `altText`로 떨어지는 구조였습니다. 지워냈습니다:
+`ConceptDiagram.jsx`, `api/tutor/diagram.js`, `socialization_visuals.js`,
+그리고 `_lib/socialization.js`의 `findVisual`·`validateDiagram`·`toMermaid`.
+
+`relationStyle.js`·`layout.js`가 Mermaid로는 안 되는 것들을 합니다 —
+`IS_A`·`PART_OF`·`EXAMPLE_OF`를 `Ex.`로 아래에 적고, 대조를 화살표 없는 빨간
+점선으로, `PART_OF`를 상자 안 표 행으로, 간선을 직각으로 라우팅합니다.
+
 ## 응답 캐시 (시연 전에 만들기)
 
 30명이 같은 강의를 열고 같은 개념에 같은 질문을 던집니다. 그 답을 미리 받아
