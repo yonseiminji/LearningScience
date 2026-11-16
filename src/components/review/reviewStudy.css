@@ -289,7 +289,7 @@
 .recall-prompt { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 15px; }
 .recall-ask textarea { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); font: inherit; line-height: 1.6; resize: vertical; }
 .recall-ask textarea:focus { outline: 2px solid var(--hi); outline-offset: 1px; border-color: var(--accent); }
-.recall-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.recall-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
 
 .recall-result { display: grid; gap: 10px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
 .recall-nudge { margin: 0; font-size: 15px; font-weight: 600; }
@@ -320,15 +320,16 @@
 /* 인출 연습: 난도 고르기 */
 .recall-bear { vertical-align: -4px; margin-right: 6px; border-radius: 50%; }
 .recall-levels { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
-.recall-level { display: grid; grid-template-columns: 26px 1fr; gap: 2px 10px; width: 100%; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); text-align: left; cursor: pointer; }
+.recall-level { display: grid; grid-template-columns: 30px 1fr; gap: 2px 10px; width: 100%; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); text-align: left; cursor: pointer; }
 .recall-level:hover { border-color: var(--accent); background: var(--hover); }
 .recall-level:focus-visible { outline: 2px solid var(--hi); outline-offset: 2px; }
-.recall-level-step { grid-row: span 2; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--chip); color: var(--text-2); font-size: 13px; font-weight: 700; }
+.recall-level-icon { grid-row: span 2; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: var(--chip); color: var(--accent); }
 .recall-level b { font-size: 15px; }
 .recall-level span:last-child { color: var(--muted); font-size: 13px; }
 
 /* 빈칸 채우기 */
-.recall-cloze { display: grid; gap: 14px; margin: 0; padding-left: 20px; }
+/* Room under the last field: the buttons sat tight against it. */
+.recall-cloze { display: grid; gap: 18px; margin: 0 0 20px; padding-left: 20px; }
 .recall-cloze li { line-height: 1.7; }
 .recall-cloze p { margin: 0 0 6px; }
 .recall-cloze input { width: 100%; max-width: 280px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); font: inherit; }

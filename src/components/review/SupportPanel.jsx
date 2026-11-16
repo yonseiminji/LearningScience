@@ -19,26 +19,75 @@ export default function SupportPanel({ quiz, results, chunks, support, busy, onR
   const chosen = questions.find((question) => question.questionId === questionId) || null
   const chosenResult = chosen ? results[chosen.questionId] : null
 
-  // Until generated questions land, what the learner has is a free recall,
-  // and its unreached statements are exactly the parts worth reading again.
-  // No model is called for this: the statements are already written down.
+  // Whatever the learner just did — a cloze, one concept, the whole lecture
+  // — it arrives here as the same list: concepts to shore up, each carrying
+  // the words to ask the Tutor about. The three kinds of stuck below are the
+  // ones that already existed; only where the list comes from is new.
   if (answered.length === 0 && recall) {
-    const again = [...(recall.partial || []), ...(recall.missing || [])]
+    const targets = recall.needsSupport || []
     return (
       <section className="review-result" aria-label="부족한 부분 다시 학습하기">
         <h3>어려운 부분을 선택하고 원문 다시 보기</h3>
-        {again.length === 0 ? (
-          <p>떠올린 내용에 빠진 곳이 없었어요. 강의 원문을 한 번 더 훑어봐도 좋아요.</p>
+        {targets.length === 0 ? (
+          <p>방금 인출 연습에서 빠진 곳이 없었어요. 다른 방법으로 한 번 더 해 봐도 좋아요.</p>
         ) : (
           <>
-            <p className="review-muted">인출 연습에서 아직 떠오르지 않은 내용이에요. 강의 원문에서 이 부분을 찾아 읽어 보세요.</p>
-            <ul className="recall-points">
-              {again.map((item) => (
-                <li key={item.id} className="is-missing">
-                  {item.statement}
-                </li>
-              ))}
+            <p className="review-muted">다시 볼 내용을 고르세요.</p>
+            <ul className="review-pick-list">
+              {targets.map((item) => {
+                const on = item.conceptId === questionId
+                return (
+                  <li key={`${item.conceptId}-${item.questionText}`}>
+                    <button
+                      type="button"
+                      className={on ? 'review-pick is-on' : 'review-pick'}
+                      aria-pressed={on}
+                      onClick={() => setQuestionId(on ? null : item.conceptId)}
+                    >
+                      <b>{item.termKo}</b>
+                      <span>{item.why}</span>
+                    </button>
+                  </li>
+                )
+              })}
             </ul>
+
+            {questionId ? (
+              <div className="review-support-kinds" role="group" aria-label="어떤 도움이 필요한가요">
+                {SUPPORT_TYPES.map((kind) => (
+                  <button
+                    key={kind.id}
+                    type="button"
+                    className="btn"
+                    disabled={busy}
+                    onClick={() => {
+                      const target = targets.find((item) => item.conceptId === questionId)
+                      onRequest(
+                        {
+                          questionId: target.conceptId,
+                          questionText: target.questionText,
+                          // The cloze knows which paragraph it came from, so
+                          // the search does not have to guess.
+                          sourceChunkIds: target.chunkIds,
+                        },
+                        { userAnswer: target.userAnswer, result: 'wrong' },
+                        kind.id,
+                      )
+                    }}
+                  >
+                    {kind.label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
+            {busy ? <p role="status">강의 내용을 찾아보고 있어요…</p> : null}
+            {support ? (
+              <div className="review-support">
+                <p>{support.response}</p>
+                {support.sourceText ? <SourceChunks chunks={chunks} ids={support.usedChunkIds} /> : null}
+              </div>
+            ) : null}
           </>
         )}
       </section>

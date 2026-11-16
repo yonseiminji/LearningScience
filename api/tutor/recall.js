@@ -36,9 +36,17 @@ const SCHEMA = {
         required: ['said', 'instead'],
       },
     },
+    reinforce: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: { conceptId: { type: Type.STRING }, why: { type: Type.STRING } },
+        required: ['conceptId', 'why'],
+      },
+    },
     nudge: { type: Type.STRING },
   },
-  required: ['covered', 'partial', 'mixups', 'nudge'],
+  required: ['covered', 'partial', 'mixups', 'reinforce', 'nudge'],
 }
 
 export default handler(async (request, response) => {
@@ -76,7 +84,15 @@ export default handler(async (request, response) => {
 
   const data = await generateJson({
     systemInstruction: SYSTEM,
-    prompt: prompt({ rubricTitle: title, items, attempt }),
+    prompt: prompt({
+      rubricTitle: title,
+      items,
+      attempt,
+      concepts: [...new Set(items.map((item) => item.conceptId))]
+        .map(findConcept)
+        .filter(Boolean)
+        .map((item) => ({ conceptId: item.conceptId, termKo: item.termKo })),
+    }),
     responseSchema: SCHEMA,
     maxOutputTokens: 1400,
   })
@@ -96,6 +112,19 @@ export default handler(async (request, response) => {
       return { id, statement: item.statement, conceptId: item.conceptId, weight: item.weight }
     })
 
+  // Which concepts to shore up, named by the model but only from concepts
+  // that exist and that this list actually covers. 부족한 부분 다시 학습하기
+  // reads this, so an id nobody can look up would be a dead card there.
+  const inScope = new Set(items.map((item) => item.conceptId))
+  const reinforce = (data.reinforce || [])
+    .filter((item) => item && inScope.has(item.conceptId) && findConcept(item.conceptId))
+    .slice(0, 3)
+    .map((item) => ({
+      conceptId: item.conceptId,
+      termKo: findConcept(item.conceptId).termKo,
+      why: String(item.why || '').slice(0, 200),
+    }))
+
   sendJson(response, 200, {
     scope,
     rubricId: scope === 'lecture' ? RUBRIC.rubricId : null,
@@ -109,6 +138,7 @@ export default handler(async (request, response) => {
       .filter((item) => item && typeof item.said === 'string' && typeof item.instead === 'string')
       .slice(0, 4)
       .map((item) => ({ said: item.said.slice(0, 160), instead: item.instead.slice(0, 200) })),
+    reinforce,
     nudge: String(data.nudge || '').slice(0, 140),
   })
 })

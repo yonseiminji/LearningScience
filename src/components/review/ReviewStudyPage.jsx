@@ -183,12 +183,33 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
 
   async function checkRecall(attempt, conceptId) {
     const data = await run('recall', () => tutorService.checkRecall({ material, attempt, conceptId }))
-    if (data) {
-      // The learner's own words stay on screen beside the reading of them;
-      // nothing is stored beyond this session.
-      setRecall({ ...data, attempt })
-      onStudied?.(ACTIVITY.quiz, { topicTag: data.covered?.[0]?.conceptId })
-    }
+    if (!data) return
+    // Whichever level ran, what 부족한 부분 다시 학습하기 needs is the same
+    // list: concepts to shore up, each with the words to ask about. For a
+    // whole-lecture recall the model names them; for one concept it is that
+    // concept, if anything of it did not come back.
+    const needsSupport =
+      data.scope === 'concept'
+        ? (data.partial.length || data.missing.length)
+          ? [{
+              conceptId: data.conceptId,
+              termKo: data.title,
+              why: '아직 떠오르지 않은 내용이 있어요.',
+              questionText: [...data.partial, ...data.missing].map((item) => item.statement).join(' '),
+              userAnswer: attempt,
+              chunkIds: [],
+            }]
+          : []
+        : (data.reinforce || []).map((item) => ({
+            ...item,
+            questionText: item.why,
+            userAnswer: attempt,
+            chunkIds: [],
+          }))
+    // The learner's own words stay on screen beside the reading of them;
+    // nothing is stored beyond this session.
+    setRecall({ ...data, kind: data.scope === 'concept' ? 'concept' : 'all', attempt, needsSupport })
+    onStudied?.(ACTIVITY.quiz, { topicTag: conceptId || data.covered?.[0]?.conceptId })
   }
 
   async function showDiagram({ conceptId, visualId, chunkIds }) {
@@ -257,6 +278,10 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
               error={error}
               result={recall}
               onSubmit={checkRecall}
+              onGraded={(graded) => {
+                setRecall(graded)
+                onStudied?.(ACTIVITY.quiz, { topicTag: graded.needsSupport[0]?.conceptId })
+              }}
               onAgain={() => setRecall(null)}
             />
           ) : null}

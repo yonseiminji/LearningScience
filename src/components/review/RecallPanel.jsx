@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { AlertTriangle, Check, Circle, CircleDashed, RotateCcw } from 'lucide-react'
+import { AlertTriangle, Check, Circle, CircleDashed, PenLine, RotateCcw, SquareDashed, Waves } from 'lucide-react'
 import { BLANK, buildCloze, gradeCloze } from '../../features/retrieval/cloze.js'
 import { conceptsInChunks } from '../../utils/conceptSearch.js'
 import KNOWLEDGE from '../../data/socialization_knowledge.js'
@@ -15,13 +15,16 @@ const BEAR = '/brand/gomgomi.webp'
  * answer. Filling a blank still means producing the word; explaining one
  * concept still means producing the sentence. Neither is recognition.
  */
+// Three ways, not three steps. They are independent, so none of them is
+// numbered: an icon says what the task is without implying an order or a
+// level to clear before the next one opens.
 const LEVELS = [
-  { id: 'cloze', label: '빈칸 채우기', hint: '강의 문장에서 한 단어를 떠올려요' },
-  { id: 'concept', label: '내 말로 개념 설명하기', hint: '개념 하나를 골라 설명해요' },
-  { id: 'all', label: '오늘 배운 것 전부 적어보기', hint: '기억나는 내용을 모두 적어요' },
+  { id: 'cloze', label: '빈칸 채우기', hint: '강의 문장에서 한 단어를 떠올려요', Icon: SquareDashed },
+  { id: 'concept', label: '내 말로 개념 설명하기', hint: '개념 하나를 골라 설명해요', Icon: PenLine },
+  { id: 'all', label: '오늘 배운 것 전부 적어보기', hint: '기억나는 내용을 모두 적어요', Icon: Waves },
 ]
 
-export default function RecallPanel({ chunks = [], busy, error, result, onSubmit, onAgain }) {
+export default function RecallPanel({ chunks = [], busy, error, result, onSubmit, onGraded, onAgain }) {
   const [level, setLevel] = useState(null)
   const [attempt, setAttempt] = useState('')
   const [conceptId, setConceptId] = useState(null)
@@ -41,7 +44,9 @@ export default function RecallPanel({ chunks = [], busy, error, result, onSubmit
     onAgain()
   }
 
-  if (result) return <Result result={result} onAgain={restart} />
+  // A graded cloze stays on its own screen; the page holds the same result
+  // only so 부족한 부분 다시 학습하기 can read it.
+  if (result && result.kind !== 'cloze') return <Result result={result} onAgain={restart} />
 
   if (!level) {
     return (
@@ -50,14 +55,16 @@ export default function RecallPanel({ chunks = [], busy, error, result, onSubmit
           <img src={BEAR} alt="" width="22" height="22" className="recall-bear" />
           오늘 무엇을 배웠나요?
         </h3>
-        <p className="review-muted">기억에서 꺼내 보는 연습이에요. 어느 쪽부터 할지 골라 주세요.</p>
+        <p className="review-muted">강의 전사문을 바탕으로 기억에서 꺼내 보는 연습이에요. 어느 쪽부터 할지 골라 주세요.</p>
         <ul className="recall-levels">
-          {LEVELS.map((item, at) => (
-            <li key={item.id}>
-              <button type="button" className="recall-level" onClick={() => setLevel(item.id)}>
-                <span className="recall-level-step">{at + 1}</span>
-                <b>{item.label}</b>
-                <span>{item.hint}</span>
+          {LEVELS.map(({ id, label, hint, Icon }) => (
+            <li key={id}>
+              <button type="button" className="recall-level" onClick={() => setLevel(id)}>
+                <span className="recall-level-icon">
+                  <Icon aria-hidden="true" size={18} />
+                </span>
+                <b>{label}</b>
+                <span>{hint}</span>
               </button>
             </li>
           ))}
@@ -110,7 +117,29 @@ export default function RecallPanel({ chunks = [], busy, error, result, onSubmit
         )}
         <div className="recall-actions">
           {!done && cloze.length > 0 ? (
-            <button type="button" className="btn primary" onClick={() => setChecked(true)}>
+            <button
+              type="button"
+              className="btn primary"
+              onClick={() => {
+                setChecked(true)
+                // Graded here, with no model: the answer is one known word.
+                // What goes up is the misses, so 부족한 부분 다시 학습하기 has
+                // something to work on after this level too.
+                const wrong = cloze.filter((item) => gradeCloze(item, answers[item.id]) !== 'right')
+                onGraded?.({
+                  kind: 'cloze',
+                  title: '빈칸 채우기',
+                  needsSupport: wrong.map((item) => ({
+                    conceptId: item.conceptId,
+                    termKo: item.answer,
+                    why: '빈칸에서 떠오르지 않았어요.',
+                    questionText: item.text,
+                    userAnswer: answers[item.id] || '',
+                    chunkIds: [item.chunkId],
+                  })),
+                })
+              }}
+            >
               다 적었어요
             </button>
           ) : null}
