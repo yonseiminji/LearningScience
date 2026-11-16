@@ -12,11 +12,12 @@
 // per concept, this endpoint refuses rather than guesses.
 
 import { ApiError, handler, sendJson } from '../_lib/gemini.js'
-import { checkRate, requireOneOf, requireString } from '../_lib/limit.js'
+import { checkRate, finishRate, requireOneOf, requireString } from '../_lib/limit.js'
 import { findConcept, findVisual } from '../_lib/socialization.js'
 
 export default handler(async (request, response) => {
-  checkRate(request)
+  const slot = await checkRate(request)
+  try {
   const body = request.body || {}
 
   // materialId is a label, not a gate. It names the upload the chunks came
@@ -65,4 +66,7 @@ export default handler(async (request, response) => {
     validated: true,
     humanReviewed: visual.reviewed === true,
   })
+  } finally {
+    await finishRate(slot)
+  }
 })

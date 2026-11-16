@@ -406,3 +406,43 @@ No backend. The plan lives in React state and is gone on reload; only "has this 
 
 ### 기타
 - 차곡 블록 애니메이션을 튀지 않는 움직임으로 바꿨습니다(`src/components/ChagokBlocks.jsx`).
+
+## 동시 사용 설정 (시연용)
+
+여러 명이 동시에 쓸 때 Gemini 할당량을 나눠 쓰기 위한 환경변수입니다. 셋 다
+선택이지만, Upstash 둘이 없으면 공유 제한이 **꺼지고** 인스턴스별 제한만 남습니다.
+
+| 변수 | 뜻 | 권장 |
+|---|---|---|
+| `UPSTASH_REDIS_REST_URL` | 공유 카운터 저장소 | 시연 시 필수 |
+| `UPSTASH_REDIS_REST_TOKEN` | 위 저장소 토큰 | 시연 시 필수 |
+| `GEMINI_RPM_BUDGET` | 전체 분당 요청 상한 | 키의 실제 RPM보다 낮게 (기본 20) |
+| `GEMINI_CONCURRENCY` | 동시 모델 호출 수 | 4~6 (기본 5) |
+
+상한에 걸린 요청은 실패가 아니라 **대기**입니다. 서버가 `429`와 함께
+`retryAfterMs`·`ahead`를 돌려주고, 화면은 "앞에 N명이 기다리고 있어요"를 띄운 뒤
+최대 45초까지 스스로 재시도합니다.
+
+## 교재 출처
+
+개념 지식베이스는 **BCcampus, Introduction to Sociology – 3rd Canadian Edition
+(William Little, 2023), Chapter 5**에서 가져왔습니다. 원문 라이선스는 **CC BY 4.0**
+(개별 표시된 제3자 자료는 별도 권리).
+
+- 원문: https://opentextbc.ca/introductiontosociology3rdcanadianedition/
+- 전체 대역본은 `docs/bccampus-ch05/`에 있고, **앱 번들에는 포함되지 않습니다.**
+  (543블록 773KB — 브라우저로 내려보낼 이유가 없습니다.)
+- 출처 재지정은 `scripts/anchor-bccampus.mjs`가 합니다. 교재가 바뀌면 다시 돌리면 됩니다.
+
+**인쇄 쪽수는 인용하지 않습니다.** 제공된 텍스트에 페이지 경계가 없어 확인되지
+않았고, 자료 자체가 쪽수를 추측해 넣지 않았다고 밝히고 있습니다. 인용은 절(§)과
+행 번호로 합니다.
+
+시연용 강의 전사문은 `docs/lectures/socialization_lecture1.txt` 하나입니다. 교재와
+같은 캐나다판을 근거로 작성했고, 지식베이스 21개 개념이 모두 이 전사문에서
+발견됩니다. 개념이 교재에는 있는데 전사문에 없으면 화면에 뜨지 않고, 전사문에는
+있는데 교재 판본에 없으면 "이 판에서는 따로 다루지 않아요"로 표시됩니다.
+
+관계 사전(`socialization_relations.js`)은 아직 OpenStax 판 기준으로 검토된
+자료입니다. 쪽 번호가 이 판으로 옮겨지지 않으므로 관계도에서는 쪽수를 표시하지
+않고 출처만 밝힙니다.

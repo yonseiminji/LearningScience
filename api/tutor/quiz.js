@@ -11,7 +11,7 @@
 
 import { Type } from '@google/genai'
 import { ApiError, generateJson, handler, sendJson } from '../_lib/gemini.js'
-import { checkRate, requireChunks, requireOneOf, requireString } from '../_lib/limit.js'
+import { checkRate, finishRate, requireChunks, requireOneOf, requireString } from '../_lib/limit.js'
 import { seal } from './_seal.js'
 import { SYSTEM } from '../_lib/prompts/quiz.js'
 
@@ -130,7 +130,8 @@ function publicQuestion(question) {
 }
 
 export default handler(async (req, res, body) => {
-  checkRate(req)
+  const slot = await checkRate(req)
+  try {
 
   const materialId = requireString(body.materialId, 'materialId', { max: 200 })
   const chunks = requireChunks(body.chunks)
@@ -173,4 +174,7 @@ ${passage}`,
     questions: kept.map(publicQuestion),
     droppedCount: dropped.length,
   })
+  } finally {
+    await finishRate(slot)
+  }
 })

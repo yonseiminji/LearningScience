@@ -12,7 +12,7 @@
 import { Type } from '@google/genai'
 import { generateJson, handler, sendJson } from '../_lib/gemini.js'
 import { COMMON, PROMPTS } from '../_lib/prompts/support.js'
-import { checkRate, requireChunks, requireOneOf, requireString } from '../_lib/limit.js'
+import { checkRate, finishRate, requireChunks, requireOneOf, requireString } from '../_lib/limit.js'
 
 export const SUPPORT_TYPES = ['term', 'comparison', 'question']
 
@@ -37,11 +37,12 @@ const SCHEMA = {
 }
 
 export default handler(async (req, res, body) => {
-  checkRate(req)
+  const slot = await checkRate(req)
+  try {
 
   const supportType = requireOneOf(body.supportType, SUPPORT_TYPES, 'supportType')
   const questionText = requireString(body.questionText, 'questionText', { max: 1000 })
-  const chunks = requireChunks(body.retrievedChunks, { maxCount: 4, maxChars: 6000 })
+  const chunks = requireChunks(body.retrievedChunks, { maxCount: 3, maxChars: 2400 })
   const questionId = typeof body.questionId === 'string' ? body.questionId.slice(0, 200) : null
   const userAnswer = typeof body.userAnswer === 'string' ? body.userAnswer.slice(0, 500) : ''
   const isCorrect = body.isCorrect === true
@@ -83,4 +84,7 @@ ${passage}`,
     // supported answer: with no evidence there is nothing to have studied.
     topicTag: status === 'supported' && typeof data.topicTag === 'string' ? data.topicTag.trim().slice(0, 60) : '',
   })
+  } finally {
+    await finishRate(slot)
+  }
 })

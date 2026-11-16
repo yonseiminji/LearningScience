@@ -202,7 +202,11 @@ export default function ConceptGraph({ graph, caveat }) {
       </ul>
 
       {caveat ? <p className="concept-watch">{caveat}</p> : null}
-      <p className="concept-source">OpenStax Introduction to Sociology 3e · {graph.pages.join(', ')}쪽</p>
+      {/* The relation lexicon was anchored to the OpenStax edition and its
+          page numbers do not transfer, so the diagram cites the chapter and
+          says where its relations came from rather than printing a page that
+          no longer points anywhere. */}
+      <p className="concept-source">관계 사전 v2 · OpenStax Introduction to Sociology 3e, Ch. 5 검토본</p>
     </div>
   )
 }

@@ -3,6 +3,7 @@ import { AlertTriangle, Check, Circle, CircleDashed, PenLine, RotateCcw, SquareD
 import { BLANK, buildCloze, gradeCloze } from '../../features/retrieval/cloze.js'
 import { conceptsInChunks } from '../../utils/conceptSearch.js'
 import KNOWLEDGE from '../../data/socialization_knowledge.js'
+import { pickRubric } from '../../data/socialization_rubric.js'
 
 const BEAR = '/brand/gomgomi.webp'
 
@@ -32,6 +33,9 @@ export default function RecallPanel({ chunks = [], busy, error, result, onSubmit
   const [checked, setChecked] = useState(false)
 
   const cloze = useMemo(() => buildCloze(chunks), [chunks])
+  // Which lecture this is. The whole-lecture level needs it; the other two
+  // work off the transcript directly and do not.
+  const rubric = useMemo(() => pickRubric(chunks), [chunks])
   const found = useMemo(() => conceptsInChunks(chunks), [chunks])
   const byId = useMemo(() => new Map(KNOWLEDGE.concepts.map((item) => [item.conceptId, item])), [])
   const concept = conceptId ? byId.get(conceptId) : null
@@ -205,6 +209,11 @@ export default function RecallPanel({ chunks = [], busy, error, result, onSubmit
         오늘 무엇을 배웠나요?
       </h3>
       <p className="review-muted">강의를 다시 보지 말고, 떠오르는 내용을 순서 없이 적어도 괜찮아요.</p>
+      {rubric ? null : (
+        <p className="review-muted">
+          이 강의는 아직 대조할 항목이 준비되지 않았어요. 빈칸 채우기나 개념 설명하기로 연습해 보세요.
+        </p>
+      )}
       <Writing
         title="오늘 강의에서 기억나는 걸 전부 적어 볼까요?"
         placeholder="예) 사회화는 사회의 규범을 배우는 과정이다. 자아는 다른 사람과의 상호작용에서 발달한다…"
@@ -214,7 +223,7 @@ export default function RecallPanel({ chunks = [], busy, error, result, onSubmit
         onChange={setAttempt}
         busy={busy}
         error={error}
-        onSubmit={() => onSubmit(attempt, null)}
+        onSubmit={() => onSubmit(attempt, null, rubric?.rubricId)}
         extra={back}
       />
     </section>

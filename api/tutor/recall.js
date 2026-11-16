@@ -17,8 +17,8 @@
 import { Type } from '@google/genai'
 import { ApiError, generateJson, handler, sendJson } from '../_lib/gemini.js'
 import { SYSTEM, prompt } from '../_lib/prompts/recall.js'
-import { checkRate, requireString } from '../_lib/limit.js'
-import RUBRIC from '../../src/data/socialization_rubric.js'
+import { checkRate, finishRate, requireString } from '../_lib/limit.js'
+import { RUBRICS, rubricById } from '../../src/data/socialization_rubric.js'
 import { findConcept } from '../_lib/socialization.js'
 
 const MAX_ATTEMPT = 4000
@@ -50,7 +50,8 @@ const SCHEMA = {
 }
 
 export default handler(async (request, response) => {
-  checkRate(request)
+  const slot = await checkRate(request)
+  try {
   const body = request.body || {}
 
   requireString(body.materialId, 'materialId', { max: 120 })
@@ -61,9 +62,13 @@ export default handler(async (request, response) => {
   // way — membership of a closed, numbered list — so the same prompt and the
   // same validation serve both.
   const scope = body.conceptId ? 'concept' : 'lecture'
-  let title = RUBRIC.title
-  let items = RUBRIC.items
-  let note = RUBRIC.note
+  // Which lecture was uploaded decides the list. The client works it out from
+  // the transcript and names it; the server only accepts a name it knows, so
+  // an unknown one is refused rather than quietly checked against lecture 1.
+  let rubric = null
+  let title = ''
+  let items = []
+  let note = ''
 
   if (scope === 'concept') {
     const concept = findConcept(body.conceptId)
@@ -78,8 +83,17 @@ export default handler(async (request, response) => {
       weight: 'core',
       cues: [concept.termKo],
     }))
-  } else if ((body.rubricId || RUBRIC.rubricId) !== RUBRIC.rubricId) {
-    throw new ApiError(400, '이 강의에는 아직 대조할 항목이 없어요.')
+  } else {
+    rubric = rubricById(body.rubricId || '')
+    if (!rubric) {
+      throw new ApiError(
+        400,
+        `이 강의에는 아직 대조할 항목이 없어요. 지금은 ${RUBRICS.length}개 강의만 준비되어 있어요.`,
+      )
+    }
+    title = rubric.title
+    items = rubric.items
+    note = rubric.note
   }
 
   const data = await generateJson({
@@ -127,7 +141,7 @@ export default handler(async (request, response) => {
 
   sendJson(response, 200, {
     scope,
-    rubricId: scope === 'lecture' ? RUBRIC.rubricId : null,
+    rubricId: rubric?.rubricId || null,
     conceptId: scope === 'concept' ? body.conceptId : null,
     title,
     note,
@@ -141,4 +155,7 @@ export default handler(async (request, response) => {
     reinforce,
     nudge: String(data.nudge || '').slice(0, 140),
   })
+  } finally {
+    await finishRate(slot)
+  }
 })
