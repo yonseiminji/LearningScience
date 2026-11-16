@@ -93,12 +93,12 @@ export const tutorService = {
   },
 
   /**
-   * 곰곰이한테 설명하기. No mock fallback, for the same reason explain has
+   * 통 인출 대조. No mock fallback, for the same reason explain has
    * none: a made-up reading of what the learner wrote would be worse than
    * saying the check could not run.
    */
-  checkRecall({ material, conceptId, attempt }) {
-    return tutorApi.recall({ materialId: material.materialId, conceptId, attempt })
+  checkRecall({ material, attempt }) {
+    return tutorApi.recall({ materialId: material.materialId, attempt })
   },
 
   /** 관계도. template mode calls no model, so there is nothing to mock. */

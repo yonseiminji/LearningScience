@@ -3,7 +3,6 @@ import { AlertTriangle, BookOpen, Lightbulb, Network, Sparkles } from 'lucide-re
 import KNOWLEDGE from '../../data/socialization_knowledge.js'
 import ConceptDiagram from './ConceptDiagram.jsx'
 import ConceptGraph from './ConceptGraph.jsx'
-import RecallFirst from './RecallFirst.jsx'
 import { diagramsForConcept, graphFor } from '../../features/conceptGraph/fromLexicon.js'
 import { conceptsInChunks } from '../../utils/conceptSearch.js'
 
@@ -33,15 +32,11 @@ export default function ConceptPanel({
   error,
   onExplain,
   onDiagram,
-  onRecall,
   explanation,
   diagram,
-  recall,
 }) {
   const [conceptId, setConceptId] = useState(null)
   const [showGraph, setShowGraph] = useState(false)
-  // Hidden until they have had a go, or said they would rather not.
-  const [revealed, setRevealed] = useState(false)
 
   const found = useMemo(() => conceptsInChunks(chunks), [chunks])
   const byId = useMemo(() => new Map(KNOWLEDGE.concepts.map((item) => [item.conceptId, item])), [])
@@ -80,7 +75,6 @@ export default function ConceptPanel({
               aria-pressed={conceptId === item.conceptId}
               onClick={() => {
                 setConceptId(item.conceptId)
-                setRevealed(false)
                 setShowGraph(false)
               }}
             >
@@ -90,25 +84,7 @@ export default function ConceptPanel({
         })}
       </div>
 
-      {/* Stale results belong to the concept they were asked about. A bare
-          `!recall` here left the panel blank after switching concepts: the
-          ask form was suppressed by another concept's result, and the result
-          itself was filtered out by the guard below. */}
-      {concept && !revealed && recall?.conceptId !== conceptId ? (
-        <RecallFirst
-          concept={concept}
-          busy={busy === 'recall'}
-          error={error}
-          onSubmit={(attempt) => onRecall({ conceptId, attempt })}
-          onSkip={() => setRevealed(true)}
-        />
-      ) : null}
-
-      {concept && recall?.conceptId === conceptId ? (
-        <RecallFirst concept={concept} result={recall} />
-      ) : null}
-
-      {concept && (revealed || recall?.conceptId === conceptId) ? (
+      {concept ? (
         <>
           <div className="concept-card">
             <p className="concept-term">
@@ -224,9 +200,7 @@ export default function ConceptPanel({
         </>
       ) : null}
 
-      {!concept ? (
-        <p className="concept-note">개념을 하나 고르면 먼저 기억에서 꺼내 보는 연습부터 해요.</p>
-      ) : null}
+      {!concept ? <p className="concept-note">개념을 하나 고르면 교재의 정의부터 보여드려요.</p> : null}
     </section>
   )
 }

@@ -136,7 +136,9 @@ is('카드 4개', ids.length, 4)
 is('카드 순서', ids.join(','), 'source,concept,quiz,support')
 const page = readFileSync('/home/claude/learningscience/src/components/review/ReviewStudyPage.jsx', 'utf8')
 ok("select 모드가 사라짐", !page.includes("mode === 'select'"))
-ok('구간 선택이 quiz 카드 안으로', page.includes("mode === 'quiz' && !quiz"))
+// 인출 연습하기 now opens on free recall; chunk picking returns with the
+// generated questions the quiz machinery is kept for.
+ok('인출 연습하기가 통 인출을 보여줌', page.includes("mode === 'quiz' ? (") && page.includes('<RecallPanel'))
 ok('quiz 카드는 잠기지 않음', !page.includes("disabledModes.push('quiz')"))
 const service = readFileSync('/home/claude/learningscience/src/services/tutorService.js', 'utf8')
 ok('클라이언트가 material.materialId 를 보냄', !/materialId: material\.id\b/.test(service))

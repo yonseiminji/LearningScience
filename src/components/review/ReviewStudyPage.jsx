@@ -6,6 +6,7 @@ import ChunkSelector from './ChunkSelector.jsx'
 import QuizPanel from './QuizPanel.jsx'
 import SupportPanel from './SupportPanel.jsx'
 import ConceptPanel from './ConceptPanel.jsx'
+import RecallPanel from './RecallPanel.jsx'
 import { tutorService } from '../../services/tutorService.js'
 import { chunksByIds, retrieveChunks } from '../../utils/chunkSearch.js'
 import { ACTIVITY } from '../../studyHistory.js'
@@ -180,13 +181,13 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
     }
   }
 
-  async function checkRecall({ conceptId, attempt }) {
-    const data = await run('recall', () => tutorService.checkRecall({ material, conceptId, attempt }))
+  async function checkRecall(attempt) {
+    const data = await run('recall', () => tutorService.checkRecall({ material, attempt }))
     if (data) {
-      // The learner's own words are kept on screen beside the reading of
-      // them; nothing is stored beyond this session.
+      // The learner's own words stay on screen beside the reading of them;
+      // nothing is stored beyond this session.
       setRecall({ ...data, attempt })
-      onStudied?.(ACTIVITY.support, { topicTag: conceptId })
+      onStudied?.(ACTIVITY.quiz, { topicTag: data.covered?.[0]?.conceptId })
     }
   }
 
@@ -213,12 +214,12 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
   // 인출 연습하기 is always open now: it starts on its own picker, so
   // there is no earlier card to visit first.
   const disabledModes = []
-  if (!quiz) disabledModes.push('support')
+  if (!quiz && !recall) disabledModes.push('support')
 
   // A greyed-out card with no reason reads as a fault. Name the step that
   // would turn it on.
   const blockedHint = disabledModes.includes('support')
-    ? '문제를 한 번 풀면 ‘부족한 부분 다시 학습하기’를 쓸 수 있어요.'
+    ? '인출 연습을 한 번 하면 ‘부족한 부분 다시 학습하기’를 쓸 수 있어요.'
     : ''
 
   return (
@@ -250,25 +251,16 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
 
           {mode === 'source' ? <LectureChunks material={material} /> : null}
 
-          {/* Pick a stretch, then answer on it. One card, two screens. */}
-          {mode === 'quiz' && !quiz ? (
-            <ChunkSelector
-              material={material}
-              selectedIds={selectedChunkIds}
-              onChange={setSelectedChunkIds}
-              onContinue={makeQuiz}
-            />
-          ) : null}
-
-          {mode === 'quiz' && quiz ? (
-            <QuizPanel
-              quiz={quiz}
-              chunks={chunks}
-              results={results}
-              provider={quiz.provider}
-              busy={busy === 'answer'}
-              onSubmit={submitAnswer}
-              onFinish={() => setMode('support')}
+          {/* Free recall over the whole lecture: a blank page, not a list of
+              questions. Generated questions will sit beside this later; the
+              quiz machinery below is kept for them. */}
+          {mode === 'quiz' ? (
+            <RecallPanel
+              busy={busy === 'recall'}
+              error={error}
+              result={recall}
+              onSubmit={checkRecall}
+              onAgain={() => setRecall(null)}
             />
           ) : null}
 
@@ -282,8 +274,6 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
               diagram={diagram}
               onExplain={explainConcept}
               onDiagram={showDiagram}
-              onRecall={checkRecall}
-              recall={recall}
             />
           ) : null}
 
@@ -296,6 +286,7 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
               busy={busy === 'support'}
               onRequest={requestSupport}
               onRetry={retryQuestion}
+              recall={recall}
             />
           ) : null}
         </>
