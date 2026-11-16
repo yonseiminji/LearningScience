@@ -12,6 +12,7 @@ import {
   verifyChunkResult,
   verifyFinalSteps,
 } from './taskChunking.js'
+import { EXAMPLE_INSTRUCTION, EXAMPLE_LEVEL, EXAMPLE_RESULT } from './exampleResult.js'
 import { data, ensureSubject, freeIdPrefix, registerAssignment } from '../../assignmentModel.js'
 import { tutorService } from '../../services/tutorService.js'
 import Modal from '../../components/Modal.jsx'
@@ -48,6 +49,10 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
   const [excluded, setExcluded] = useState(() => new Set())
   const [draft, setDraft] = useState('')
   const [draftNote, setDraftNote] = useState('')
+  // True while the screen is showing the worked example rather than an answer
+  // for what the learner typed. Everything that could be mistaken for their
+  // own result reads this.
+  const [isExample, setIsExample] = useState(false)
 
   const isNew = subjectChoice === NEW_SUBJECT
   const subjectName = isNew ? newSubject.trim() : data.subjects.find((s) => s.id === subjectChoice)?.name || ''
@@ -64,10 +69,32 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
     setStep('level')
   }
 
+  // The example is opened, never substituted. When the model cannot be
+  // reached the error says so and mentions this exists; it does not land here
+  // on its own, because steps the model did not write must not arrive looking
+  // like steps it did. The instruction is replaced with the example's own, so
+  // the learner is not reading their assignment beside someone else's steps.
+  function showExample() {
+    const checked = verifyChunkResult(EXAMPLE_RESULT, {
+      level: EXAMPLE_LEVEL,
+      instruction: EXAMPLE_INSTRUCTION,
+    })
+    setText(EXAMPLE_INSTRUCTION)
+    setLevel(EXAMPLE_LEVEL)
+    setResult(checked)
+    setRows(checked.steps.map((item, index) => ({ key: `x${index}`, ...item, source: 'example' })))
+    setExcluded(new Set())
+    setIsExample(true)
+    setError(null)
+    setInputErrors([])
+    setStep('review')
+  }
+
   async function generate() {
     if (busy) return
     setBusy(true)
     setError(null)
+    setIsExample(false)
     try {
       const data_ = await tutorService.createSteps({
         subjectId: isNew ? null : subjectChoice,
@@ -87,7 +114,9 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
       setExcluded(new Set())
       setStep('review')
     } catch (failure) {
-      setError(failure?.message || '과제 단계를 만들지 못했어요. 다시 시도해 주세요.')
+      setError(
+        `${failure?.message || '과제 단계를 만들지 못했어요.'} 어떤 결과가 나오는지는 ‘예시 결과 보기’로 볼 수 있어요.`,
+      )
     } finally {
       setBusy(false)
     }
@@ -225,6 +254,12 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
               <button type="button" className="btn primary" onClick={confirmInput} disabled={!text.trim()}>
                 과제 올리기
               </button>
+              {/* Always here, not only after a failure: a learner who wants to
+                  see what they are about to get should not have to break
+                  something first. */}
+              <button type="button" className="btn ghost" onClick={showExample}>
+                예시 결과 보기
+              </button>
             </div>
           </div>
         ) : null}
@@ -281,10 +316,21 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
 
         {step === 'review' && result ? (
           <div className="chunk-body">
-            <h3 className="chunk-question">과제를 단계별로 나눴어요. 필요한 단계를 골라 보세요.</h3>
+            <h3 className="chunk-question">
+              {isExample ? '예시로 만든 결과예요. 이렇게 나뉩니다.' : '과제를 단계별로 나눴어요. 필요한 단계를 골라 보세요.'}
+            </h3>
             <p className="section-lead">
               필요 없는 단계는 제외하고, 빠진 단계는 직접 추가해 보세요. 화살표로 순서도 바꿀 수 있어요.
             </p>
+
+            {/* Said once, plainly, where the steps are. Not a tooltip: a
+                learner who scrolled past the heading should still be able to
+                tell these are not theirs. */}
+            {isExample ? (
+              <p className="chunk-example-note">
+                위 과제 지시문도 예시로 바뀌었어요. 직접 올린 과제를 나누려면 뒤로 가서 지시문을 적고 ‘과제 올리기’를 눌러 주세요.
+              </p>
+            ) : null}
 
             {result.warnings.length > 0 ? (
               <div className="chunk-warnings">

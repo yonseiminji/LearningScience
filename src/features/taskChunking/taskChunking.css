@@ -45,6 +45,17 @@
   font-size: var(--fs-body);
 }
 .chunk-warnings { border-left-color: var(--accent); background: var(--kraft); color: var(--text-2); }
+/* The example notice. Same kraft surface as a warning so it reads as the
+   page talking about itself, not as something the learner did wrong. */
+.chunk-example-note {
+  margin: 0;
+  padding: 12px 16px;
+  border-left: 3px solid var(--accent);
+  background: var(--kraft);
+  color: var(--text-2);
+  font-size: var(--fs-body);
+}
+
 .chunk-errors p, .chunk-warnings p { margin: 0 0 6px; }
 .chunk-errors p:last-child, .chunk-warnings p:last-child { margin-bottom: 0; }
 .chunk-errors ul { margin: 0; padding-left: 18px; }
