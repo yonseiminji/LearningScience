@@ -43,7 +43,10 @@ check('SCHEMA·handler 전체 (프롬프트 아래) 동일', tail(now) === tail(
 for (const needle of [
   `export const SUPPORT_TYPES = ['term', 'comparison', 'question']`,
   `requireOneOf(body.supportType, SUPPORT_TYPES, 'supportType')`,
-  `requireChunks(body.retrievedChunks, { maxCount: 4, maxChars: 6000 })`,
+  // Tightened from 4/6000 when the input was cut for capacity: support
+  // answers one blank, so a fourth chunk was paying tokens for context it
+  // never cited.
+  `requireChunks(body.retrievedChunks, { maxCount: 3, maxChars: 2400 })`,
   `maxOutputTokens: 600`,
   `'이 문제에 나온 낱말의 뜻을 모르겠다고 합니다.'`,
   `data.status === 'supported' && data.response?.trim()`,

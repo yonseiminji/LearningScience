@@ -5,6 +5,7 @@
 // cheaper or newer Flash model can be swapped in without a deploy of code.
 
 import { createHash } from 'node:crypto'
+import { cacheKey, lookup } from './promptCache.js'
 import { GoogleGenAI } from '@google/genai'
 
 export const MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash'
@@ -141,7 +142,26 @@ async function withRetry(call) {
   throw last
 }
 
-export async function generateJson({ systemInstruction, prompt, responseSchema, maxOutputTokens = 1200, model = MODEL }) {
+export async function generateJson({
+  systemInstruction,
+  prompt,
+  responseSchema,
+  maxOutputTokens = 1200,
+  model = MODEL,
+  // The cache build sets this so it records answers rather than reading them.
+  noCache = false,
+}) {
+  // Before anything else: has this exact question already been answered?
+  // Checking here rather than in each handler means the key is computed from
+  // what is actually sent, so a handler cannot drift away from its own cache.
+  if (!noCache) {
+    const hit = await lookup(cacheKey(systemInstruction, prompt, model))
+    if (hit) {
+      if (debugEnabled()) logLine('[tutor:cache]', { hit: true, model, chars: JSON.stringify(hit).length })
+      return hit
+    }
+  }
+
   const ai = getClient()
   const debug = debugEnabled()
   const id = debug ? traceId() : null
