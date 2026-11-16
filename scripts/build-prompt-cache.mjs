@@ -22,18 +22,12 @@ const ROOT = resolve(HERE, '..')
 const OUT = resolve(ROOT, 'api/_lib/cache/entries.js')
 
 const { generateJson, MODEL } = await import(resolve(ROOT, 'api/_lib/gemini.js'))
+const { buildJobs } = await import(resolve(ROOT, 'scripts/_cacheJobs.mjs'))
 const { cacheKey } = await import(resolve(ROOT, 'api/_lib/promptCache.js'))
-const { explainRequest } = await import(resolve(ROOT, 'api/tutor/explain.js'))
-const { supportRequest } = await import(resolve(ROOT, 'api/tutor/support.js'))
 const { SUPPORT_TYPES } = await import(resolve(ROOT, 'api/_lib/socialization.js'))
 const KNOWLEDGE = (await import(resolve(ROOT, 'src/data/socialization_knowledge.js'))).default
-const { createChunks } = await import(resolve(ROOT, 'src/utils/chunkSearch.js'))
-const { conceptsInChunks } = await import(resolve(ROOT, 'src/utils/conceptSearch.js'))
-const { buildCloze } = await import(resolve(ROOT, 'src/features/retrieval/cloze.js'))
 
-const LECTURE = resolve(ROOT, 'docs/lectures/socialization_lecture1.txt')
 const PAUSE_MS = Number(process.env.CACHE_PAUSE_MS || 2500)
-const SUPPORT_KINDS = ['term', 'comparison', 'question']
 
 const DRY_RUN = process.argv.includes('--dry-run')
 
@@ -59,32 +53,8 @@ console.log(`\n  모델 ${MODEL}${DRY_RUN ? '  (dry-run — 부르지 않습니�
 
 // ── what to ask ───────────────────────────────────────────────────────────
 
-const chunks = createChunks('cache', readFileSync(LECTURE, 'utf8'))
-const found = conceptsInChunks(chunks)
-const byId = new Map(chunks.map((chunk) => [chunk.chunkId, chunk]))
-const jobs = []
-
-for (const hit of found) {
-  const picked = hit.chunkIds.map((id) => byId.get(id)).filter(Boolean)
-  for (const supportType of SUPPORT_TYPES) {
-    const built = explainRequest({ conceptId: hit.conceptId, supportType, chunks: picked })
-    if (built) jobs.push({ label: `explain ${hit.conceptId}/${supportType}`, call: built.call })
-  }
-}
-
-// Support carries the learner's own answer in its prompt, so only the case
-// where they left the blank empty is reproducible — which is also the case
-// they are most likely to be in, since not knowing the word is why they are
-// asking. Anything they typed misses the cache and goes live.
-for (const item of buildCloze(chunks)) {
-  const picked = [byId.get(item.chunkId)].filter(Boolean)
-  for (const supportType of SUPPORT_KINDS) {
-    jobs.push({
-      label: `support ${item.conceptId}/${supportType}`,
-      call: supportRequest({ supportType, questionText: item.text, chunks: picked }),
-    })
-  }
-}
+// Shared with rekey-prompt-cache.mjs; see scripts/_cacheJobs.mjs.
+const jobs = await buildJobs()
 
 // ── run, slowly, and keep what lands ──────────────────────────────────────
 

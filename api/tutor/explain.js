@@ -58,6 +58,8 @@ export function explainRequest({ conceptId, supportType, chunks, userQuestion = 
       prompt,
       responseSchema: SCHEMA,
       maxOutputTokens: 1200,
+      // So a cached answer's source ids land on the ids this request sent.
+      chunkIds: kept.map((item) => item.chunkId),
     },
   }
 }
@@ -73,7 +75,15 @@ export default handler(async (request, response) => {
   requireString(body.materialId, 'materialId', { max: 120 })
   const supportType = requireOneOf(body.supportType, SUPPORT_TYPES, 'supportType')
   const conceptId = requireString(body.conceptId, 'conceptId', { max: 80 })
-  const chunks = requireChunks(body.lectureChunks)
+  // A concept the lecture keeps returning to appears in more than eight
+  // chunks -- 사회화 is in eleven of twelve -- and the client sends every one
+  // of them. The default cap rejected that with a 413, so the most central
+  // concept in the chapter answered nothing at all, while limitChunks right
+  // below was built to trim exactly this case and says so. This guard bounds
+  // the upload; limitChunks decides what the model sees, which is the first
+  // three. Raising it moves no cache key, since the prompt is built from
+  // those three either way.
+  const chunks = requireChunks(body.lectureChunks, { maxCount: 24, maxChars: 24000 })
   const userQuestion = body.userQuestion ? requireString(body.userQuestion, 'userQuestion', { max: 400 }) : ''
 
   const built = explainRequest({ conceptId, supportType, chunks, userQuestion })
