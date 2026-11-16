@@ -230,3 +230,22 @@
 .concept-diagram-canvas { overflow-x: auto; }
 .concept-diagram-canvas svg { max-width: none; height: auto; }
 .concept-diagram-alt { margin: 0; line-height: 1.6; }
+
+/* ─── 개념 관계도 (관계 사전에서 직접 그림) ──────────────────────────── */
+
+.concept-graph { display: grid; gap: 10px; }
+/* Scrolls sideways rather than shrinking: a diagram squeezed to phone width
+   has labels nobody can read. */
+.concept-graph-scroll { overflow-x: auto; }
+.concept-graph-svg { display: block; max-width: none; }
+
+.concept-graph-box { fill: var(--card); stroke: var(--line); stroke-width: 1.2; }
+/* A DEFINED_AS target is a gloss, not a concept of its own. */
+.concept-graph-note { fill: var(--hover); stroke: var(--line); stroke-width: 1; stroke-dasharray: 3 3; }
+.concept-graph-label { fill: var(--text); font-size: 13px; font-weight: 500; }
+.concept-graph-note + text, text.concept-graph-label tspan { dominant-baseline: hanging; }
+.concept-graph-edge-label { fill: var(--muted); font-size: 10px; }
+
+.concept-graph-key { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0; padding: 0; list-style: none; }
+.concept-graph-key li { color: var(--muted); font-size: 12px; }
+.concept-graph-key b { margin-right: 4px; color: var(--text-2); font-weight: 600; }
