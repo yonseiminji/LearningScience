@@ -8,6 +8,7 @@
 // link missing rather than closed on our say-so.
 
 import LEXICON from '../../data/socialization_relations.js'
+import { LIST_TAIL, isListed } from './relationStyle.js'
 
 export const DIAGRAMS = [
   { diagramId: 'agents', title: '사회화 기관', conceptIds: ['socialization', 'agents-of-socialization', 'peer-group'] },
@@ -43,15 +44,32 @@ export function graphFor(diagramId) {
     if (!seen.has(label)) seen.set(label, { id: label, label })
     return label
   }
-  const edges = rows.map((row) => ({
-    from: add(row.subjectKo),
-    to: add(row.objectKo),
-    type: row.relationType,
-    relationKo: row.relationKo,
-    pages: row.sourcePages || [],
-    relationId: row.id,
-    note: row.semanticNote || '',
-  }))
+
+  // Kinds, parts and examples are listed under the picture, so their nodes
+  // never enter it — an example box would otherwise sit in the graph with
+  // nothing structural attached to it.
+  const listed = rows
+    .filter((row) => isListed(row.relationType))
+    .map((row) => ({
+      relationId: row.id,
+      type: row.relationType,
+      subject: row.subjectKo,
+      object: row.objectKo,
+      text: `${row.subjectKo} — ${row.objectKo}${LIST_TAIL[row.relationType] || ''}`,
+      pages: row.sourcePages || [],
+    }))
+
+  const edges = rows
+    .filter((row) => !isListed(row.relationType))
+    .map((row) => ({
+      from: add(row.subjectKo),
+      to: add(row.objectKo),
+      type: row.relationType,
+      relationKo: row.relationKo,
+      pages: row.sourcePages || [],
+      relationId: row.id,
+      note: row.semanticNote || '',
+    }))
 
   const meta = DIAGRAMS.find((item) => item.diagramId === diagramId)
   return {
@@ -59,8 +77,10 @@ export function graphFor(diagramId) {
     title: meta?.title || diagramId,
     nodes: [...seen.values()],
     edges,
+    listed,
     pages: [...new Set(rows.flatMap((row) => row.sourcePages || []))].sort((a, b) => a - b),
-    types: [...new Set(rows.map((row) => row.relationType))],
+    types: [...new Set(edges.map((edge) => edge.type))],
+    listedTypes: [...new Set(listed.map((item) => item.type))],
   }
 }
 
@@ -76,5 +96,7 @@ export function describeGraph(graph) {
     DEFINED_AS: '로 설명돼요',
     CONTRASTS_WITH: '와 비교돼요',
   }
-  return graph.edges.map((edge) => `${edge.from}은(는) ${edge.to}${say[edge.type] || '와 이어져요'}.`).join(' ')
+  const drawn = graph.edges.map((edge) => `${edge.from}은(는) ${edge.to}${say[edge.type] || '와 이어져요'}.`)
+  const extra = (graph.listed || []).map((item) => `${item.subject}은(는) ${item.object}${say[item.type] || '와 이어져요'}.`)
+  return [...drawn, ...extra].join(' ')
 }

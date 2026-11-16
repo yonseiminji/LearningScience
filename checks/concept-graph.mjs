@@ -1,7 +1,7 @@
 import LEXICON from '/home/claude/learningscience/src/data/socialization_relations.js'
 import { DIAGRAMS, describeGraph, diagramsForConcept, graphFor } from '/home/claude/learningscience/src/features/conceptGraph/fromLexicon.js'
 import { CHAR, MAX_LINE, layerOf, layoutGraph, pickOrientation, wrap } from '/home/claude/learningscience/src/features/conceptGraph/layout.js'
-import { FAMILY, STYLE, isDirected, isNoteNode } from '/home/claude/learningscience/src/features/conceptGraph/relationStyle.js'
+import { FAMILY, LISTED, LIST_PREFIX, STYLE, isDirected, isListed, isNoteNode } from '/home/claude/learningscience/src/features/conceptGraph/relationStyle.js'
 
 let pass = 0
 let fail = 0
@@ -16,7 +16,8 @@ console.log('\n[A] 사전이 그대로 들어왔다')
 is('관계 29개', LEXICON.relations.length, 29)
 is('유형 8개', LEXICON.relationTypes.length, 8)
 ok('모든 관계에 근거 쪽수', LEXICON.relations.every((r) => (r.sourcePages || []).length > 0))
-ok('모든 유형에 모양 정의', LEXICON.relationTypes.every((t) => STYLE[t.id] && FAMILY[t.id]))
+ok('모든 유형이 그리거나 적히거나', LEXICON.relationTypes.every((t) => STYLE[t.id] || isListed(t.id)))
+ok('모든 유형에 가족 정의', LEXICON.relationTypes.every((t) => FAMILY[t.id]))
 
 console.log('\n[B] 근거 없는 유형은 지어내지 않는다')
 is('CAUSES 항목', LEXICON.relations.filter((r) => r.relationType === 'CAUSES').length, 0)
@@ -27,11 +28,21 @@ console.log('\n[C] 화살표는 방향이 있는 관계에만')
 is('PRECEDES 화살촉', STYLE.PRECEDES.head, 'solid')
 is('DEFINED_AS 화살촉 없음', STYLE.DEFINED_AS.head, 'none')
 is('CONTRASTS_WITH 화살촉 없음', STYLE.CONTRASTS_WITH.head, 'none')
-is('IS_A 는 빈 화살촉', STYLE.IS_A.head, 'hollow')
-ok('CAUSES 가 가장 굵음', LEXICON.relationTypes.every((t) => STYLE[t.id].width <= STYLE.CAUSES.width))
+is('CONTRASTS_WITH 는 점선', STYLE.CONTRASTS_WITH.dash, '6 4')
+is('CONTRASTS_WITH 는 다른 색', STYLE.CONTRASTS_WITH.tone, 'warn')
+is('CONTRASTS_WITH 라벨', STYLE.CONTRASTS_WITH.label, '대조 (Contrasts with)')
+ok('대조만 경고색', Object.entries(STYLE).filter(([, s]) => s.tone === 'warn').map(([k]) => k).join() === 'CONTRASTS_WITH')
+ok('CAUSES 가 가장 굵음', Object.values(STYLE).every((s) => s.width <= STYLE.CAUSES.width))
+
+console.log('\n[C2] 분류 관계는 그리지 않고 적는다')
+is('적을 유형 3개', LISTED.join(), 'IS_A,PART_OF,EXAMPLE_OF')
+ok('셋 다 선 모양이 없음', LISTED.every((type) => !STYLE[type]))
+ok('셋 다 접두어가 있음', LISTED.every((type) => LIST_PREFIX[type]))
+is('EXAMPLE_OF 접두어', LIST_PREFIX.EXAMPLE_OF, 'Ex.')
+ok('그리는 유형은 적지 않음', ['PRECEDES', 'CAUSES', 'FACILITATES', 'DEFINED_AS', 'CONTRASTS_WITH'].every((t) => !isListed(t)))
 is('PRECEDES 라벨이 인과가 아님을 말함', STYLE.PRECEDES.label, '다음')
 is('CONTRASTS_WITH 만 무향', isDirected('CONTRASTS_WITH'), false)
-ok('나머지는 유향', ['IS_A', 'PART_OF', 'PRECEDES', 'CAUSES', 'FACILITATES', 'EXAMPLE_OF', 'DEFINED_AS'].every(isDirected))
+ok('나머지는 유향', ['PRECEDES', 'CAUSES', 'FACILITATES', 'DEFINED_AS'].every(isDirected))
 
 console.log('\n[D] 줄바꿈')
 is('짧은 라벨은 한 줄', wrap('사회화').length, 1)
@@ -75,7 +86,22 @@ for (const item of DIAGRAMS) {
   ok(`${item.diagramId} 캔버스 안에 들어감`, laid.nodes.every((n) => n.x >= 0 && n.y >= 0 && n.x + n.w <= laid.width + 1 && n.y + n.h <= laid.height + 1))
   ok(`${item.diagramId} 모든 간선이 양 끝을 찾음`, laid.edges.length === graph.edges.length)
   ok(`${item.diagramId} 근거 쪽수 있음`, graph.pages.length > 0)
+  ok(`${item.diagramId} 그려진 엣지에 분류 관계 없음`, graph.edges.every((e) => !isListed(e.type)))
+  ok(`${item.diagramId} 노드는 그려진 엣지에서만 나옴`, graph.nodes.every((n) => graph.edges.some((e) => e.from === n.id || e.to === n.id)))
 }
+
+console.log('\n[G2] 분류 관계가 목록으로 빠진다')
+const hidden = graphFor('hidden')
+is('잠재적 교육과정: 예시 3개가 목록으로', hidden.listed.length, 3)
+ok('모두 EXAMPLE_OF', hidden.listed.every((x) => x.type === 'EXAMPLE_OF'))
+ok('목록 문장이 사례 → 개념 방향', hidden.listed.every((x) => x.text.includes('잠재적 교육과정의 사례')))
+ok('예시 노드는 그림에 없음', !hidden.nodes.some((n) => n.id.includes('승자·패자')))
+const agents = graphFor('agents')
+is('사회화 기관: IS_A 한 개가 목록으로', agents.listed.filter((x) => x.type === 'IS_A').length, 1)
+ok('가족 — 사회화 기관의 한 종류', agents.listed.some((x) => x.text === '가족 — 사회화 기관의 한 종류'))
+const avr = graphFor('anticipatory_vs_resocialization')
+is('예기/재사회화: PART_OF 둘이 목록으로', avr.listed.filter((x) => x.type === 'PART_OF').length, 2)
+is('mead 는 목록이 빔', graphFor('mead').listed.length, 0)
 
 function noOverlap(nodes) {
   for (let i = 0; i < nodes.length; i += 1) {
@@ -112,7 +138,8 @@ is('도식 없는 개념', diagramsForConcept('nature-nurture').length, 0)
 console.log('\n[K] 대체 설명')
 const alt = describeGraph(graphFor('hidden'))
 ok('문장으로 나옴', alt.length > 30 && alt.includes('잠재적 교육과정'))
-ok('모든 간선이 문장 하나씩', alt.split('.').filter(Boolean).length === graphFor('hidden').edges.length)
+const h = graphFor('hidden')
+is('그린 것과 적은 것 모두 문장으로', alt.split('.').filter(Boolean).length, h.edges.length + h.listed.length)
 
 console.log(`\n요약: ${pass} PASS / ${fail} FAIL`)
 process.exitCode = fail ? 1 : 0

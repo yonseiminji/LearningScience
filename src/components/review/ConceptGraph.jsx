@@ -1,12 +1,14 @@
 import { useMemo } from 'react'
 import { layoutGraph } from '../../features/conceptGraph/layout.js'
-import { STYLE } from '../../features/conceptGraph/relationStyle.js'
+import { LIST_PREFIX, STYLE } from '../../features/conceptGraph/relationStyle.js'
 import { describeGraph } from '../../features/conceptGraph/fromLexicon.js'
 
 const HEADS = {
   solid: { id: 'cg-solid', fill: 'var(--accent)' },
-  hollow: { id: 'cg-hollow', fill: 'var(--card)' },
 }
+
+// A contrast is not a step in the flow, so it does not share the flow's ink.
+const TONE = { ink: 'var(--accent)', warn: 'var(--contrast-line)' }
 
 /**
  * The concept diagram, drawn from typed relations rather than parsed prose.
@@ -58,6 +60,7 @@ export default function ConceptGraph({ graph, caveat }) {
             {laid.edges.map((edge) => {
               const style = STYLE[edge.type] || STYLE.FACILITATES
               const head = style.head === 'none' ? undefined : `url(#${HEADS[style.head].id})`
+              const stroke = TONE[style.tone] || TONE.ink
               return (
                 <g key={edge.relationId}>
                   <line
@@ -65,7 +68,7 @@ export default function ConceptGraph({ graph, caveat }) {
                     y1={edge.a.y}
                     x2={edge.b.x}
                     y2={edge.b.y}
-                    stroke="var(--accent)"
+                    stroke={stroke}
                     strokeWidth={style.width}
                     strokeDasharray={style.dash || undefined}
                     markerEnd={head}
@@ -76,7 +79,7 @@ export default function ConceptGraph({ graph, caveat }) {
                       x={edge.mid.x}
                       y={edge.mid.y - 4}
                       textAnchor="middle"
-                      className="concept-graph-edge-label"
+                      className={style.tone === 'warn' ? 'concept-graph-edge-label is-contrast' : 'concept-graph-edge-label'}
                     >
                       {style.label}
                     </text>
@@ -107,6 +110,17 @@ export default function ConceptGraph({ graph, caveat }) {
           </g>
         </svg>
       </div>
+
+      {graph.listed?.length ? (
+        <ul className="concept-graph-list">
+          {graph.listed.map((item) => (
+            <li key={item.relationId}>
+              <b>{LIST_PREFIX[item.type] || ''}</b>
+              {item.text}
+            </li>
+          ))}
+        </ul>
+      ) : null}
 
       <ul className="concept-graph-key">
         {graph.types.map((type) => (

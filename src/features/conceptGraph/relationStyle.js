@@ -24,17 +24,43 @@ export const FAMILY = {
 }
 
 export const STYLE = {
-  IS_A: { dash: null, width: 1.4, head: 'hollow', label: '한 종류' },
-  PART_OF: { dash: null, width: 1.4, head: 'hollow', label: '부분' },
-  EXAMPLE_OF: { dash: '5 4', width: 1.3, head: 'hollow', label: '예' },
-  PRECEDES: { dash: null, width: 1.6, head: 'solid', label: '다음' },
+  PRECEDES: { dash: null, width: 1.6, head: 'solid', label: '다음', tone: 'ink' },
   // Reserved. The source review found no causal statement in Chapter 5, so
   // nothing uses this yet; it is defined so that a later relation which does
   // carry one is drawn as the exception it would be, not as another arrow.
-  CAUSES: { dash: null, width: 2.4, head: 'solid', label: '원인' },
-  FACILITATES: { dash: null, width: 1.3, head: 'solid', label: '' },
-  DEFINED_AS: { dash: '2 3', width: 1.2, head: 'none', label: '' },
-  CONTRASTS_WITH: { dash: '6 4', width: 1.4, head: 'none', label: '비교' },
+  CAUSES: { dash: null, width: 2.4, head: 'solid', label: '원인', tone: 'ink' },
+  FACILITATES: { dash: null, width: 1.3, head: 'solid', label: '', tone: 'ink' },
+  DEFINED_AS: { dash: '2 3', width: 1.2, head: 'none', label: '', tone: 'ink' },
+  // Also reserved: the lexicon has no CONTRASTS_WITH row either. Drawn in red
+  // so a contrast cannot be mistaken for one more step in the flow.
+  CONTRASTS_WITH: { dash: '6 4', width: 1.5, head: 'none', label: '대조 (Contrasts with)', tone: 'warn' },
+}
+
+/**
+ * Which relations become lines, and which become a list under the picture.
+ *
+ * A diagram of 잠재적 교육과정 that draws its three examples as boxes spends
+ * most of its width on them, and they are the least structural thing in it:
+ * an example illustrates a concept, it does not connect two concepts. The
+ * same goes for a kind and a part. These read better as a line of text, which
+ * also keeps the drawn graph down to what actually has a shape.
+ */
+export const LISTED = ['IS_A', 'PART_OF', 'EXAMPLE_OF']
+
+export const LIST_PREFIX = {
+  EXAMPLE_OF: 'Ex.',
+  IS_A: '종류',
+  PART_OF: '부분',
+}
+
+export const LIST_TAIL = {
+  EXAMPLE_OF: '의 사례',
+  IS_A: '의 한 종류',
+  PART_OF: '의 한 부분',
+}
+
+export function isListed(type) {
+  return LISTED.includes(type)
 }
 
 /** A DEFINED_AS target is a gloss, not a concept, and is drawn as one. */

@@ -233,7 +233,8 @@
 
 /* ─── 개념 관계도 (관계 사전에서 직접 그림) ──────────────────────────── */
 
-.concept-graph { display: grid; gap: 10px; }
+.concept-graph { display: grid; gap: 10px; --contrast-line: #c0564e; }
+@media (prefers-color-scheme: dark) { .concept-graph { --contrast-line: #e08a82; } }
 /* Scrolls sideways rather than shrinking: a diagram squeezed to phone width
    has labels nobody can read. */
 .concept-graph-scroll { overflow-x: auto; }
@@ -245,6 +246,13 @@
 .concept-graph-label { fill: var(--text); font-size: 13px; font-weight: 500; }
 .concept-graph-note + text, text.concept-graph-label tspan { dominant-baseline: hanging; }
 .concept-graph-edge-label { fill: var(--muted); font-size: 10px; }
+
+/* Kinds, parts and examples: read under the picture rather than drawn in it. */
+.concept-graph-list { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.concept-graph-list li { color: var(--text-2); font-size: 13px; line-height: 1.5; }
+.concept-graph-list b { display: inline-block; min-width: 30px; margin-right: 6px; color: var(--muted); font-size: 11px; font-weight: 700; }
+
+.concept-graph-edge-label.is-contrast { fill: var(--contrast-line); font-weight: 600; }
 
 .concept-graph-key { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0; padding: 0; list-style: none; }
 .concept-graph-key li { color: var(--muted); font-size: 12px; }
