@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react'
 import { AlertTriangle, BookOpen, Lightbulb, Network, Sparkles } from 'lucide-react'
 import KNOWLEDGE from '../../data/socialization_knowledge.js'
 import ConceptDiagram from './ConceptDiagram.jsx'
+import ConceptGraph from './ConceptGraph.jsx'
+import { diagramsForConcept, graphFor } from '../../features/conceptGraph/fromLexicon.js'
 import { conceptsInChunks } from '../../utils/conceptSearch.js'
 
 const SUPPORTS = [
@@ -25,11 +27,16 @@ const SUPPORTS = [
  */
 export default function ConceptPanel({ material, chunks = [], busy, error, onExplain, onDiagram, explanation, diagram }) {
   const [conceptId, setConceptId] = useState(null)
+  const [showGraph, setShowGraph] = useState(false)
 
   const found = useMemo(() => conceptsInChunks(chunks), [chunks])
   const byId = useMemo(() => new Map(KNOWLEDGE.concepts.map((item) => [item.conceptId, item])), [])
   const concept = conceptId ? byId.get(conceptId) : null
   const hit = found.find((item) => item.conceptId === conceptId)
+  const charts = useMemo(
+    () => (conceptId ? diagramsForConcept(conceptId).map((item) => graphFor(item.diagramId)).filter(Boolean) : []),
+    [conceptId],
+  )
 
   // The transcript decides, not the file it came from. An earlier version
   // compared material.id against the knowledge base's own id, which is a demo
@@ -75,9 +82,18 @@ export default function ConceptPanel({ material, chunks = [], busy, error, onExp
             <p className="concept-def">{concept.definitionKo}</p>
             {concept.keyPoints?.length ? (
               <ul className="concept-points">
-                {concept.keyPoints.map((point) => (
-                  <li key={point}>{point}</li>
-                ))}
+                {concept.keyPoints.map((point) => {
+                  // '준비 단계: 타인의 행동을…' — lead with the term.
+                  const at = point.indexOf(':')
+                  return at > 0 ? (
+                    <li key={point}>
+                      <b>{point.slice(0, at)}</b>
+                      {point.slice(at)}
+                    </li>
+                  ) : (
+                    <li key={point}>{point}</li>
+                  )
+                })}
               </ul>
             ) : null}
             {concept.misconceptions?.length ? (
@@ -103,15 +119,15 @@ export default function ConceptPanel({ material, chunks = [], busy, error, onExp
                 {item.label}
               </button>
             ))}
-            {concept.visualId ? (
+            {charts.length > 0 ? (
               <button
                 type="button"
                 className="btn"
-                disabled={Boolean(busy)}
-                onClick={() => onDiagram({ conceptId, visualId: concept.visualId, chunkIds: hit?.chunkIds || [] })}
+                aria-pressed={showGraph}
+                onClick={() => setShowGraph((prev) => !prev)}
               >
                 <Network aria-hidden="true" size={15} />
-                관계도 보기
+                {showGraph ? '관계도 닫기' : '관계도 보기'}
               </button>
             ) : null}
           </div>
@@ -137,7 +153,7 @@ export default function ConceptPanel({ material, chunks = [], busy, error, onExp
               ) : null}
               <p>{explanation.explanation}</p>
               {explanation.status !== 'ok' ? (
-                <p className="concept-watch">
+                <p className="concept-watch is-plain">
                   <AlertTriangle aria-hidden="true" size={14} />
                   {explanation.status === 'conflicting_sources'
                     ? '강의 설명과 교재 정의가 달라요. 위의 교재 정의를 함께 봐 주세요.'
@@ -153,6 +169,20 @@ export default function ConceptPanel({ material, chunks = [], busy, error, onExp
               ))}
             </article>
           ) : null}
+
+          {/* Drawn here from the relation lexicon — no model, no round trip.
+              ConceptDiagram stays for a server-sent template. */}
+          {showGraph
+            ? charts.map((chart) => (
+                <figure key={chart.diagramId} className="concept-diagram">
+                  <figcaption>
+                    <Network aria-hidden="true" size={15} />
+                    {chart.title}
+                  </figcaption>
+                  <ConceptGraph graph={chart} />
+                </figure>
+              ))
+            : null}
 
           {diagram && diagram.conceptId === conceptId ? <ConceptDiagram diagram={diagram} /> : null}
         </>
