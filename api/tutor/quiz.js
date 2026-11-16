@@ -156,6 +156,9 @@ Allowed sourceChunkIds (use only these): ${chunks.map((chunk) => chunk.chunkId).
 Lecture chunks:
 ${passage}`,
     responseSchema: SCHEMA,
+    // Not cached today, but the prompt carries chunk ids, so if it ever is,
+    // a hit's ids must land on this request's rather than the recording's.
+    chunkIds: chunks.map((chunk) => chunk.chunkId),
   })
 
   const { kept, dropped } = verifyQuestions(data.questions, chunks)

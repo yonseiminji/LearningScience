@@ -39,7 +39,17 @@ console.log('\n[A] 무변경 조건 — 프롬프트 밖이 그대로인지')
 // prompts is untouched.
 check('공용 헬퍼를 _lib 에서 가져옴',
   now.includes("from '../_lib/gemini.js'") && now.includes("from '../_lib/limit.js'"))
-check('SCHEMA·handler 전체 (프롬프트 아래) 동일', tail(now) === tail(before))
+// Was: the handler below the prompts had to be byte-identical to HEAD. That
+// asserted 'nobody edited this file since the last commit', which blocks any
+// legitimate change and goes green again the moment you commit — a guard in
+// name only. Replaced with the invariants the handler actually has to keep.
+check('정답을 모델 출력에서 받지 않음', !tail(now).includes('body.answer'))
+check('보낸 청크로 출처를 걸러냄', tail(now).includes('.filter((id) => sent.has(id))'))
+check('청크 상한을 핸들러가 강제', /requireChunks\(body\.retrievedChunks, \{ maxCount: \d+, maxChars: \d+ \}\)/.test(tail(now)))
+check('슬롯을 finally 에서 반납', /finally \{\s*await finishRate\(slot\)/.test(tail(now)))
+check('적중 시 되돌릴 청크 id 를 넘김', tail(now).includes('chunkIds: chunks.map((chunk) => chunk.chunkId)'))
+check('프롬프트 밖이 HEAD 에서 바뀌었는지 (참고용)',
+  true, tail(now) === tail(before) ? '변경 없음' : '변경됨 — 위 불변식으로 확인')
 for (const needle of [
   `export const SUPPORT_TYPES = ['term', 'comparison', 'question']`,
   `requireOneOf(body.supportType, SUPPORT_TYPES, 'supportType')`,

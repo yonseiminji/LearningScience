@@ -59,6 +59,8 @@ export function supportRequest({ supportType, questionText, chunks, userAnswer =
 ${passage}`,
     responseSchema: SCHEMA,
     maxOutputTokens: 600,
+    // So a cached answer's usedChunkIds land on the ids this request sent.
+    chunkIds: chunks.map((chunk) => chunk.chunkId),
   }
 }
 

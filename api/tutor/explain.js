@@ -58,6 +58,8 @@ export function explainRequest({ conceptId, supportType, chunks, userQuestion = 
       prompt,
       responseSchema: SCHEMA,
       maxOutputTokens: 1200,
+      // So a cached answer's source ids land on the ids this request sent.
+      chunkIds: kept.map((item) => item.chunkId),
     },
   }
 }

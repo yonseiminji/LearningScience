@@ -1,5 +1,11 @@
 import { readFileSync } from 'node:fs'
-import { cacheKey, lookup, cacheSize } from '/home/claude/learningscience/api/_lib/promptCache.js'
+import {
+  cacheKey,
+  cacheSize,
+  flattenChunkIds,
+  lookup,
+  rehydrateChunkIds,
+} from '/home/claude/learningscience/api/_lib/promptCache.js'
 import { explainRequest } from '/home/claude/learningscience/api/tutor/explain.js'
 import { supportRequest } from '/home/claude/learningscience/api/tutor/support.js'
 import { SUPPORT_TYPES } from '/home/claude/learningscience/api/_lib/socialization.js'
@@ -7,7 +13,7 @@ import { createChunks } from '/home/claude/learningscience/src/utils/chunkSearch
 import { conceptsInChunks } from '/home/claude/learningscience/src/utils/conceptSearch.js'
 import { buildCloze } from '/home/claude/learningscience/src/features/retrieval/cloze.js'
 
-let pass = 0, fail = 0
+let pass = 0, fail = 0, skipped = 0
 const is = (l,g,w) => { const o = Object.is(g,w); console.log(`${o?'PASS':'FAIL'}  ${l}${o?'':`  → got ${JSON.stringify(g)}`}`); o?pass++:fail++ }
 const ok = (l,c) => is(l, Boolean(c), true)
 
@@ -99,7 +105,98 @@ ok('모델을 밝히지 않으면 실행 거부', script.includes("if (!process.
 ok('키에 모델을 넣고 기록', script.includes('cacheKey(job.call.systemInstruction, job.call.prompt, MODEL)'))
 ok('--dry-run 으로 호출 없이 점검', script.includes("process.argv.includes('--dry-run')"))
 
-console.log(`\n요약: ${pass} PASS / ${fail} FAIL`)
+
+console.log('\n[E] 업로드 id 는 질문의 일부가 아니다')
+// The bug this exists for: chunk ids are `<fileId>-chunk-007` and fileId is
+// minted per upload, so 108 recorded answers were keyed to a prefix no real
+// request would ever carry. The cache was complete and unreachable.
+is('업로드 접두사를 자리번호로 평탄화',
+  flattenChunkIds('(note-1763-7-chunk-003) 본문 cache-chunk-003'), '(chunk-003) 본문 chunk-003')
+is('세 자리가 아니면 건드리지 않음', flattenChunkIds('chunk-7 과 x-chunk-12'), 'chunk-7 과 x-chunk-12')
+is('업로드 id 가 달라도 같은 키',
+  cacheKey('s', '(note-1-1-chunk-001) 본문', 'm'), cacheKey('s', '(note-9-9-chunk-001) 본문', 'm'))
+ok('본문이 다르면 다른 키',
+  cacheKey('s', '(note-1-1-chunk-001) 본문', 'm') !== cacheKey('s', '(note-1-1-chunk-001) 다른 본문', 'm'))
+ok('자리번호가 다르면 다른 키',
+  cacheKey('s', '(note-1-1-chunk-001) 본문', 'm') !== cacheKey('s', '(note-1-1-chunk-002) 본문', 'm'))
+
+console.log('\n[F] 적중한 답의 출처는 이 요청의 청크를 가리킨다')
+// A hit recorded under one prefix carries that prefix in sourceChunkIds, and
+// the handler filters source ids against what it sent — so without remapping
+// every cached answer would arrive with no sources at all.
+is('자리번호로 되돌림',
+  rehydrateChunkIds({ ids: ['cache-chunk-002'] }, ['note-7-1-chunk-002']).ids[0],
+  'note-7-1-chunk-002')
+is('중첩된 곳도 되돌림',
+  rehydrateChunkIds({ a: [{ b: 'cache-chunk-001' }] }, ['note-7-1-chunk-001']).a[0].b,
+  'note-7-1-chunk-001')
+// The cache must not be able to widen what counts as a source: an id with no
+// counterpart in this request is left alone so the handler's filter drops it.
+is('짝이 없는 id 는 그대로 둬서 핸들러가 버리게',
+  rehydrateChunkIds({ ids: ['cache-chunk-009'] }, ['note-7-1-chunk-001']).ids[0], 'cache-chunk-009')
+is('청크를 안 보낸 요청은 손대지 않음',
+  rehydrateChunkIds({ ids: ['cache-chunk-002'] }, []).ids[0], 'cache-chunk-002')
+
+console.log('\n[G] 실제 캐시가 실제 요청에 적중하는가')
+const built = await cacheSize()
+if (!built) {
+  console.log('  SKIP  api/_lib/cache/entries.js 가 없어 건너뜀 (전부 실시간)')
+  skipped += 1
+} else {
+  const text = readFileSync('/home/claude/learningscience/docs/lectures/socialization_lecture1.txt', 'utf8')
+  const MODEL = 'gemini-3.5-flash-lite'
+  const chunks = createChunks('note-1763300000000-7', text)
+  const byId = new Map(chunks.map((chunk) => [chunk.chunkId, chunk]))
+  let hits = 0
+  let total = 0
+  let sourcesLost = 0
+  for (const found of conceptsInChunks(chunks)) {
+    const picked = found.chunkIds.map((id) => byId.get(id)).filter(Boolean)
+    for (const supportType of SUPPORT_TYPES) {
+      const { call, kept } = explainRequest({ conceptId: found.conceptId, supportType, chunks: picked })
+      total += 1
+      const raw = await lookup(cacheKey(call.systemInstruction, call.prompt, MODEL))
+      if (!raw) continue
+      hits += 1
+      const sent = new Set(kept.map((item) => item.chunkId))
+      const hit = rehydrateChunkIds(raw, call.chunkIds)
+      // Exactly the filter api/tutor/explain.js applies to a live answer.
+      if ((hit.sourceChunkIds || []).filter((id) => sent.has(id)).length === 0) sourcesLost += 1
+    }
+  }
+  is('업로드 모양의 요청이 전부 적중', hits, total)
+  is('출처를 잃은 답 없음', sourcesLost, 0)
+  // Same question, byte-identical prompt, different upload: the point of [E].
+  const other = createChunks('note-9999-42', text)
+  const otherById = new Map(other.map((chunk) => [chunk.chunkId, chunk]))
+  const sameFound = conceptsInChunks(other).find((item) => item.conceptId === 'socialization')
+  const samePicked = sameFound.chunkIds.map((id) => otherById.get(id)).filter(Boolean)
+  const same = explainRequest({ conceptId: 'socialization', supportType: 'simple', chunks: samePicked })
+  ok('또 다른 업로드도 적중', Boolean(await lookup(cacheKey(same.call.systemInstruction, same.call.prompt, MODEL))))
+  // And the property that matters more: a changed transcript must not hit.
+  const edited = createChunks('note-1-1', text.replace('사회화는 단순히', '사회화는 결코 단순히'))
+  const editedById = new Map(edited.map((chunk) => [chunk.chunkId, chunk]))
+  const editedFound = conceptsInChunks(edited).find((item) => item.conceptId === 'socialization')
+  const editedPicked = editedFound.chunkIds.map((id) => editedById.get(id)).filter(Boolean)
+  const changed = explainRequest({ conceptId: 'socialization', supportType: 'simple', chunks: editedPicked })
+  ok('한 글자만 고친 전사문은 적중하지 않음',
+    !(await lookup(cacheKey(changed.call.systemInstruction, changed.call.prompt, MODEL))))
+}
+
+console.log('\n[H] 핸들러가 보낸 청크를 밝힌다')
+// generateJson cannot remap what it is not told about.
+ok('explain 이 chunkIds 를 넘김',
+  readFileSync('/home/claude/learningscience/api/tutor/explain.js', 'utf8')
+    .includes('chunkIds: kept.map((item) => item.chunkId)'))
+ok('support 가 chunkIds 를 넘김',
+  readFileSync('/home/claude/learningscience/api/tutor/support.js', 'utf8')
+    .includes('chunkIds: chunks.map((chunk) => chunk.chunkId)'))
+ok('적중한 값을 되돌려서 반환',
+  readFileSync('/home/claude/learningscience/api/_lib/gemini.js', 'utf8')
+    .includes('return rehydrateChunkIds(hit, chunkIds)'))
+ok('작업 목록은 공유 모듈에서 온다', script.includes('await buildJobs()'))
+
+console.log(`\n요약: ${pass} PASS / ${fail} FAIL${skipped ? ` / ${skipped} SKIP` : ''}`)
 process.exitCode = fail ? 1 : 0
 }
 main()

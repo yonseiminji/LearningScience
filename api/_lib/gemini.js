@@ -5,7 +5,7 @@
 // cheaper or newer Flash model can be swapped in without a deploy of code.
 
 import { createHash } from 'node:crypto'
-import { cacheKey, lookup } from './promptCache.js'
+import { cacheKey, lookup, rehydrateChunkIds } from './promptCache.js'
 import { GoogleGenAI } from '@google/genai'
 
 export const MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash'
@@ -148,6 +148,10 @@ export async function generateJson({
   responseSchema,
   maxOutputTokens = 1200,
   model = MODEL,
+  // The ids of the chunks this prompt carries, so a cached answer's source
+  // ids can be mapped onto this request's. Omit it and a hit is returned
+  // untouched, which is right for a prompt that carries no chunks.
+  chunkIds = [],
   // The cache build sets this so it records answers rather than reading them.
   noCache = false,
 }) {
@@ -158,7 +162,7 @@ export async function generateJson({
     const hit = await lookup(cacheKey(systemInstruction, prompt, model))
     if (hit) {
       if (debugEnabled()) logLine('[tutor:cache]', { hit: true, model, chars: JSON.stringify(hit).length })
-      return hit
+      return rehydrateChunkIds(hit, chunkIds)
     }
   }
 
