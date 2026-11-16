@@ -47,6 +47,7 @@ export const tutorApi = {
   answer: (payload) => post('/api/tutor/answer', payload),
   support: (payload) => post('/api/tutor/support', payload),
   explain: (payload) => post('/api/tutor/explain', payload),
+  recall: (payload) => post('/api/tutor/recall', payload),
   diagram: (payload) => post('/api/tutor/diagram', payload),
   chunk: (payload) => post('/api/planner/chunk', payload),
 }

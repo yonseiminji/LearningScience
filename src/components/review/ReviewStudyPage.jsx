@@ -32,6 +32,7 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
   const [error, setError] = useState(null)
   const [explanation, setExplanation] = useState(null)
   const [diagram, setDiagram] = useState(null)
+  const [recall, setRecall] = useState(null)
   const requestId = useRef(0)
 
   const available = useMemo(() => materials.filter((item) => item.courseId === courseId), [materials, courseId])
@@ -47,6 +48,9 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
     setQuiz(null)
     setResults({})
     setSupport(null)
+    setRecall(null)
+    setExplanation(null)
+    setDiagram(null)
     setBusy(null)
     setError(null)
   }
@@ -176,6 +180,16 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
     }
   }
 
+  async function checkRecall({ conceptId, attempt }) {
+    const data = await run('recall', () => tutorService.checkRecall({ material, conceptId, attempt }))
+    if (data) {
+      // The learner's own words are kept on screen beside the reading of
+      // them; nothing is stored beyond this session.
+      setRecall({ ...data, attempt })
+      onStudied?.(ACTIVITY.support, { topicTag: conceptId })
+    }
+  }
+
   async function showDiagram({ conceptId, visualId, chunkIds }) {
     setDiagram(null)
     const picked = chunksByIds(chunks, chunkIds)
@@ -196,7 +210,7 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
     setMode('quiz')
   }
 
-  // 이해 여부 점검하기 is always open now: it starts on its own picker, so
+  // 인출 연습하기 is always open now: it starts on its own picker, so
   // there is no earlier card to visit first.
   const disabledModes = []
   if (!quiz) disabledModes.push('support')
@@ -268,6 +282,8 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
               diagram={diagram}
               onExplain={explainConcept}
               onDiagram={showDiagram}
+              onRecall={checkRecall}
+              recall={recall}
             />
           ) : null}
 

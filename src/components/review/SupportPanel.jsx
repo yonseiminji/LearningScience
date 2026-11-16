@@ -23,7 +23,7 @@ export default function SupportPanel({ quiz, results, chunks, support, busy, onR
     return (
       <section className="review-result" aria-label="부족한 부분 다시 학습하기">
         <h3>어려운 부분을 선택하고 원문 다시 보기</h3>
-        <p>아직 푼 문제가 없어요. 먼저 ‘이해 여부 점검하기’에서 문제를 풀어 보세요.</p>
+        <p>아직 푼 문제가 없어요. 먼저 ‘인출 연습하기’에서 문제를 풀어 보세요.</p>
       </section>
     )
   }
