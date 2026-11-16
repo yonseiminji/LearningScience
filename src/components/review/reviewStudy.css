@@ -311,3 +311,7 @@
 .recall-instead { color: var(--ink); font-weight: 600; }
 .recall-mine { margin: 0; padding: 10px; border-radius: 8px; background: var(--hover); color: var(--text-2); font-size: 13px; line-height: 1.6; }
 .recall-mine b { display: block; margin-bottom: 3px; color: var(--muted); font-size: 11px; font-weight: 700; }
+
+/* Said on the press, not before. */
+.review-shut { margin: 0; color: var(--confuse); font-size: 14px; font-weight: 600; }
+.review-mode-card[data-shut] { opacity: 0.55; }

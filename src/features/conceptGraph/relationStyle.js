@@ -24,13 +24,18 @@ export const FAMILY = {
 }
 
 export const STYLE = {
-  PRECEDES: { dash: null, width: 1.6, head: 'solid', label: '다음', tone: 'ink' },
+  // The label is a fallback. Each relation in the lexicon carries its own
+  // Korean verb, and they differ inside a type: two of the three PRECEDES
+  // links are 이어서 진행, while 게임 단계 → 일반화된 타자 이해 is 발달·이해 —
+  // an attainment the stages arrive at, not a fourth stage after them. One
+  // word per type flattened that away.
+  PRECEDES: { dash: null, width: 1.6, head: 'solid', label: '순서', tone: 'ink' },
   // Reserved. The source review found no causal statement in Chapter 5, so
   // nothing uses this yet; it is defined so that a later relation which does
   // carry one is drawn as the exception it would be, not as another arrow.
   CAUSES: { dash: null, width: 2.4, head: 'solid', label: '원인', tone: 'ink' },
-  FACILITATES: { dash: null, width: 1.3, head: 'solid', label: '', tone: 'ink' },
-  DEFINED_AS: { dash: '2 3', width: 1.2, head: 'none', label: '', tone: 'ink' },
+  FACILITATES: { dash: null, width: 1.3, head: 'solid', label: '기여', tone: 'ink' },
+  DEFINED_AS: { dash: '2 3', width: 1.2, head: 'none', label: '다루는 것', tone: 'ink' },
   // Also reserved: the lexicon has no CONTRASTS_WITH row either. Drawn in red
   // so a contrast cannot be mistaken for one more step in the flow.
   CONTRASTS_WITH: { dash: '6 4', width: 1.5, head: 'none', label: '대조 (Contrasts with)', tone: 'warn' },
@@ -49,7 +54,7 @@ export const LISTED = ['IS_A', 'EXAMPLE_OF']
 
 export const LIST_PREFIX = {
   EXAMPLE_OF: 'Ex.',
-  IS_A: '종류',
+  IS_A: 'Ex.',
 }
 
 export const LIST_TAIL = {
@@ -71,6 +76,21 @@ export function isListed(type) {
  */
 export function isPart(type) {
   return type === 'PART_OF'
+}
+
+/**
+ * What to write on one edge.
+ *
+ * The lexicon's own wording when it is short enough to sit on a line, and the
+ * type's word when it is not. 협동·일과표 등 행동을 익히도록 사회화 is accurate
+ * and unreadable at this size, so it goes in the tooltip instead.
+ */
+export const MAX_EDGE_LABEL = 8
+
+export function edgeLabel(edge) {
+  const own = String(edge.relationKo || '').trim()
+  if (own && own.length <= MAX_EDGE_LABEL) return own
+  return STYLE[edge.type]?.label || ''
 }
 
 /** A DEFINED_AS target is a gloss, not a concept, and is drawn as one. */

@@ -1,7 +1,7 @@
 import LEXICON from '/home/claude/learningscience/src/data/socialization_relations.js'
 import { DIAGRAMS, describeGraph, diagramsForConcept, graphFor } from '/home/claude/learningscience/src/features/conceptGraph/fromLexicon.js'
 import { CHAR, MAX_LINE, layerOf, layoutGraph, pickOrientation, wrap } from '/home/claude/learningscience/src/features/conceptGraph/layout.js'
-import { FAMILY, LISTED, LIST_PREFIX, STYLE, isDirected, isListed, isNoteNode, isPart } from '/home/claude/learningscience/src/features/conceptGraph/relationStyle.js'
+import { FAMILY, LISTED, LIST_PREFIX, MAX_EDGE_LABEL, STYLE, edgeLabel, isDirected, isListed, isNoteNode, isPart } from '/home/claude/learningscience/src/features/conceptGraph/relationStyle.js'
 
 let pass = 0
 let fail = 0
@@ -36,13 +36,25 @@ ok('CAUSES 가 가장 굵음', Object.values(STYLE).every((s) => s.width <= STYL
 
 console.log('\n[C2] 분류 관계는 그리지 않고 적는다')
 is('적을 유형 2개', LISTED.join(), 'IS_A,EXAMPLE_OF')
+is('둘 다 Ex. 접두어', `${LIST_PREFIX.IS_A}${LIST_PREFIX.EXAMPLE_OF}`, 'Ex.Ex.')
 is('PART_OF 는 적지 않고 표로', isListed('PART_OF'), false)
 ok('PART_OF 만 표', isPart('PART_OF') && !isPart('IS_A') && !isPart('PRECEDES'))
 ok('셋 다 선 모양이 없음', LISTED.every((type) => !STYLE[type]))
 ok('셋 다 접두어가 있음', LISTED.every((type) => LIST_PREFIX[type]))
 is('EXAMPLE_OF 접두어', LIST_PREFIX.EXAMPLE_OF, 'Ex.')
 ok('그리는 유형은 적지 않음', ['PRECEDES', 'CAUSES', 'FACILITATES', 'DEFINED_AS', 'CONTRASTS_WITH'].every((t) => !isListed(t)))
-is('PRECEDES 라벨이 인과가 아님을 말함', STYLE.PRECEDES.label, '다음')
+console.log('\n[C3] 라벨은 타입이 아니라 관계가 정한다')
+const mead0 = graphFor('mead')
+const byPair = (a, b) => mead0.edges.find((e) => e.from === a && e.to === b)
+is('준비→놀이 는 이어서 진행', edgeLabel(byPair('준비 단계', '놀이 단계')), '이어서 진행')
+is('놀이→게임 도 이어서 진행', edgeLabel(byPair('놀이 단계', '게임 단계')), '이어서 진행')
+// The point of per-edge labels: this one is not a next step.
+is('게임→일반화된 타자 는 발달·이해', edgeLabel(byPair('게임 단계', '일반화된 타자 이해')), '발달·이해')
+ok('세 PRECEDES 가 같은 말이 아님', new Set(mead0.edges.filter((e) => e.type === 'PRECEDES').map(edgeLabel)).size === 2)
+const longOne = graphFor('agents').edges.find((e) => (e.relationKo || '').length > MAX_EDGE_LABEL)
+is('긴 관계어는 타입 말로 대체', edgeLabel(longOne), STYLE[longOne.type].label)
+ok('모든 라벨이 상한 이하', graphFor('agents').edges.every((e) => edgeLabel(e).length <= MAX_EDGE_LABEL))
+ok('모든 엣지에 원문 관계어가 남아 있음', graphFor('agents').edges.every((e) => e.relationKo))
 is('CONTRASTS_WITH 만 무향', isDirected('CONTRASTS_WITH'), false)
 ok('나머지는 유향', ['PRECEDES', 'CAUSES', 'FACILITATES', 'DEFINED_AS'].every(isDirected))
 

@@ -23,7 +23,11 @@ export default function ReviewModeGrid({ activeMode, onSelect, disabledModes = [
           type="button"
           className={`review-mode-card ${activeMode === id ? 'active' : ''}`}
           aria-pressed={activeMode === id}
-          disabled={disabledModes.includes(id)}
+          // Not `disabled`: a card nobody can press cannot explain itself,
+          // and the reason it is shut is worth hearing at the moment it is
+          // reached for rather than standing under the grid all along.
+          aria-disabled={disabledModes.includes(id)}
+          data-shut={disabledModes.includes(id) ? '' : undefined}
           onClick={() => onSelect(id)}
         >
           <Icon size={23} aria-hidden="true" />
