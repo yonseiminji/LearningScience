@@ -13,7 +13,7 @@
 import { Type } from '@google/genai'
 import { ApiError, generateJson, handler, sendJson } from '../_lib/gemini.js'
 import { BY_TYPE, COMMON } from '../_lib/prompts/explain.js'
-import { checkRate, requireChunks, requireOneOf, requireString } from '../_lib/limit.js'
+import { checkRate, finishRate, requireChunks, requireOneOf, requireString } from '../_lib/limit.js'
 import { SUPPORT_TYPES, conceptEvidence, findConcept, limitChunks } from '../_lib/socialization.js'
 
 const SCHEMA = {
@@ -30,7 +30,8 @@ const SCHEMA = {
 }
 
 export default handler(async (request, response) => {
-  checkRate(request)
+  const slot = await checkRate(request)
+  try {
   const body = request.body || {}
 
   // materialId is a label, not a gate. It names the upload the chunks came
@@ -99,4 +100,7 @@ export default handler(async (request, response) => {
     sourceLabel: `강의 전사문 + OpenStax ${concept.source.section}절`,
     warnings,
   })
+  } finally {
+    await finishRate(slot)
+  }
 })

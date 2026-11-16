@@ -27,9 +27,13 @@ export function findVisual(visualId) {
 }
 
 /** Caps from the spec, applied to what actually reaches the model. */
+// A paragraph of this transcript is about 650 characters, so these caps are
+// well clear of real input. They are here so that nothing can send far more
+// than a paragraph or two: the ceiling used to allow 72KB into one support
+// call, which is a token bill nobody meant to sign.
 export const LIMITS = {
   maxChunks: 3,
-  maxChunkChars: 1500,
+  maxChunkChars: 1200,
   maxConcepts: 3,
   maxConceptChars: 1000,
 }

@@ -8,12 +8,13 @@
 // make it slower, costlier and less predictable.
 
 import { ApiError, handler, sendJson } from '../_lib/gemini.js'
-import { checkRate, requireString } from '../_lib/limit.js'
+import { checkRate, finishRate, requireString } from '../_lib/limit.js'
 import { gradeAnswer } from './_grade.js'
 import { unseal } from './_seal.js'
 
 export default handler(async (req, res, body) => {
-  checkRate(req)
+  const slot = await checkRate(req)
+  try {
 
   const questionId = requireString(body.questionId, 'questionId', { max: 200 })
   const sealed = unseal(body.answerToken)
@@ -37,4 +38,7 @@ export default handler(async (req, res, body) => {
     sourceChunkIds: sealed.sourceChunkIds || [],
     evidenceText: sealed.evidenceText || '',
   })
+  } finally {
+    await finishRate(slot)
+  }
 })

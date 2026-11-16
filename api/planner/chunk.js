@@ -1,7 +1,7 @@
 import { Type } from '@google/genai'
 import { ApiError, MODEL, generateJson, handler, sendJson } from '../_lib/gemini.js'
 import { system } from '../_lib/prompts/chunk.js'
-import { checkRate, requireOneOf, requireString } from '../_lib/limit.js'
+import { checkRate, finishRate, requireOneOf, requireString } from '../_lib/limit.js'
 
 // One call does the whole job: read the instruction, pull out what it asks
 // for, and split that into steps at the granularity the learner picked.
@@ -72,7 +72,8 @@ const SCHEMA = {
 }
 
 export default handler(async (req, res, body) => {
-  checkRate(req)
+  const slot = await checkRate(req)
+  try {
   const chunkingLevel = requireOneOf(body.chunkingLevel, LEVELS, 'chunkingLevel')
   const instruction = requireString(body.instruction, 'instruction', { max: 6000 })
   const subjectName = typeof body.subjectName === 'string' ? body.subjectName.trim().slice(0, 100) : ''
@@ -109,4 +110,7 @@ ${instruction}`,
     },
     steps,
   })
+  } finally {
+    await finishRate(slot)
+  }
 })

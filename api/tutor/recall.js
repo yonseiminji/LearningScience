@@ -17,7 +17,7 @@
 import { Type } from '@google/genai'
 import { ApiError, generateJson, handler, sendJson } from '../_lib/gemini.js'
 import { SYSTEM, prompt } from '../_lib/prompts/recall.js'
-import { checkRate, requireString } from '../_lib/limit.js'
+import { checkRate, finishRate, requireString } from '../_lib/limit.js'
 import { RUBRICS, rubricById } from '../../src/data/socialization_rubric.js'
 import { findConcept } from '../_lib/socialization.js'
 
@@ -50,7 +50,8 @@ const SCHEMA = {
 }
 
 export default handler(async (request, response) => {
-  checkRate(request)
+  const slot = await checkRate(request)
+  try {
   const body = request.body || {}
 
   requireString(body.materialId, 'materialId', { max: 120 })
@@ -154,4 +155,7 @@ export default handler(async (request, response) => {
     reinforce,
     nudge: String(data.nudge || '').slice(0, 140),
   })
+  } finally {
+    await finishRate(slot)
+  }
 })

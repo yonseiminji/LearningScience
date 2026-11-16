@@ -406,3 +406,19 @@ No backend. The plan lives in React state and is gone on reload; only "has this 
 
 ### 기타
 - 차곡 블록 애니메이션을 튀지 않는 움직임으로 바꿨습니다(`src/components/ChagokBlocks.jsx`).
+
+## 동시 사용 설정 (시연용)
+
+여러 명이 동시에 쓸 때 Gemini 할당량을 나눠 쓰기 위한 환경변수입니다. 셋 다
+선택이지만, Upstash 둘이 없으면 공유 제한이 **꺼지고** 인스턴스별 제한만 남습니다.
+
+| 변수 | 뜻 | 권장 |
+|---|---|---|
+| `UPSTASH_REDIS_REST_URL` | 공유 카운터 저장소 | 시연 시 필수 |
+| `UPSTASH_REDIS_REST_TOKEN` | 위 저장소 토큰 | 시연 시 필수 |
+| `GEMINI_RPM_BUDGET` | 전체 분당 요청 상한 | 키의 실제 RPM보다 낮게 (기본 20) |
+| `GEMINI_CONCURRENCY` | 동시 모델 호출 수 | 4~6 (기본 5) |
+
+상한에 걸린 요청은 실패가 아니라 **대기**입니다. 서버가 `429`와 함께
+`retryAfterMs`·`ahead`를 돌려주고, 화면은 "앞에 N명이 기다리고 있어요"를 띄운 뒤
+최대 45초까지 스스로 재시도합니다.

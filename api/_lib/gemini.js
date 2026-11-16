@@ -22,10 +22,13 @@ function getClient() {
 }
 
 export class ApiError extends Error {
-  constructor(status, message, detail) {
+  // `meta` travels to the client in the clear: a wait is not a secret, and
+  // the screen cannot say '곧 순서가 와요' without knowing how long.
+  constructor(status, message, detail, meta = null) {
     super(message)
     this.status = status
     this.detail = detail
+    this.meta = meta
   }
 }
 
@@ -103,6 +106,41 @@ function finishReasonOf(response) {
  * `responseSchema` makes the model answer in that shape; the caller still
  * checks the result, because a well-shaped answer can still be wrong.
  */
+/**
+ * Is this the kind of failure that clears if we wait a second?
+ *
+ * 503 UNAVAILABLE means Google is busy, which is worth one more try. 429
+ * RESOURCE_EXHAUSTED means we asked for more than our share, and retrying
+ * that is how a capacity problem becomes a quota problem — a failed request
+ * can still count against the allowance. Only the first is retried, and
+ * sparingly.
+ */
+function isOverloaded(error) {
+  const text = `${error?.status || ''} ${error?.code || ''} ${error?.message || error || ''}`
+  if (/429|RESOURCE_EXHAUSTED|quota/i.test(text)) return false
+  return /503|UNAVAILABLE|overloaded|try again later/i.test(text)
+}
+
+// Two retries, 1s then 3s, each with up to a second of jitter so thirty
+// browsers that failed together do not come back together.
+const RETRY_DELAYS_MS = [1000, 3000]
+
+async function withRetry(call) {
+  let last
+  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt += 1) {
+    try {
+      return await call()
+    } catch (error) {
+      last = error
+      if (attempt === RETRY_DELAYS_MS.length || !isOverloaded(error)) throw error
+      const wait = RETRY_DELAYS_MS[attempt] + Math.floor(Math.random() * 1000)
+      if (debugEnabled()) logLine('[tutor:retry]', { attempt: attempt + 1, waitMs: wait })
+      await new Promise((resolve) => setTimeout(resolve, wait))
+    }
+  }
+  throw last
+}
+
 export async function generateJson({ systemInstruction, prompt, responseSchema, maxOutputTokens = 1200, model = MODEL }) {
   const ai = getClient()
   const debug = debugEnabled()
@@ -125,7 +163,7 @@ export async function generateJson({ systemInstruction, prompt, responseSchema, 
 
   let response
   try {
-    response = await ai.models.generateContent({
+    response = await withRetry(() => ai.models.generateContent({
       model,
       contents: prompt,
       config: {
@@ -135,9 +173,14 @@ export async function generateJson({ systemInstruction, prompt, responseSchema, 
         maxOutputTokens,
         temperature: 0.2,
       },
-    })
+    }))
   } catch (error) {
     if (debug) logLine('[tutor:err]', { id, ms: Date.now() - startedAt, error: String(error?.message || error) })
+      // A busy model is not the same as a broken one, and the learner can do
+    // something about the first: wait a moment and press again.
+    if (isOverloaded(error)) {
+      throw new ApiError(503, '지금 요청이 몰려 있어요. 잠시 뒤에 다시 해 주세요.', String(error?.message || error))
+    }
     throw new ApiError(502, '모델 응답을 받지 못했어요.', String(error?.message || error))
   }
 
@@ -223,6 +266,7 @@ function reasonOf(error) {
 export function fail(res, error) {
   const status = error instanceof ApiError ? error.status : 500
   const message = error instanceof ApiError ? error.message : reasonOf(error)
+  const meta = error instanceof ApiError ? error.meta : null
   // detail is for the server log, not the learner
   if (!(error instanceof ApiError)) console.error('[tutor]', error)
   else if (error.detail) console.error('[tutor]', error.message, error.detail)
@@ -233,10 +277,10 @@ export function fail(res, error) {
   // whole answer. Off in Production, where the learner sees only `error`.
   if (debugEnabled()) {
     const detail = error instanceof ApiError ? error.detail : String(error?.stack || error)
-    sendJson(res, status, { error: message, code: status, model: MODEL, detail: detail ?? null })
+    sendJson(res, status, { error: message, code: status, model: MODEL, detail: detail ?? null, ...meta })
     return
   }
-  sendJson(res, status, { error: message, code: status })
+  sendJson(res, status, { error: message, code: status, ...meta })
 }
 
 /** Wraps a handler: POST only, body parsed, errors turned into JSON. */
