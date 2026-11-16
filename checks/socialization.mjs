@@ -120,6 +120,26 @@ ok('explain 이 고정 정의를 항상 동봉', explain.includes('definitionKo:
 ok('diagram template 은 모델을 부르지 않음', !diagram.includes('generateJson'))
 ok('diagram generated 는 501', diagram.includes('501'))
 ok('diagram 이 입력에 없는 chunkId 를 만들지 않음', diagram.includes('body.lectureChunks'))
+// The gate that broke it: materialId is a generated upload id, so pinning it
+// to the knowledge base's demo id rejected every real lecture with a 400.
+ok('explain 이 materialId 를 고정값과 대조하지 않음', !explain.includes("[MATERIAL_ID]"))
+ok('diagram 이 materialId 를 고정값과 대조하지 않음', !diagram.includes("[MATERIAL_ID]"))
+ok('explain 이 materialId 를 문자열로만 받음', explain.includes("requireString(body.materialId"))
+
+console.log('\n[L] 화면: 범위 판정은 전사문으로 한다')
+const panel = readFileSync('/home/claude/learningscience/src/components/review/ConceptPanel.jsx', 'utf8')
+ok('material.id 비교가 사라짐', !/material\?\.id ===/.test(panel))
+ok('전사문에서 찾은 개념으로 판정', panel.includes('found.length === 0'))
+const grid = readFileSync('/home/claude/learningscience/src/components/review/ReviewModeGrid.jsx', 'utf8')
+const ids = [...grid.matchAll(/\{ id: '([a-z]+)'/g)].map((m) => m[1])
+is('카드 4개', ids.length, 4)
+is('카드 순서', ids.join(','), 'source,concept,quiz,support')
+const page = readFileSync('/home/claude/learningscience/src/components/review/ReviewStudyPage.jsx', 'utf8')
+ok("select 모드가 사라짐", !page.includes("mode === 'select'"))
+ok('구간 선택이 quiz 카드 안으로', page.includes("mode === 'quiz' && !quiz"))
+ok('quiz 카드는 잠기지 않음', !page.includes("disabledModes.push('quiz')"))
+const service = readFileSync('/home/claude/learningscience/src/services/tutorService.js', 'utf8')
+ok('클라이언트가 material.materialId 를 보냄', !/materialId: material\.id\b/.test(service))
 
 console.log('\n[K] 기존 API 계약은 그대로')
 const api = JSON.parse(readFileSync('/home/claude/learningscience/vercel.json', 'utf8'))

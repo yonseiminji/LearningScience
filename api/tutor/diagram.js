@@ -13,13 +13,16 @@
 
 import { ApiError, handler, sendJson } from '../_lib/gemini.js'
 import { checkRate, requireOneOf, requireString } from '../_lib/limit.js'
-import { MATERIAL_ID, findConcept, findVisual } from '../_lib/socialization.js'
+import { findConcept, findVisual } from '../_lib/socialization.js'
 
 export default handler(async (request, response) => {
   checkRate(request)
   const body = request.body || {}
 
-  requireOneOf(body.materialId, [MATERIAL_ID], 'materialId')
+  // materialId is a label, not a gate. It names the upload the chunks came
+  // from, and uploads carry generated ids — pinning it to the knowledge
+  // base's own id rejected every real lecture with a 400.
+  requireString(body.materialId, 'materialId', { max: 120 })
   const mode = body.mode || 'template'
   requireOneOf(mode, ['template', 'generated'], 'mode')
   const conceptId = requireString(body.conceptId, 'conceptId', { max: 80 })

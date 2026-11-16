@@ -31,23 +31,15 @@ export default function ConceptPanel({ material, chunks = [], busy, error, onExp
   const concept = conceptId ? byId.get(conceptId) : null
   const hit = found.find((item) => item.conceptId === conceptId)
 
-  const supported = material?.id === KNOWLEDGE.materialId
-
-  if (!supported) {
-    return (
-      <section className="concept-panel">
-        <p className="concept-note">
-          개념 관계도는 아직 <b>사회화</b> 강의에서만 쓸 수 있어요. 다른 단원은 준비 중이에요.
-        </p>
-      </section>
-    )
-  }
-
+  // The transcript decides, not the file it came from. An earlier version
+  // compared material.id against the knowledge base's own id, which is a demo
+  // string no uploaded file can ever carry — so every real lecture, the
+  // socialization one included, was told it was the wrong unit.
   if (found.length === 0) {
     return (
       <section className="concept-panel">
         <p className="concept-note">
-          강의 내용에서 다룬 개념을 찾지 못했어요. 먼저 <b>강의 구간 선택하기</b>에서 공부할 부분을 골라 주세요.
+          이 강의에서 다루는 개념을 찾지 못했어요. 지금은 <b>사회화</b>(Chapter 5) 개념만 준비되어 있어요.
         </p>
       </section>
     )

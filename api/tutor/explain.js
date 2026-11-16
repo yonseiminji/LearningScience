@@ -13,7 +13,7 @@
 import { Type } from '@google/genai'
 import { ApiError, generateJson, handler, sendJson } from '../_lib/gemini.js'
 import { checkRate, requireChunks, requireOneOf, requireString } from '../_lib/limit.js'
-import { MATERIAL_ID, SUPPORT_TYPES, conceptEvidence, findConcept, limitChunks } from '../_lib/socialization.js'
+import { SUPPORT_TYPES, conceptEvidence, findConcept, limitChunks } from '../_lib/socialization.js'
 
 const COMMON = `당신은 한국 대학생의 강의 이해를 돕는 학습 튜터입니다.
 
@@ -73,7 +73,10 @@ export default handler(async (request, response) => {
   checkRate(request)
   const body = request.body || {}
 
-  requireOneOf(body.materialId, [MATERIAL_ID], 'materialId')
+  // materialId is a label, not a gate. It names the upload the chunks came
+  // from, and uploads carry generated ids — pinning it to the knowledge
+  // base's own id rejected every real lecture with a 400.
+  requireString(body.materialId, 'materialId', { max: 120 })
   const supportType = requireOneOf(body.supportType, SUPPORT_TYPES, 'supportType')
   const conceptId = requireString(body.conceptId, 'conceptId', { max: 80 })
   const chunks = requireChunks(body.lectureChunks)

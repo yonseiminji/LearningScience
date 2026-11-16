@@ -84,7 +84,7 @@ export const tutorService = {
   explainConcept({ material, conceptId, supportType, chunks }) {
     return tutorApi
       .explain({
-        materialId: material.id,
+        materialId: material.materialId,
         conceptId,
         supportType,
         lectureChunks: chunks.map(({ chunkId, text }) => ({ chunkId, text })),
@@ -95,7 +95,7 @@ export const tutorService = {
   /** 관계도. template mode calls no model, so there is nothing to mock. */
   conceptDiagram({ material, conceptId, visualId, chunks }) {
     return tutorApi.diagram({
-      materialId: material.id,
+      materialId: material.materialId,
       conceptId,
       visualId,
       mode: 'template',

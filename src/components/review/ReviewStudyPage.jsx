@@ -94,8 +94,9 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
       return
     }
     if (selectedChunkIds.length === 0) {
+      // The picker is already on screen — this card opens on it — so say what
+      // is missing and leave them where they are.
       setError('문제로 풀어 볼 구간을 하나 이상 골라 주세요.')
-      setMode('select')
       return
     }
     const data = await run('quiz', () => tutorService.createQuiz({ material, chunkIds: selectedChunkIds }))
@@ -195,17 +196,16 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
     setMode('quiz')
   }
 
+  // 이해 여부 점검하기 is always open now: it starts on its own picker, so
+  // there is no earlier card to visit first.
   const disabledModes = []
-  if (selectedChunkIds.length === 0 && !quiz) disabledModes.push('quiz')
   if (!quiz) disabledModes.push('support')
 
   // A greyed-out card with no reason reads as a fault. Name the step that
   // would turn it on.
-  const blockedHint = disabledModes.includes('quiz')
-    ? '‘강의 구간 선택하기’에서 구간을 고르면 문제를 만들 수 있어요.'
-    : disabledModes.includes('support')
-      ? '문제를 한 번 풀면 ‘부족한 부분 다시 학습하기’를 쓸 수 있어요.'
-      : ''
+  const blockedHint = disabledModes.includes('support')
+    ? '문제를 한 번 풀면 ‘부족한 부분 다시 학습하기’를 쓸 수 있어요.'
+    : ''
 
   return (
     <section className="review-study">
@@ -220,10 +220,6 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
             disabledModes={disabledModes}
             onSelect={(next) => {
               setError(null)
-              if (next === 'quiz' && !quiz) {
-                makeQuiz()
-                return
-              }
               setMode(next)
             }}
           />
@@ -238,7 +234,8 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
 
           {mode === 'source' ? <LectureChunks material={material} /> : null}
 
-          {mode === 'select' ? (
+          {/* Pick a stretch, then answer on it. One card, two screens. */}
+          {mode === 'quiz' && !quiz ? (
             <ChunkSelector
               material={material}
               selectedIds={selectedChunkIds}
