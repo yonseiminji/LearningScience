@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Check, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import SourceChunks from './SourceChunks.jsx'
 
-// 이해 여부 점검하기. One question at a time, and the answer arrives only
+// 인출 연습하기. One question at a time, and the answer arrives only
 // after the learner has committed to theirs — the questions come from the
 // server without their answers, and the marking happens there.
 export default function QuizPanel({ quiz, chunks, results, onSubmit, onFinish, busy, provider }) {
@@ -19,9 +19,9 @@ export default function QuizPanel({ quiz, chunks, results, onSubmit, onFinish, b
   const lastOne = index === questions.length - 1
 
   return (
-    <section className="review-result" aria-label="이해 여부 점검하기">
+    <section className="review-result" aria-label="인출 연습하기">
       <div className="review-between">
-        <h3>이해 여부 점검하기</h3>
+        <h3>인출 연습하기</h3>
         <span className="review-muted">
           {index + 1} / {questions.length}
         </span>

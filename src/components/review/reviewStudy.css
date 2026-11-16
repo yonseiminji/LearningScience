@@ -283,3 +283,22 @@
 .lecture-search-clear:hover { background: var(--hover); }
 .review-chunk-text mark { padding: 0 1px; border-radius: 3px; background: var(--hi); color: inherit; }
 .review-chunk-list li.is-hit .review-chunk-meta { color: var(--accent); font-weight: 600; }
+
+/* 곰곰이한테 설명하기 */
+.recall-ask { display: grid; gap: 8px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.recall-prompt { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 15px; }
+.recall-ask textarea { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); font: inherit; line-height: 1.6; resize: vertical; }
+.recall-ask textarea:focus { outline: 2px solid var(--hi); outline-offset: 1px; border-color: var(--accent); }
+.recall-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.recall-result { display: grid; gap: 10px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.recall-nudge { margin: 0; font-size: 15px; font-weight: 600; }
+.recall-points { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.recall-points li { display: flex; align-items: flex-start; gap: 7px; font-size: 14px; line-height: 1.5; }
+.recall-points li svg { flex: none; margin-top: 3px; }
+/* Reached, and still to reach. Neither is a mark. */
+.recall-points .is-covered { color: var(--ink); }
+.recall-points .is-covered svg { color: var(--done); }
+.recall-points .is-missing { color: var(--muted); }
+.recall-mine { margin: 0; padding: 10px; border-radius: 8px; background: var(--hover); color: var(--text-2); font-size: 13px; line-height: 1.6; }
+.recall-mine b { display: block; margin-bottom: 3px; color: var(--muted); font-size: 11px; font-weight: 700; }
