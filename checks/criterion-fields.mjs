@@ -79,7 +79,10 @@ is('문장형 플레이스홀더 수', sentence.length, 0)
 ok('모든 단계에 tip 이 있음', mock.assignments.every((a) => a.steps.every((s) => s.prerequisiteTip)))
 
 console.log('\n[E] 스키마와 프롬프트가 세 필드를 요구한다')
-const api = readFileSync('/home/claude/learningscience/api/planner/chunk.js', 'utf8')
+// Schema lives with the handler, prompt wording lives in api/_lib/prompts.
+const api =
+  readFileSync('/home/claude/learningscience/api/planner/chunk.js', 'utf8') +
+  readFileSync('/home/claude/learningscience/api/_lib/prompts/chunk.js', 'utf8')
 ok('스키마에 tip', /tip:\s*\{\s*type:\s*Type\.STRING\s*\}/.test(api))
 ok('스키마 required 에 inputLabel, placeholder', /required:\s*\['text',\s*'inputLabel',\s*'placeholder'\]/.test(api))
 ok('프롬프트가 완료되었나요? 를 금지', api.includes('Never 완료되었나요?'))
