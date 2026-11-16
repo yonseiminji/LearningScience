@@ -26,7 +26,7 @@ ok('프롬프트가 쪽수 사용을 금지', readFileSync('/home/claude/learnin
 
 console.log('\n[C] 출처가 실제 교재 위치를 가리킨다')
 const inEdition = K.concepts.filter(c => c.source.inEdition !== false)
-is('교재에 있는 개념 수', inEdition.length, 23)
+is('교재에 있는 개념 수', inEdition.length, 21)
 ok('모두 절이 있음', inEdition.every(c => BC.pages.some(p => p.sectionId === c.source.section)))
 ok('모두 행이 있음', inEdition.every(c => Array.isArray(c.source.lines) && c.source.lines.length > 0))
 const bad = inEdition.filter(c => {
@@ -36,12 +36,13 @@ const bad = inEdition.filter(c => {
 })
 is('행이 절 범위 안', bad.map(c => c.termKo).join(', '), '')
 
-console.log('\n[D] 이 판에 없는 것은 없다고 말한다')
-const out = K.concepts.filter(c => c.source.inEdition === false).map(c => c.conceptId)
-is('이 판에 없는 개념', out.sort().join(', '), 'government-as-agent, religion-as-agent')
-ok('그래도 개념은 남아 있음', out.length === 2)
+console.log('\n[D] 모든 개념이 이 판 안에 있다')
+// The two that were not — religion and government as agents — came from a
+// transcript that has been retired, so nothing is flagged any more. The
+// screen keeps the branch for the next time a lecture outruns the edition.
+is('이 판에 없는 개념', K.concepts.filter(c => c.source.inEdition === false).length, 0)
 const panel = readFileSync('/home/claude/learningscience/src/components/review/ConceptPanel.jsx','utf8')
-ok('화면이 그 사실을 표시', panel.includes('이 판에서는 따로 다루지 않아요'))
+ok('화면은 여전히 그 경우를 처리함', panel.includes('이 판에서는 따로 다루지 않아요'))
 
 console.log('\n[E] 교재의 한국어 용어도 함께 찾는다')
 const aliasOf = (id) => K.concepts.find(c => c.conceptId === id).aliases

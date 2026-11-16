@@ -60,9 +60,6 @@ export default {
       "aliases": [
         "자아 발달",
         "self-development",
-        "성찰적 자아",
-        "주체적 자아",
-        "객체적 자아",
         "사회적 구조로서의 자아"
       ],
       "definitionKo": "사회적 상호작용을 통해 발달한 개인의 구별되는 정체성 감각.",
@@ -75,7 +72,7 @@ export default {
       ],
       "related": [
         "looking-glass-self",
-        "generalized-other",
+        "i-and-me",
         "mead-stages"
       ],
       "source": {
@@ -105,36 +102,12 @@ export default {
       ],
       "related": [
         "self",
-        "significant-others",
         "generalized-other"
       ],
       "source": {
         "section": "5.1",
         "lines": [
           60
-        ],
-        "inEdition": true
-      },
-      "visualId": null
-    },
-    {
-      "conceptId": "significant-others",
-      "termKo": "중요한 타자",
-      "termEn": "significant others",
-      "aliases": [],
-      "definitionKo": "자아 형성에 특별히 큰 영향을 미치는 구체적인 사람들.",
-      "keyPoints": [
-        "미드의 설명에서 타자의 영향력을 구별할 때 등장함"
-      ],
-      "misconceptions": [],
-      "related": [
-        "generalized-other",
-        "self"
-      ],
-      "source": {
-        "section": "5.R",
-        "lines": [
-          480
         ],
         "inEdition": true
       },
@@ -156,7 +129,6 @@ export default {
       ],
       "related": [
         "mead-stages",
-        "significant-others",
         "self"
       ],
       "source": {
@@ -431,108 +403,6 @@ export default {
       "visualId": null
     },
     {
-      "conceptId": "moral-development",
-      "termKo": "도덕 발달",
-      "termEn": "moral development",
-      "aliases": [
-        "도덕성 발달"
-      ],
-      "definitionKo": "무엇이 옳고 그른지 판단하는 방식이 발달하는 과정. 사회화의 한 측면이다.",
-      "keyPoints": [
-        "규칙을 외우는 일이 아님",
-        "행동을 정할 때 나의 욕구뿐 아니라 타인에게 미치는 영향과 사회가 옳다고 보는 기준을 함께 고려함",
-        "사회가 원활하게 기능하는 데 중요하다고 교재는 설명함"
-      ],
-      "misconceptions": [
-        "규칙을 많이 아는 것과 같지 않음"
-      ],
-      "related": [
-        "kohlberg-levels",
-        "socialization"
-      ],
-      "source": {
-        "section": "5.1",
-        "lines": [
-          128
-        ],
-        "inEdition": true
-      },
-      "visualId": null
-    },
-    {
-      "conceptId": "kohlberg-levels",
-      "termKo": "콜버그의 도덕 발달 수준",
-      "termEn": "Kohlberg's levels of moral development",
-      "aliases": [
-        "콜버그",
-        "전인습 수준",
-        "인습 수준",
-        "후인습 수준",
-        "preconventional",
-        "conventional",
-        "postconventional",
-        "전인습적 수준",
-        "인습적 수준",
-        "후인습적 수준"
-      ],
-      "definitionKo": "옳고 그름을 판단하는 기준이 달라지는 세 수준: 전인습, 인습, 후인습.",
-      "keyPoints": [
-        "전인습 수준: 당장 자신이 경험하는 결과를 중심으로 판단함",
-        "인습 수준: 타인의 감정을 의식하고 고려하기 시작함",
-        "후인습 수준: 도덕을 추상적인 원칙으로 생각하고, 법적으로 허용되는 행동과 도덕적으로 옳은 행동이 반드시 일치하지는 않음을 인식함"
-      ],
-      "misconceptions": [
-        "쉬운 문제·중간 문제·어려운 문제 같은 난도 구분이 아님",
-        "이름만 외우는 것이 아니라 판단 기준이 어떻게 달라지는지를 설명할 수 있어야 함"
-      ],
-      "related": [
-        "moral-development",
-        "gilligan-critique"
-      ],
-      "source": {
-        "section": "5.1",
-        "lines": [
-          128
-        ],
-        "inEdition": true
-      },
-      "visualId": null
-    },
-    {
-      "conceptId": "gilligan-critique",
-      "termKo": "길리건의 비판",
-      "termEn": "Gilligan's critique",
-      "aliases": [
-        "길리건",
-        "캐럴 길리건",
-        "정의의 관점",
-        "돌봄과 책임의 관점",
-        "Gilligan",
-        "돌봄의 관점"
-      ],
-      "definitionKo": "콜버그의 연구 대상이 남성만이었다는 점을 지적하고, 성별에 따라 도덕 판단 양상이 다르게 나타나는지 연구한 비판.",
-      "keyPoints": [
-        "연구에서 남성은 규칙과 법을 강조하는 정의의 관점, 여성은 타인의 사정과 관계를 고려하는 돌봄과 책임의 관점을 보였다고 보고함",
-        "길리건이 제기한 연구 설계상의 문제와, 그 연구가 보고한 성별 차이는 분리해서 생각해야 함"
-      ],
-      "misconceptions": [
-        "'남성은 정의, 여성은 돌봄으로 판단한다'는 확정된 사실이 아님",
-        "표본 크기가 작았고 보고된 차이가 후속 연구에서 재현되지 않았음"
-      ],
-      "related": [
-        "kohlberg-levels",
-        "gender-socialization"
-      ],
-      "source": {
-        "section": "5.1",
-        "lines": [
-          132
-        ],
-        "inEdition": true
-      },
-      "visualId": null
-    },
-    {
       "conceptId": "gender-socialization",
       "termKo": "성별 사회화",
       "termEn": "gender socialization",
@@ -553,7 +423,6 @@ export default {
         "특정 교육 방식을 정답이라고 선언하는 사례가 아님"
       ],
       "related": [
-        "gilligan-critique",
         "socialization"
       ],
       "source": {
@@ -615,26 +484,23 @@ export default {
     },
     {
       "conceptId": "workplace-socialization",
-      "termKo": "직장 사회화",
+      "termKo": "직장에서의 사회화",
       "termEn": "workplace socialization",
       "aliases": [
-        "온보딩",
-        "조직 사회화",
-        "직장문화"
+        "직장",
+        "조직의 관행",
+        "공식 제도"
       ],
-      "definitionKo": "새 직장에서 업무 도구를 쓰는 방법과 조직의 행동 기대를 함께 배우는 과정.",
+      "definitionKo": "직장에서 업무 방법뿐 아니라 시간을 지키고 조직의 관행을 따르는 방식을 배우는 과정.",
       "keyPoints": [
-        "물질문화와 비물질문화가 모두 관여함",
-        "적응의 책임이 신입 직원에게만 있지 않음",
-        "조직은 온보딩과 사회화 프로그램으로 만족도·생산성·머무르는 정도를 높이려는 노력을 해야 함"
+        "업무 방법을 배움",
+        "시간을 지키는 것도 배움",
+        "조직의 관행을 따르는 방식을 배움"
       ],
-      "misconceptions": [
-        "'새로 온 사람이 알아서 적응해야지'라고만 보면 조직 사회화의 한쪽 면을 놓침"
-      ],
+      "misconceptions": [],
       "related": [
-        "material-culture",
-        "nonmaterial-culture",
-        "agents-of-socialization"
+        "agents-of-socialization",
+        "mass-media"
       ],
       "source": {
         "section": "5.3",
@@ -642,59 +508,6 @@ export default {
           342
         ],
         "inEdition": true
-      },
-      "visualId": null
-    },
-    {
-      "conceptId": "religion-as-agent",
-      "termKo": "종교를 통한 사회화",
-      "termEn": "religion as an agent of socialization",
-      "aliases": [
-        "종교 공동체"
-      ],
-      "definitionKo": "종교 공동체에서 의례와 상징물을 사용하는 방식, 구성원으로 기대되는 역할을 배우는 과정.",
-      "keyPoints": [
-        "교회, 사원, 모스크, 유대교 회당 같은 공동체가 사례",
-        "출생이나 결혼과 관련된 의례가 종교적 행사와 연결되기도 함",
-        "사회적 가치와 일부 성별 규범을 전달하거나 강화할 수 있음"
-      ],
-      "misconceptions": [],
-      "related": [
-        "agents-of-socialization",
-        "gender-socialization"
-      ],
-      "source": {
-        "section": "5.3",
-        "lines": null,
-        "inEdition": false
-      },
-      "visualId": null
-    },
-    {
-      "conceptId": "government-as-agent",
-      "termKo": "정부를 통한 사회화",
-      "termEn": "government as an agent of socialization",
-      "aliases": [
-        "법적 지위",
-        "정부는 법과 제도",
-        "정부가 사회화"
-      ],
-      "definitionKo": "법과 제도를 통해 사람이 새로운 지위를 갖는 시점과 그 지위에서 따라야 할 규칙을 정하는 사회화 경로.",
-      "keyPoints": [
-        "성인·납세자·노인 같은 새로운 범주에 들어갈 때 관련 절차와 역할을 배움",
-        "교재의 성인 연령이나 복지제도는 미국의 사례"
-      ],
-      "misconceptions": [
-        "교재에 나온 미국의 법적 나이나 등록 제도를 한국에 그대로 적용하면 안 됨",
-        "사회학적 개념과 특정 국가의 제도적 조건은 구별해야 함"
-      ],
-      "related": [
-        "agents-of-socialization"
-      ],
-      "source": {
-        "section": "5.3",
-        "lines": null,
-        "inEdition": false
       },
       "visualId": null
     },
@@ -714,7 +527,6 @@ export default {
       "misconceptions": [],
       "related": [
         "agents-of-socialization",
-        "princess-culture",
         "nonmaterial-culture"
       ],
       "source": {
@@ -727,26 +539,86 @@ export default {
       "visualId": null
     },
     {
-      "conceptId": "princess-culture",
-      "termKo": "공주 문화",
-      "termEn": "princess culture",
-      "aliases": [],
-      "definitionKo": "어린 여자아이를 대상으로 하는 영화나 상품이 외모와 성별 역할 기대를 전달할 수 있다는 논의.",
+      "conceptId": "i-and-me",
+      "termKo": "I와 me",
+      "termEn": "'I' and 'me'",
+      "aliases": [
+        "'I'와 'me'",
+        "자아의 두 측면",
+        "주체적 자아",
+        "객체적 자아",
+        "성찰적 자아"
+      ],
+      "definitionKo": "미드가 나눈 자아의 두 측면. 'me'는 타인의 태도와 사회적 기대를 받아들이는 측면이고, 'I'는 그 기대에 자발적으로 반응하는 측면이다.",
       "keyPoints": [
-        "일부 연구자와 부모는 고정관념을 강화할 수 있다고 우려함",
-        "같은 작품을 접해도 다른 놀이와 어른과의 대화를 통해 다양하게 해석할 수 있다는 관점도 있음"
+        "'me': 다른 사람들이 나에게 갖는 태도와 사회적 기대를 받아들이는 측면",
+        "'I': 그 기대에 자발적으로 반응하는 측면",
+        "수업 규칙을 지키려는 태도는 me, 규칙 안에서 자기 질문을 제기하는 반응은 I"
       ],
       "misconceptions": [
-        "'매체가 역할 기대를 전달할 수 있다'는 논점과 '특정 영화를 본 모든 아이가 같은 행동을 하게 된다'는 과장된 주장은 구별해야 함"
+        "사회화가 사람을 똑같이 만드는 과정이라는 뜻이 아님"
       ],
       "related": [
-        "mass-media",
-        "gender-socialization"
+        "self",
+        "mead-stages"
       ],
       "source": {
-        "section": "5.3",
+        "section": "5.1",
         "lines": [
-          352
+          102
+        ],
+        "inEdition": true
+      },
+      "visualId": null
+    },
+    {
+      "conceptId": "rite-of-passage",
+      "termKo": "통과의례",
+      "termEn": "rite of passage",
+      "aliases": [
+        "졸업식"
+      ],
+      "definitionKo": "이전 지위에서 새로운 지위로 이동하는 생애주기 전환을 표시하는 의례.",
+      "keyPoints": [
+        "졸업식처럼 새로운 사회적 지위로의 전환을 상징하는 의식"
+      ],
+      "misconceptions": [],
+      "related": [
+        "anticipatory-socialization",
+        "socialization"
+      ],
+      "source": {
+        "section": "5.4",
+        "lines": [
+          395
+        ],
+        "inEdition": true
+      },
+      "visualId": null
+    },
+    {
+      "conceptId": "individual-agency",
+      "termKo": "개인의 행위주체성",
+      "termEn": "individual agency",
+      "aliases": [
+        "행위주체성"
+      ],
+      "definitionKo": "같은 사회적 기대를 접하더라도 사람마다 다르게 반응할 수 있는 개인의 몫.",
+      "keyPoints": [
+        "사람들은 서로 다른 사회적 환경을 경험함",
+        "같은 기대를 접해도 서로 다르게 반응할 수 있음"
+      ],
+      "misconceptions": [
+        "사회화가 규범을 배우는 과정이라고 해서 모두가 같게 행동하는 것은 아님"
+      ],
+      "related": [
+        "socialization",
+        "nature-nurture"
+      ],
+      "source": {
+        "section": "5.2",
+        "lines": [
+          233
         ],
         "inEdition": true
       },

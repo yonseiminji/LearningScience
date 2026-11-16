@@ -24,8 +24,8 @@ const is = (label, got, want) => {
 const ok = (label, cond) => is(label, Boolean(cond), true)
 
 console.log('\n[A] 지식베이스가 요약 문서의 개념을 담는다')
-// 14 from the summary document, 11 more from lectures 2 and 3.
-is('개념 수', KNOWLEDGE.concepts.length, 25)
+// Scoped to the one transcript now in docs/lectures.
+is('개념 수', KNOWLEDGE.concepts.length, 21)
 ok('모든 개념에 한·영 표제어', KNOWLEDGE.concepts.every((c) => c.termKo && c.termEn))
 ok('모든 개념에 정의', KNOWLEDGE.concepts.every((c) => c.definitionKo?.length > 10))
 // Page numbers are gone: the BCcampus bundle says the uploaded text has no

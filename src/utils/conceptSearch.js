@@ -5,10 +5,10 @@
 
 import KNOWLEDGE from '../data/socialization_knowledge.js'
 
-// Below this, a name is too common to stand on its own. 정부 appears in the
-// moral-development lecture only inside 정부 부패에 항의한 시위 — a real
-// mention of government, and nothing to do with government as an agent of
-// socialization. 자아 and 종교 are the same kind of word.
+// Below this, a name is too common to stand on its own: 자아, 직장 and 종교
+// all appear in passing in sentences about something else, and a passing
+// mention should not open a card explaining a concept the lecture never
+// taught.
 const SHORT_NAME = 3
 
 const WORD = /[가-힣A-Za-z]{2,}/g
