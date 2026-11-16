@@ -16,6 +16,7 @@ export const LINE_H = 18
 export const GAP_X = 18
 export const GAP_Y = 54
 export const MAX_LINE = 11 // characters before wrapping
+export const ROW_H = 24 // a part row inside a concept's box
 
 /**
  * Break a label across lines without splitting a word.
@@ -96,14 +97,25 @@ export function layoutGraph(nodes, edges, { orientation } = {}) {
   const boxes = new Map()
   for (const node of nodes) {
     const lines = wrap(node.label)
-    const width = Math.max(...lines.map((line) => line.length)) * CHAR + PAD_X * 2
+    // A box with parts is a heading over its rows, so it has to be wide
+    // enough for the widest of them too.
+    const parts = (node.parts || []).map((part) => ({ ...part, lines: wrap(part.label, MAX_LINE + 3) }))
+    const widest = Math.max(
+      ...lines.map((line) => line.length),
+      ...parts.flatMap((part) => part.lines.map((line) => line.length)),
+      0,
+    )
+    const head = lines.length * LINE_H + PAD_Y * 2
+    const rows = parts.reduce((sum, part) => sum + Math.max(ROW_H, part.lines.length * LINE_H + 8), 0)
     boxes.set(node.id, {
       id: node.id,
       label: node.label,
       lines,
+      parts,
+      headH: head,
       note: isNoteNode(node.id, edges),
-      w: Math.round(width),
-      h: lines.length * LINE_H + PAD_Y * 2,
+      w: Math.round(widest * CHAR + PAD_X * 2),
+      h: head + rows,
     })
   }
 
@@ -150,25 +162,65 @@ export function layoutGraph(nodes, edges, { orientation } = {}) {
   }
 
   const placed = [...boxes.values()]
-  const lines = edges.map((edge) => {
-    const from = boxes.get(edge.from)
-    const to = boxes.get(edge.to)
-    if (!from || !to) return null
-    const sameLayer = depth.get(edge.from) === depth.get(edge.to)
-    // Side by side when they share a layer, otherwise edge to edge along the
-    // direction the diagram runs.
-    const a = sameLayer
-      ? { x: from.x + from.w, y: from.y + from.h / 2 }
-      : dir === 'TB'
-        ? { x: from.x + from.w / 2, y: from.y + from.h }
-        : { x: from.x + from.w, y: from.y + from.h / 2 }
-    const b = sameLayer
-      ? { x: to.x, y: to.y + to.h / 2 }
-      : dir === 'TB'
-        ? { x: to.x + to.w / 2, y: to.y }
-        : { x: to.x, y: to.y + to.h / 2 }
-    return { ...edge, a, b, sameLayer, mid: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 } }
-  })
+  const lines = edges.map((edge) => elbow(edge, boxes, depth, dir)).filter(Boolean)
 
-  return { orientation: dir, width: Math.round(width), height: Math.round(height), nodes: placed, edges: lines.filter(Boolean) }
+  return { orientation: dir, width: Math.round(width), height: Math.round(height), nodes: placed, edges: lines }
+}
+
+/**
+ * Right angles rather than a diagonal.
+ *
+ * Five agents converging on 사회화 as five slanted lines is a starburst, and
+ * at a glance the slant reads as meaning — steeper looks stronger. An L drops
+ * straight down, turns once, and arrives square, so every edge looks alike
+ * and only the line's style says what kind it is.
+ */
+function elbow(edge, boxes, depth, dir) {
+  const from = boxes.get(edge.from)
+  const to = boxes.get(edge.to)
+  if (!from || !to) return null
+  const sameLayer = depth.get(edge.from) === depth.get(edge.to)
+
+  let points
+  if (sameLayer) {
+    const leftFirst = from.x <= to.x
+    const a = { x: leftFirst ? from.x + from.w : from.x, y: from.y + from.h / 2 }
+    const b = { x: leftFirst ? to.x : to.x + to.w, y: to.y + to.h / 2 }
+    points = a.y === b.y ? [a, b] : [a, { x: (a.x + b.x) / 2, y: a.y }, { x: (a.x + b.x) / 2, y: b.y }, b]
+  } else if (dir === 'TB') {
+    const a = { x: from.x + from.w / 2, y: from.y + from.h }
+    const b = { x: to.x + to.w / 2, y: to.y }
+    const mid = (a.y + b.y) / 2
+    points = a.x === b.x ? [a, b] : [a, { x: a.x, y: mid }, { x: b.x, y: mid }, b]
+  } else {
+    const a = { x: from.x + from.w, y: from.y + from.h / 2 }
+    const b = { x: to.x, y: to.y + to.h / 2 }
+    const mid = (a.x + b.x) / 2
+    points = a.y === b.y ? [a, b] : [a, { x: mid, y: a.y }, { x: mid, y: b.y }, b]
+  }
+
+  return { ...edge, points, sameLayer, label: labelAt(points) }
+}
+
+/**
+ * Where the label sits: above a horizontal run, to the left of a vertical one.
+ * Picking the longest segment keeps it off the corners.
+ */
+function labelAt(points) {
+  let best = { len: -1 }
+  for (let at = 0; at < points.length - 1; at += 1) {
+    const a = points[at]
+    const b = points[at + 1]
+    const horizontal = Math.abs(b.x - a.x) >= Math.abs(b.y - a.y)
+    const len = horizontal ? Math.abs(b.x - a.x) : Math.abs(b.y - a.y)
+    if (len > best.len) {
+      best = {
+        len,
+        horizontal,
+        x: (a.x + b.x) / 2 + (horizontal ? 0 : -6),
+        y: (a.y + b.y) / 2 + (horizontal ? -5 : 0),
+      }
+    }
+  }
+  return { x: best.x, y: best.y, anchor: best.horizontal ? 'middle' : 'end' }
 }

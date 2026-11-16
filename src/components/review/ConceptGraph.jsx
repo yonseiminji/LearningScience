@@ -63,22 +63,21 @@ export default function ConceptGraph({ graph, caveat }) {
               const stroke = TONE[style.tone] || TONE.ink
               return (
                 <g key={edge.relationId}>
-                  <line
-                    x1={edge.a.x}
-                    y1={edge.a.y}
-                    x2={edge.b.x}
-                    y2={edge.b.y}
+                  <polyline
+                    points={edge.points.map((point) => `${point.x},${point.y}`).join(' ')}
+                    fill="none"
                     stroke={stroke}
                     strokeWidth={style.width}
                     strokeDasharray={style.dash || undefined}
+                    strokeLinejoin="round"
                     markerEnd={head}
                     opacity={edge.type === 'DEFINED_AS' ? 0.55 : 0.85}
                   />
                   {style.label ? (
                     <text
-                      x={edge.mid.x}
-                      y={edge.mid.y - 4}
-                      textAnchor="middle"
+                      x={edge.label.x}
+                      y={edge.label.y}
+                      textAnchor={edge.label.anchor}
                       className={style.tone === 'warn' ? 'concept-graph-edge-label is-contrast' : 'concept-graph-edge-label'}
                     >
                       {style.label}
@@ -88,25 +87,48 @@ export default function ConceptGraph({ graph, caveat }) {
               )
             })}
 
-            {laid.nodes.map((node) => (
-              <g key={node.id}>
-                <rect
-                  x={node.x}
-                  y={node.y}
-                  width={node.w}
-                  height={node.h}
-                  rx="8"
-                  className={node.note ? 'concept-graph-note' : 'concept-graph-box'}
-                />
-                <text x={node.x + node.w / 2} y={node.y + 14} textAnchor="middle" className="concept-graph-label">
-                  {node.lines.map((line, at) => (
-                    <tspan key={line} x={node.x + node.w / 2} dy={at === 0 ? 4 : 18}>
-                      {line}
-                    </tspan>
-                  ))}
-                </text>
-              </g>
-            ))}
+            {laid.nodes.map((node) => {
+              const mid = node.x + node.w / 2
+              let rowTop = node.y + node.headH
+              return (
+                <g key={node.id}>
+                  <rect
+                    x={node.x}
+                    y={node.y}
+                    width={node.w}
+                    height={node.h}
+                    rx="8"
+                    className={node.note ? 'concept-graph-note' : 'concept-graph-box'}
+                  />
+                  <text x={mid} y={node.y + 14} textAnchor="middle" className="concept-graph-label">
+                    {node.lines.map((line, at) => (
+                      <tspan key={line} x={mid} dy={at === 0 ? 4 : 18}>
+                        {line}
+                      </tspan>
+                    ))}
+                  </text>
+
+                  {/* Parts of the concept, as rows under its heading. */}
+                  {node.parts.map((part) => {
+                    const h = Math.max(24, part.lines.length * 18 + 8)
+                    const top = rowTop
+                    rowTop += h
+                    return (
+                      <g key={part.relationId}>
+                        <rect x={node.x} y={top} width={node.w} height={h} className="concept-graph-part" />
+                        <text x={mid} y={top + 11} textAnchor="middle" className="concept-graph-part-label">
+                          {part.lines.map((line, at) => (
+                            <tspan key={line} x={mid} dy={at === 0 ? 4 : 18}>
+                              {line}
+                            </tspan>
+                          ))}
+                        </text>
+                      </g>
+                    )
+                  })}
+                </g>
+              )
+            })}
           </g>
         </svg>
       </div>
@@ -123,6 +145,12 @@ export default function ConceptGraph({ graph, caveat }) {
       ) : null}
 
       <ul className="concept-graph-key">
+        {graph.nodes.some((node) => node.parts?.length) ? (
+          <li>
+            <b>부분</b>
+            상자 안의 칸은 그 개념을 이루는 부분이에요
+          </li>
+        ) : null}
         {graph.types.map((type) => (
           <li key={type}>
             <b>{STYLE[type]?.label || type}</b>

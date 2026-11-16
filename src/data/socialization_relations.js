@@ -372,6 +372,29 @@ export default {
       "isCausalClaim": false
     },
     {
+      "id": "REL-30",
+      "category": "미드 발달",
+      "subjectKo": "놀이 단계",
+      "relationKo": "이어서 진행",
+      "objectKo": "게임 단계",
+      "expressionEn": "followed by",
+      "evidenceEn": "This is followed by the play stage",
+      "sourcePages": [
+        121
+      ],
+      "diagramIds": [
+        "mead"
+      ],
+      "provenance": "direct",
+      "notes": "체인의 빠진 연결을 메우기 위해 추가. 근거는 REL-13·REL-16과 같은 121쪽 단계 서술.",
+      "relationType": "PRECEDES",
+      "direction": "subject_to_object",
+      "evidenceStatus": "source_anchored_interpreted",
+      "semanticNote": "놀이 단계에서 게임 단계로 이어지는 발달상 순서; 인과 아님",
+      "diagramHint": "순차형 체인",
+      "isCausalClaim": false
+    },
+    {
       "id": "REL-14",
       "category": "미드 발달",
       "subjectKo": "놀이 단계",

@@ -8,7 +8,7 @@
 // link missing rather than closed on our say-so.
 
 import LEXICON from '../../data/socialization_relations.js'
-import { LIST_TAIL, isListed } from './relationStyle.js'
+import { LIST_TAIL, isListed, isPart } from './relationStyle.js'
 
 export const DIAGRAMS = [
   { diagramId: 'agents', title: '사회화 기관', conceptIds: ['socialization', 'agents-of-socialization', 'peer-group'] },
@@ -59,8 +59,17 @@ export function graphFor(diagramId) {
       pages: row.sourcePages || [],
     }))
 
+  // Parts become rows inside their whole's box, so they are neither a line
+  // nor a list item; the whole keeps its place in the graph.
+  const parts = new Map()
+  for (const row of rows.filter((row) => isPart(row.relationType))) {
+    const into = parts.get(row.objectKo) || []
+    into.push({ label: row.subjectKo, relationId: row.id, pages: row.sourcePages || [] })
+    parts.set(row.objectKo, into)
+  }
+
   const edges = rows
-    .filter((row) => !isListed(row.relationType))
+    .filter((row) => !isListed(row.relationType) && !isPart(row.relationType))
     .map((row) => ({
       from: add(row.subjectKo),
       to: add(row.objectKo),
@@ -71,11 +80,14 @@ export function graphFor(diagramId) {
       note: row.semanticNote || '',
     }))
 
+  // A whole with no other relation would otherwise never get a box.
+  for (const whole of parts.keys()) add(whole)
+
   const meta = DIAGRAMS.find((item) => item.diagramId === diagramId)
   return {
     diagramId,
     title: meta?.title || diagramId,
-    nodes: [...seen.values()],
+    nodes: [...seen.values()].map((node) => ({ ...node, parts: parts.get(node.id) || [] })),
     edges,
     listed,
     pages: [...new Set(rows.flatMap((row) => row.sourcePages || []))].sort((a, b) => a - b),
@@ -98,5 +110,8 @@ export function describeGraph(graph) {
   }
   const drawn = graph.edges.map((edge) => `${edge.from}은(는) ${edge.to}${say[edge.type] || '와 이어져요'}.`)
   const extra = (graph.listed || []).map((item) => `${item.subject}은(는) ${item.object}${say[item.type] || '와 이어져요'}.`)
-  return [...drawn, ...extra].join(' ')
+  const inner = graph.nodes
+    .filter((node) => node.parts?.length)
+    .map((node) => `${node.label}은(는) ${node.parts.map((part) => part.label).join(', ')}(으)로 이루어져요.`)
+  return [...drawn, ...inner, ...extra].join(' ')
 }

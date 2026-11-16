@@ -257,3 +257,7 @@
 .concept-graph-key { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0; padding: 0; list-style: none; }
 .concept-graph-key li { color: var(--muted); font-size: 12px; }
 .concept-graph-key b { margin-right: 4px; color: var(--text-2); font-weight: 600; }
+
+/* A part sits inside its whole, in its own row, in its own colour. */
+.concept-graph-part { fill: var(--chip); stroke: var(--line); stroke-width: 1; }
+.concept-graph-part-label { fill: var(--text-2); font-size: 12px; }

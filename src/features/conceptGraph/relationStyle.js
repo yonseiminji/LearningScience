@@ -45,22 +45,32 @@ export const STYLE = {
  * same goes for a kind and a part. These read better as a line of text, which
  * also keeps the drawn graph down to what actually has a shape.
  */
-export const LISTED = ['IS_A', 'PART_OF', 'EXAMPLE_OF']
+export const LISTED = ['IS_A', 'EXAMPLE_OF']
 
 export const LIST_PREFIX = {
   EXAMPLE_OF: 'Ex.',
   IS_A: '종류',
-  PART_OF: '부분',
 }
 
 export const LIST_TAIL = {
   EXAMPLE_OF: '의 사례',
   IS_A: '의 한 종류',
-  PART_OF: '의 한 부분',
 }
 
 export function isListed(type) {
   return LISTED.includes(type)
+}
+
+/**
+ * PART_OF is neither a line nor a list item: it is the inside of a box.
+ *
+ * 재사회화 is not next to 기존 행동을 버리는 과정 and it is not caused by it —
+ * that process is part of what the word means. Drawn as rows under the
+ * concept's own heading, the way an entity carries its fields, the whole and
+ * its parts stay one thing on the page.
+ */
+export function isPart(type) {
+  return type === 'PART_OF'
 }
 
 /** A DEFINED_AS target is a gloss, not a concept, and is drawn as one. */
