@@ -1,29 +1,31 @@
 import { renderToStaticMarkup } from 'react-dom/server'
-import RecallFirst from '/home/claude/learningscience/src/components/review/RecallFirst.jsx'
-import ConceptPanel from '/home/claude/learningscience/src/components/review/ConceptPanel.jsx'
-import K from '/home/claude/learningscience/src/data/socialization_knowledge.js'
-const c = K.concepts.find(x => x.conceptId === 'socialization')
+import RecallPanel from '/home/claude/learningscience/src/components/review/RecallPanel.jsx'
+import R from '/home/claude/learningscience/src/data/socialization_rubric.js'
 let bad = 0
-const chk = (l, cond) => { console.log(`${cond?'PASS':'FAIL'}  ${l}`); if (!cond) bad++ }
+const chk = (l, c) => { console.log(`${c?'PASS':'FAIL'}  ${l}`); if (!c) bad++ }
+const ask = renderToStaticMarkup(<RecallPanel onSubmit={()=>{}} onAgain={()=>{}} />)
+chk('빈 화면: 통 인출 요청', ask.includes('기억나는 걸 전부 적어'))
+chk('빈 화면: 루브릭 항목이 안 보임', !ask.includes(R.items[0].statement))
+chk('빈 화면: 강의 다시 보지 말라고', ask.includes('강의를 다시 보지 말고'))
 
-const ask = renderToStaticMarkup(<RecallFirst concept={c} onSubmit={()=>{}} onSkip={()=>{}} />)
-chk('물어보는 화면: 곰곰이 호출', ask.includes('곰곰이한테 설명해 볼까요'))
-chk('물어보는 화면: 정의가 안 보임', !ask.includes(c.definitionKo))
-chk('물어보는 화면: 핵심 항목도 안 보임', !ask.includes(c.keyPoints[0]))
-chk('물어보는 화면: 건너뛰기 있음', ask.includes('건너뛰고'))
-chk('물어보는 화면: 안심 문구', ask.includes('맞게 쓰지 않아도 괜찮아요'))
-
-const res = renderToStaticMarkup(<RecallFirst concept={c} result={{
-  covered: [c.keyPoints[0]], missing: [c.keyPoints[1], c.keyPoints[2]],
-  conflict: '', nudge: '좋아요. 문화가 이어지는 쪽도 떠올려 볼까요?', attempt: '사회에서 사는 법 배우기' }} />)
-chk('결과: 도달한 항목', res.includes(c.keyPoints[0]))
-chk('결과: 남은 항목', res.includes(c.keyPoints[1]))
-chk('결과: 내가 쓴 설명 보존', res.includes('사회에서 사는 법 배우기'))
-chk('결과: 점수/개수 없음', !/\d+\s*(개|점)/.test(res.replace(/<[^>]+>/g,'')))
-chk('결과: 정답·틀림 표현 없음', !res.includes('정답') && !res.includes('틀렸'))
-
-// the stale-result bug
-const base = { material: { materialId: 'f', chunks: [] }, chunks: [{ chunkId:'c1', text:'사회화는 과정입니다. 또래집단도 나옵니다.' }], onExplain(){}, onDiagram(){}, onRecall(){} }
-const stale = renderToStaticMarkup(<ConceptPanel {...base} recall={{ conceptId: 'peer-group', covered: [], missing: [], attempt: 'x' }} />)
-chk('다른 개념 결과가 있어도 화면이 비지 않음', stale.includes('기억에서 꺼내 보는 연습') || stale.includes('곰곰이한테'))
+const pick = (i) => ({ id: R.items[i].id, statement: R.items[i].statement, conceptId: R.items[i].conceptId, weight: R.items[i].weight })
+const res = renderToStaticMarkup(<RecallPanel onAgain={()=>{}} result={{
+  title: R.title, note: R.note,
+  covered: [pick(0)], partial: [pick(3)], missing: [pick(10), pick(15)],
+  mixups: [{ said: '사회화는 친구를 많이 사귀는 것', instead: '사회화는 규범과 기대를 배우는 과정이에요' }],
+  nudge: '규범 이야기를 잘 적으셨어요. 자아 쪽도 떠올려 볼까요?', attempt: '사회화는 규범을 배우는 것',
+}} />)
+for (const [l, s, w] of [
+  ['도달', R.items[0].statement, true],
+  ['일부', R.items[3].statement, true],
+  ['남음', R.items[10].statement, true],
+  ['잘못 안 것: 쓴 말', '친구를 많이 사귀는 것', true],
+  ['잘못 안 것: 강의 내용', '규범과 기대를 배우는 과정', true],
+  ['내가 적은 글', '사회화는 규범을 배우는 것', true],
+  ['다시 해 보기', '다시 해 보기', true],
+  ['점수 없음', '점', false],
+  ['개수 없음', '개 중', false],
+  ['정답 표현 없음', '정답', false],
+  ['틀림 표현 없음', '틀렸', false],
+]) { const hit = res.includes(s) === w; console.log(`${hit?'PASS':'FAIL'}  ${l}`); if (!hit) bad++ }
 process.exitCode = bad ? 1 : 0

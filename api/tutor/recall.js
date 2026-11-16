@@ -1,32 +1,43 @@
-// POST /api/tutor/recall — 곰곰이한테 설명하기
+// POST /api/tutor/recall — 통 인출 대조
 //
-// The learner wrote an explanation from memory with the definition hidden.
-// This reads it back against the concept's own key points and reports which
-// ones it can find. It is deliberately not marking: no score comes back, and
-// the screen that shows the result shows the textbook definition beside it,
-// so what the learner gets is the gap rather than a verdict.
+// The learner wrote down everything they could remember of the lecture, with
+// the transcript closed. This reads it against the rubric and reports which
+// statements it can find.
 //
-// What the model may decide is narrow — which of a numbered list it can find
-// — and everything it returns is checked against what was sent. An index for
-// a point that does not exist never reaches the screen, and `missing` is
-// worked out here rather than accepted, so the two halves cannot disagree.
+// It is deliberately not marking. No score comes back and none can: the
+// response has no field for one, the prompt forbids the vocabulary, and what
+// the screen shows is the statements reached and the statements still to
+// reach, in the lecture's own words.
+//
+// What the model may decide is narrow — membership of a closed, numbered list
+// — and everything it returns is checked against what was sent. An id for a
+// statement that does not exist never reaches the screen, and `missing` is
+// worked out here rather than accepted, so the parts cannot disagree.
 
 import { Type } from '@google/genai'
 import { ApiError, generateJson, handler, sendJson } from '../_lib/gemini.js'
 import { SYSTEM, prompt } from '../_lib/prompts/recall.js'
 import { checkRate, requireString } from '../_lib/limit.js'
-import { findConcept } from '../_lib/socialization.js'
+import RUBRIC from '../../src/data/socialization_rubric.js'
 
-const MAX_ATTEMPT = 1200
+const MAX_ATTEMPT = 4000
 
 const SCHEMA = {
   type: Type.OBJECT,
   properties: {
-    covered: { type: Type.ARRAY, items: { type: Type.INTEGER } },
-    conflict: { type: Type.STRING },
+    covered: { type: Type.ARRAY, items: { type: Type.STRING } },
+    partial: { type: Type.ARRAY, items: { type: Type.STRING } },
+    mixups: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: { said: { type: Type.STRING }, instead: { type: Type.STRING } },
+        required: ['said', 'instead'],
+      },
+    },
     nudge: { type: Type.STRING },
   },
-  required: ['covered', 'conflict', 'nudge'],
+  required: ['covered', 'partial', 'mixups', 'nudge'],
 }
 
 export default handler(async (request, response) => {
@@ -34,46 +45,46 @@ export default handler(async (request, response) => {
   const body = request.body || {}
 
   requireString(body.materialId, 'materialId', { max: 120 })
-  const conceptId = requireString(body.conceptId, 'conceptId', { max: 80 })
   const attempt = requireString(body.attempt, 'attempt', { max: MAX_ATTEMPT })
 
-  const concept = findConcept(conceptId)
-  if (!concept) throw new ApiError(400, `다루지 않는 개념이에요: ${conceptId}`)
-
-  const keyPoints = concept.keyPoints || []
-  if (keyPoints.length === 0) {
-    throw new ApiError(409, '이 개념에는 아직 대조할 핵심 항목이 없어요.')
+  const rubricId = body.rubricId || RUBRIC.rubricId
+  if (rubricId !== RUBRIC.rubricId) {
+    throw new ApiError(400, '이 강의에는 아직 대조할 항목이 없어요.')
   }
 
   const data = await generateJson({
     systemInstruction: SYSTEM,
-    prompt: prompt({
-      termKo: concept.termKo,
-      definitionKo: concept.definitionKo,
-      keyPoints,
-      attempt,
-    }),
+    prompt: prompt({ rubricTitle: RUBRIC.title, items: RUBRIC.items, attempt }),
     responseSchema: SCHEMA,
-    maxOutputTokens: 600,
+    maxOutputTokens: 1400,
   })
 
-  // Only indices that exist, each once, in the order the points are listed.
-  const covered = [...new Set(data.covered || [])]
-    .filter((at) => Number.isInteger(at) && at >= 0 && at < keyPoints.length)
-    .sort((a, b) => a - b)
-  const missing = keyPoints.map((_, at) => at).filter((at) => !covered.includes(at))
+  const byId = new Map(RUBRIC.items.map((item) => [item.id, item]))
+  const keep = (ids) => [...new Set(ids || [])].filter((id) => byId.has(id))
+
+  const covered = keep(data.covered)
+  // A statement cannot be both reached and half-reached; the fuller reading
+  // of the learner's own words wins.
+  const partial = keep(data.partial).filter((id) => !covered.includes(id))
+  const missing = RUBRIC.items.map((item) => item.id).filter((id) => !covered.includes(id) && !partial.includes(id))
+
+  const out = (ids) =>
+    ids.map((id) => {
+      const item = byId.get(id)
+      return { id, statement: item.statement, conceptId: item.conceptId, weight: item.weight }
+    })
 
   sendJson(response, 200, {
-    conceptId,
-    // Text, not indices, so the screen never has to look anything up.
-    covered: covered.map((at) => keyPoints[at]),
-    missing: missing.map((at) => keyPoints[at]),
-    conflict: String(data.conflict || '').slice(0, 200),
-    nudge: String(data.nudge || '').slice(0, 120),
-    // The definition travels with the result: this is the moment it stops
-    // being hidden, and it should not need a second request to appear.
-    definitionKo: concept.definitionKo,
-    misconceptions: concept.misconceptions || [],
-    sourceLabel: `OpenStax ${concept.source.section}절 ${concept.source.pages}쪽`,
+    rubricId: RUBRIC.rubricId,
+    title: RUBRIC.title,
+    note: RUBRIC.note,
+    covered: out(covered),
+    partial: out(partial),
+    missing: out(missing),
+    mixups: (data.mixups || [])
+      .filter((item) => item && typeof item.said === 'string' && typeof item.instead === 'string')
+      .slice(0, 4)
+      .map((item) => ({ said: item.said.slice(0, 160), instead: item.instead.slice(0, 200) })),
+    nudge: String(data.nudge || '').slice(0, 140),
   })
 })

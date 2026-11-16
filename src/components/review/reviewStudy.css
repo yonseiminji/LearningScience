@@ -300,5 +300,14 @@
 .recall-points .is-covered { color: var(--ink); }
 .recall-points .is-covered svg { color: var(--done); }
 .recall-points .is-missing { color: var(--muted); }
+.recall-points .is-partial { color: var(--text-2); }
+.recall-points .is-partial svg { color: var(--soon); }
+.recall-points em { margin-left: 4px; color: var(--muted); font-size: 12px; font-style: normal; }
+
+.recall-mixups { display: grid; gap: 6px; padding: 10px 12px; border: 1px solid var(--confuse); border-radius: 10px; }
+.recall-mixups ul { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.recall-mixups li { display: grid; gap: 2px; font-size: 13px; line-height: 1.5; }
+.recall-said { color: var(--muted); text-decoration: line-through; }
+.recall-instead { color: var(--ink); font-weight: 600; }
 .recall-mine { margin: 0; padding: 10px; border-radius: 8px; background: var(--hover); color: var(--text-2); font-size: 13px; line-height: 1.6; }
 .recall-mine b { display: block; margin-bottom: 3px; color: var(--muted); font-size: 11px; font-weight: 700; }
