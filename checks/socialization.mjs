@@ -28,7 +28,11 @@ console.log('\n[A] 지식베이스가 요약 문서의 개념을 담는다')
 is('개념 수', KNOWLEDGE.concepts.length, 25)
 ok('모든 개념에 한·영 표제어', KNOWLEDGE.concepts.every((c) => c.termKo && c.termEn))
 ok('모든 개념에 정의', KNOWLEDGE.concepts.every((c) => c.definitionKo?.length > 10))
-ok('모든 개념에 원전 절·쪽', KNOWLEDGE.concepts.every((c) => c.source?.section && c.source?.pages))
+// Page numbers are gone: the BCcampus bundle says the uploaded text has no
+// page boundaries and that it did not guess labels, so citations are by
+// section and line.
+ok('모든 개념에 원전 절', KNOWLEDGE.concepts.every((c) => c.source?.section))
+ok('교재에 있는 개념에는 행 번호', KNOWLEDGE.concepts.filter((c) => c.source.inEdition !== false).every((c) => c.source.lines?.length))
 ok('conceptId 중복 없음', new Set(conceptIds()).size === KNOWLEDGE.concepts.length)
 ok('related 가 전부 실재하는 개념', KNOWLEDGE.concepts.every((c) => (c.related || []).every(findConcept)))
 ok('visualId 가 전부 실재하는 도식', KNOWLEDGE.concepts.every((c) => !c.visualId || findVisual(c.visualId)))

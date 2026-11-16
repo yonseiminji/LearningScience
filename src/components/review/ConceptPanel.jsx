@@ -115,7 +115,9 @@ export default function ConceptPanel({
               </p>
             ) : null}
             <p className="concept-source">
-              OpenStax Introduction to Sociology 3e · {concept.source.section}절 {concept.source.pages}쪽
+              {concept.source.inEdition === false
+                ? `${KNOWLEDGE.scope.publisher} ${KNOWLEDGE.scope.book} · 이 판에서는 따로 다루지 않아요`
+                : `${KNOWLEDGE.scope.publisher} ${KNOWLEDGE.scope.book} · §${concept.source.section}`}
             </p>
           </div>
 

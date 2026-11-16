@@ -8,13 +8,16 @@
 export default {
   "materialId": "demo-socialization",
   "scope": {
-    "book": "Introduction to Sociology 3e",
-    "publisher": "OpenStax",
+    "book": "Introduction to Sociology – 3rd Canadian Edition",
+    "author": "William Little",
+    "publisher": "BCcampus",
+    "year": 2023,
     "chapter": 5,
-    "pages": "117–139",
-    "license": "CC BY-NC-SA 4.0",
+    "sourceUrl": "https://opentextbc.ca/introductiontosociology3rdedition/",
+    "licence": "CC BY 4.0 (일부 제3자 자료는 별도 권리)",
+    "pages": "인쇄 쪽수는 확인되지 않아 인용하지 않습니다. 절과 행 번호로 표시해요.",
     "note": "Chapter 5 사회화를 다룹니다. 업로드한 강의 전사문에 나오는 개념만 화면에 보여요.",
-    "derivedFrom": "socialization_concept_summary_ko.md + 강의 전사문 3편"
+    "derivedFrom": "bccampus_socialization_ch05_ko.js (543 blocks, 47 terms)"
   },
   "concepts": [
     {
@@ -22,7 +25,9 @@ export default {
       "termKo": "사회화",
       "termEn": "socialization",
       "aliases": [
-        "사회화 과정"
+        "사회화 과정",
+        "생애과정",
+        "동조"
       ],
       "definitionKo": "사람이 사회의 규범과 기대를 이해하고, 신념을 받아들이며, 가치를 인식하게 되는 과정.",
       "keyPoints": [
@@ -40,8 +45,11 @@ export default {
         "self"
       ],
       "source": {
-        "section": "5.2",
-        "pages": "119, 136"
+        "section": "5.0",
+        "lines": [
+          1
+        ],
+        "inEdition": true
       },
       "visualId": "agents-of-socialization-v1"
     },
@@ -51,7 +59,11 @@ export default {
       "termEn": "self",
       "aliases": [
         "자아 발달",
-        "self-development"
+        "self-development",
+        "성찰적 자아",
+        "주체적 자아",
+        "객체적 자아",
+        "사회적 구조로서의 자아"
       ],
       "definitionKo": "사회적 상호작용을 통해 발달한 개인의 구별되는 정체성 감각.",
       "keyPoints": [
@@ -67,8 +79,11 @@ export default {
         "mead-stages"
       ],
       "source": {
-        "section": "5.1",
-        "pages": "119–122, 136"
+        "section": "5.0",
+        "lines": [
+          7
+        ],
+        "inEdition": true
       },
       "visualId": "mead-self-development-v1"
     },
@@ -78,7 +93,8 @@ export default {
       "termEn": "looking-glass self",
       "aliases": [
         "쿨리의 거울 자아",
-        "Cooley"
+        "Cooley",
+        "거울 속 자아"
       ],
       "definitionKo": "개인이 다른 사람이 자신을 어떻게 바라보고 반응한다고 생각하는지를 통해 자신을 이해한다는 쿨리(Cooley)의 개념.",
       "keyPoints": [
@@ -94,7 +110,10 @@ export default {
       ],
       "source": {
         "section": "5.1",
-        "pages": "120–121"
+        "lines": [
+          60
+        ],
+        "inEdition": true
       },
       "visualId": null
     },
@@ -113,8 +132,11 @@ export default {
         "self"
       ],
       "source": {
-        "section": "5.1",
-        "pages": "120–121"
+        "section": "5.R",
+        "lines": [
+          480
+        ],
+        "inEdition": true
       },
       "visualId": null
     },
@@ -139,7 +161,10 @@ export default {
       ],
       "source": {
         "section": "5.1",
-        "pages": "121, 136"
+        "lines": [
+          122
+        ],
+        "inEdition": true
       },
       "visualId": "mead-self-development-v1"
     },
@@ -151,7 +176,8 @@ export default {
         "준비 단계",
         "놀이 단계",
         "게임 단계",
-        "Mead"
+        "Mead",
+        "역할 취하기"
       ],
       "definitionKo": "준비 단계, 놀이 단계, 게임 단계를 거쳐 일반화된 타자를 이해하게 되는 자아 발달의 단계적 설명.",
       "keyPoints": [
@@ -169,7 +195,10 @@ export default {
       ],
       "source": {
         "section": "5.1",
-        "pages": "121"
+        "lines": [
+          109
+        ],
+        "inEdition": true
       },
       "visualId": "mead-self-development-v1"
     },
@@ -181,7 +210,8 @@ export default {
         "본성",
         "양육",
         "nature",
-        "nurture"
+        "nurture",
+        "본성 대 양육"
       ],
       "definitionKo": "본성은 자아 발달에 작용하는 유전적 구성과 생물학적 영향이고, 양육은 자아 발달에 작용하는 사회적 환경의 영향이다.",
       "keyPoints": [
@@ -198,7 +228,10 @@ export default {
       ],
       "source": {
         "section": "5.2",
-        "pages": "122–125, 136"
+        "lines": [
+          194
+        ],
+        "inEdition": true
       },
       "visualId": null
     },
@@ -207,7 +240,9 @@ export default {
       "termKo": "사회화 기관",
       "termEn": "agents of socialization",
       "aliases": [
-        "사회화 경로"
+        "사회화 경로",
+        "사회화 주체",
+        "공식 제도"
       ],
       "definitionKo": "개인이 규범·가치·행동 기대를 배우는 데 영향을 미치는 사람, 집단, 제도.",
       "keyPoints": [
@@ -226,8 +261,11 @@ export default {
         "hidden-curriculum"
       ],
       "source": {
-        "section": "5.3",
-        "pages": "125–131"
+        "section": "5.0",
+        "lines": [
+          16
+        ],
+        "inEdition": true
       },
       "visualId": "agents-of-socialization-v1"
     },
@@ -235,7 +273,9 @@ export default {
       "conceptId": "peer-group",
       "termKo": "또래집단",
       "termEn": "peer group",
-      "aliases": [],
+      "aliases": [
+        "동년배 집단"
+      ],
       "definitionKo": "연령과 사회적 지위가 비슷하고 관심사를 공유하는 사람들의 집단.",
       "keyPoints": [
         "비슷한 연령·지위의 구성원과 상호작용하며 기대와 규범을 익힘"
@@ -245,8 +285,11 @@ export default {
         "agents-of-socialization"
       ],
       "source": {
-        "section": "5.3",
-        "pages": "136"
+        "section": "5.0",
+        "lines": [
+          18
+        ],
+        "inEdition": true
       },
       "visualId": "agents-of-socialization-v1"
     },
@@ -255,7 +298,8 @@ export default {
       "termKo": "잠재적 교육과정",
       "termEn": "hidden curriculum",
       "aliases": [
-        "학교의 비공식적 가르침"
+        "학교의 비공식적 가르침",
+        "숨은 교육과정"
       ],
       "definitionKo": "학교에서 공식 교과 내용과 별개로 일어나는 비공식적 가르침. 사회 규범을 익히도록 한다.",
       "keyPoints": [
@@ -274,7 +318,10 @@ export default {
       ],
       "source": {
         "section": "5.3",
-        "pages": "128–129, 136"
+        "lines": [
+          319
+        ],
+        "inEdition": true
       },
       "visualId": "hidden-curriculum-v1"
     },
@@ -282,7 +329,9 @@ export default {
       "conceptId": "anticipatory-socialization",
       "termKo": "예기 사회화",
       "termEn": "anticipatory socialization",
-      "aliases": [],
+      "aliases": [
+        "예상 사회화"
+      ],
       "definitionKo": "미래에 맡게 될 사회적 역할을 준비하며 필요한 행동과 기대를 미리 배우는 과정.",
       "keyPoints": [
         "핵심은 아직 맡지 않은 역할에 대한 선행 학습"
@@ -296,7 +345,10 @@ export default {
       ],
       "source": {
         "section": "5.4",
-        "pages": "136"
+        "lines": [
+          401
+        ],
+        "inEdition": true
       },
       "visualId": "socialization-comparison-v1"
     },
@@ -319,8 +371,11 @@ export default {
         "total-institution"
       ],
       "source": {
-        "section": "5.4",
-        "pages": "133–136"
+        "section": "5.0",
+        "lines": [
+          23
+        ],
+        "inEdition": true
       },
       "visualId": "socialization-comparison-v1"
     },
@@ -328,7 +383,10 @@ export default {
       "conceptId": "total-institution",
       "termKo": "총체적 시설",
       "termEn": "total institution",
-      "aliases": [],
+      "aliases": [
+        "전체 시설",
+        "총체적 기관"
+      ],
       "definitionKo": "구성원의 일상생활을 폭넓게 통제하는 제도적 환경.",
       "keyPoints": [
         "재사회화의 강도 높은 맥락으로 논의됨"
@@ -339,8 +397,11 @@ export default {
         "degradation-ceremony"
       ],
       "source": {
-        "section": "5.4",
-        "pages": "131–136"
+        "section": "5.2",
+        "lines": [
+          235
+        ],
+        "inEdition": true
       },
       "visualId": null
     },
@@ -348,7 +409,11 @@ export default {
       "conceptId": "degradation-ceremony",
       "termKo": "정체성 박탈 의례",
       "termEn": "degradation ceremony",
-      "aliases": [],
+      "aliases": [
+        "지위 박탈 의례",
+        "지위 강등 의례",
+        "인격 박탈 의례"
+      ],
       "definitionKo": "총체적 시설에 새로 들어온 구성원의 기존 정체성 일부를 제거하고 새로운 정체성을 부여하는 과정.",
       "keyPoints": [],
       "misconceptions": [],
@@ -358,7 +423,10 @@ export default {
       ],
       "source": {
         "section": "5.4",
-        "pages": "136"
+        "lines": [
+          435
+        ],
+        "inEdition": true
       },
       "visualId": null
     },
@@ -366,7 +434,9 @@ export default {
       "conceptId": "moral-development",
       "termKo": "도덕 발달",
       "termEn": "moral development",
-      "aliases": [],
+      "aliases": [
+        "도덕성 발달"
+      ],
       "definitionKo": "무엇이 옳고 그른지 판단하는 방식이 발달하는 과정. 사회화의 한 측면이다.",
       "keyPoints": [
         "규칙을 외우는 일이 아님",
@@ -382,7 +452,10 @@ export default {
       ],
       "source": {
         "section": "5.1",
-        "pages": "121–122"
+        "lines": [
+          128
+        ],
+        "inEdition": true
       },
       "visualId": null
     },
@@ -397,7 +470,10 @@ export default {
         "후인습 수준",
         "preconventional",
         "conventional",
-        "postconventional"
+        "postconventional",
+        "전인습적 수준",
+        "인습적 수준",
+        "후인습적 수준"
       ],
       "definitionKo": "옳고 그름을 판단하는 기준이 달라지는 세 수준: 전인습, 인습, 후인습.",
       "keyPoints": [
@@ -415,7 +491,10 @@ export default {
       ],
       "source": {
         "section": "5.1",
-        "pages": "121–122"
+        "lines": [
+          128
+        ],
+        "inEdition": true
       },
       "visualId": null
     },
@@ -428,7 +507,8 @@ export default {
         "캐럴 길리건",
         "정의의 관점",
         "돌봄과 책임의 관점",
-        "Gilligan"
+        "Gilligan",
+        "돌봄의 관점"
       ],
       "definitionKo": "콜버그의 연구 대상이 남성만이었다는 점을 지적하고, 성별에 따라 도덕 판단 양상이 다르게 나타나는지 연구한 비판.",
       "keyPoints": [
@@ -445,7 +525,10 @@ export default {
       ],
       "source": {
         "section": "5.1",
-        "pages": "122"
+        "lines": [
+          132
+        ],
+        "inEdition": true
       },
       "visualId": null
     },
@@ -455,7 +538,9 @@ export default {
       "termEn": "gender socialization",
       "aliases": [
         "성별 기대",
-        "에갈리아"
+        "에갈리아",
+        "젠더 수행",
+        "젠더 도식"
       ],
       "definitionKo": "사회가 남성과 여성에게 서로 다른 행동과 역할을 기대하고, 아이들이 성장하면서 그 기대를 학습하는 과정.",
       "keyPoints": [
@@ -473,7 +558,10 @@ export default {
       ],
       "source": {
         "section": "5.1",
-        "pages": "122–123"
+        "lines": [
+          165
+        ],
+        "inEdition": true
       },
       "visualId": null
     },
@@ -494,8 +582,11 @@ export default {
         "workplace-socialization"
       ],
       "source": {
-        "section": "5.3",
-        "pages": "126"
+        "section": "5.0",
+        "lines": [
+          44
+        ],
+        "inEdition": true
       },
       "visualId": null
     },
@@ -514,8 +605,11 @@ export default {
         "workplace-socialization"
       ],
       "source": {
-        "section": "5.3",
-        "pages": "126"
+        "section": "5.0",
+        "lines": [
+          44
+        ],
+        "inEdition": true
       },
       "visualId": null
     },
@@ -544,7 +638,10 @@ export default {
       ],
       "source": {
         "section": "5.3",
-        "pages": "126–127"
+        "lines": [
+          342
+        ],
+        "inEdition": true
       },
       "visualId": null
     },
@@ -568,7 +665,8 @@ export default {
       ],
       "source": {
         "section": "5.3",
-        "pages": "127–128"
+        "lines": null,
+        "inEdition": false
       },
       "visualId": null
     },
@@ -595,7 +693,8 @@ export default {
       ],
       "source": {
         "section": "5.3",
-        "pages": "128"
+        "lines": null,
+        "inEdition": false
       },
       "visualId": null
     },
@@ -603,7 +702,9 @@ export default {
       "conceptId": "mass-media",
       "termKo": "대중매체",
       "termEn": "mass media",
-      "aliases": [],
+      "aliases": [
+        "매스미디어"
+      ],
       "definitionKo": "신문, 텔레비전, 라디오, 인터넷처럼 많은 사람에게 정보를 전달하는 경로.",
       "keyPoints": [
         "새로운 기술이나 물건에 관한 정보를 전달함",
@@ -617,8 +718,11 @@ export default {
         "nonmaterial-culture"
       ],
       "source": {
-        "section": "5.3",
-        "pages": "129–130"
+        "section": "5.0",
+        "lines": [
+          19
+        ],
+        "inEdition": true
       },
       "visualId": null
     },
@@ -641,7 +745,10 @@ export default {
       ],
       "source": {
         "section": "5.3",
-        "pages": "130"
+        "lines": [
+          352
+        ],
+        "inEdition": true
       },
       "visualId": null
     }

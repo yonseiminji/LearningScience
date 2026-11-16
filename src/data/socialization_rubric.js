@@ -15,7 +15,7 @@ export const RUBRICS = [
   {
     rubricId: 'socialization-lecture-v1',
     title: '사회화, 자아 발달, 사회화 기관, 생애주기별 사회화',
-    source: '시연용 가상 강의 전사문 · OpenStax Introduction to Sociology 3e, Ch. 5 기반',
+    source: '시연용 가상 강의 전사문 · BCcampus Introduction to Sociology 3rd Canadian ed., Ch. 5 참조',
     note: '이 목록은 오늘 강의에서 다룬 내용이에요. 교재에는 있지만 강의에서 다루지 않은 내용은 들어 있지 않아요.',
     // Phrases this lecture uses and the others do not.
     detect: ['거울 자아', '미드', '일반화된 타자', '잠재적 교육과정', '예기 사회화'],
@@ -172,7 +172,7 @@ export const RUBRICS = [
   {
     rubricId: 'moral-development-v1',
     title: '도덕 발달과 성별 사회화',
-    source: '시연용 가상 강의 전사문 · OpenStax Introduction to Sociology 3e, Ch. 5 기반',
+    source: '시연용 가상 강의 전사문 · BCcampus Introduction to Sociology 3rd Canadian ed., Ch. 5 참조',
     note: '이 목록은 오늘 강의에서 다룬 내용이에요. 교재에는 있지만 강의에서 다루지 않은 내용은 들어 있지 않아요.',
     detect: ['도덕 발달', '콜버그', '전인습', '후인습', '길리건'],
     items: [
@@ -272,7 +272,7 @@ export const RUBRICS = [
   {
     rubricId: 'institutional-agents-v1',
     title: '직장·종교·정부·대중매체를 통한 사회화',
-    source: '시연용 가상 강의 전사문 · OpenStax Introduction to Sociology 3e, Ch. 5 기반',
+    source: '시연용 가상 강의 전사문 · BCcampus Introduction to Sociology 3rd Canadian ed., Ch. 5 참조',
     note: '이 목록은 오늘 강의에서 다룬 내용이에요. 교재에는 있지만 강의에서 다루지 않은 내용은 들어 있지 않아요.',
     detect: ['물질문화', '비물질문화', '대중매체', '온보딩', '공주 문화'],
     items: [

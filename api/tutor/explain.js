@@ -97,7 +97,7 @@ export default handler(async (request, response) => {
     isGeneratedExample: generated ? true : Boolean(data.isGeneratedExample),
     sourceChunkIds,
     sourceConceptIds,
-    sourceLabel: `강의 전사문 + OpenStax ${concept.source.section}절`,
+    sourceLabel: `강의 전사문 + 교재 §${concept.source.section}`,
     warnings,
   })
   } finally {

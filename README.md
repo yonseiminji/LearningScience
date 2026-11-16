@@ -422,3 +422,26 @@ No backend. The plan lives in React state and is gone on reload; only "has this 
 상한에 걸린 요청은 실패가 아니라 **대기**입니다. 서버가 `429`와 함께
 `retryAfterMs`·`ahead`를 돌려주고, 화면은 "앞에 N명이 기다리고 있어요"를 띄운 뒤
 최대 45초까지 스스로 재시도합니다.
+
+## 교재 출처
+
+개념 지식베이스는 **BCcampus, Introduction to Sociology – 3rd Canadian Edition
+(William Little, 2023), Chapter 5**에서 가져왔습니다. 원문 라이선스는 **CC BY 4.0**
+(개별 표시된 제3자 자료는 별도 권리).
+
+- 원문: https://opentextbc.ca/introductiontosociology3rdcanadianedition/
+- 전체 대역본은 `docs/bccampus-ch05/`에 있고, **앱 번들에는 포함되지 않습니다.**
+  (543블록 773KB — 브라우저로 내려보낼 이유가 없습니다.)
+- 출처 재지정은 `scripts/anchor-bccampus.mjs`가 합니다. 교재가 바뀌면 다시 돌리면 됩니다.
+
+**인쇄 쪽수는 인용하지 않습니다.** 제공된 텍스트에 페이지 경계가 없어 확인되지
+않았고, 자료 자체가 쪽수를 추측해 넣지 않았다고 밝히고 있습니다. 인용은 절(§)과
+행 번호로 합니다.
+
+이 캐나다판에는 **종교·정부를 통한 사회화를 별도 절로 다루지 않습니다.** 3강
+전사문(미국판 기반)은 다루므로, 두 개념은 남겨 두되 화면에서 "이 판에서는 따로
+다루지 않아요"라고 표시합니다.
+
+관계 사전(`socialization_relations.js`)은 아직 OpenStax 판 기준으로 검토된
+자료입니다. 쪽 번호가 이 판으로 옮겨지지 않으므로 관계도에서는 쪽수를 표시하지
+않고 출처만 밝힙니다.
