@@ -33,18 +33,18 @@ export default {
       "title": "사회화 기관",
       "conceptIds": ["agents-of-socialization", "socialization", "peer-group"],
       "diagramType": "flowchart",
-      "nodes": ["가족", "학교", "또래집단", "직장", "종교·정부·미디어", "사회화", "규범·가치·기대 학습"],
+      "nodes": ["가족", "또래집단", "학교", "직장", "대중매체", "사회화", "규범·가치·기대 학습"],
       "edges": [
         { "from": "가족", "to": "사회화", "relation": "contributes_to" },
         { "from": "학교", "to": "사회화", "relation": "contributes_to" },
         { "from": "또래집단", "to": "사회화", "relation": "contributes_to" },
         { "from": "직장", "to": "사회화", "relation": "contributes_to" },
-        { "from": "종교·정부·미디어", "to": "사회화", "relation": "contributes_to" },
+        { "from": "대중매체", "to": "사회화", "relation": "contributes_to" },
         { "from": "사회화", "to": "규범·가치·기대 학습", "relation": "learns" }
       ],
-      "mermaidCode": "flowchart TD\n  A[\"가족\"] --> S[\"사회화\"]\n  B[\"학교\"] --> S\n  C[\"또래집단\"] --> S\n  D[\"직장\"] --> S\n  E[\"종교·정부·미디어\"] --> S\n  S --> F[\"규범·가치·기대 학습\"]",
-      "altText": "가족, 학교, 또래집단, 직장, 종교·정부·미디어가 각각 사회화로 이어지고, 사회화는 규범·가치·기대 학습으로 이어집니다.",
-      "caveat": "한 기관이 언제나 하나의 방식으로만 사회화하지는 않습니다.",
+      "mermaidCode": "flowchart TD\n  A[\"가족\"] --> S[\"사회화\"]\n  B[\"또래집단\"] --> S\n  C[\"학교\"] --> S\n  D[\"직장\"] --> S\n  E[\"대중매체\"] --> S\n  S --> F[\"규범·가치·기대 학습\"]",
+      "altText": "가족, 또래집단, 학교, 직장, 대중매체가 각각 사회화로 이어지고, 사회화는 규범·가치·기대 학습으로 이어집니다.",
+      "caveat": "교재 5.3절이 다루는 다섯 기관이에요. 한 기관이 언제나 하나의 방식으로만 사회화하지는 않습니다.",
       "reviewed": false
     },
     {

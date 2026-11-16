@@ -60,6 +60,18 @@ ok('도식의 conceptIds 가 전부 실재', VISUALS.visuals.every((v) => v.conc
 ok('mermaid 에 HTML 라벨 없음', VISUALS.visuals.every((v) => !/<[a-z]/i.test(v.mermaidCode)))
 ok('mermaid 에 click 이벤트 없음', VISUALS.visuals.every((v) => !v.mermaidCode.includes('click ')))
 
+console.log('\n[C2] 기관 도식이 이 판이 다루는 범위를 넘지 않는다')
+// §5.3 gives a section each to family, peer groups, school, workplace and
+// mass media. Religion appears once as a societal factor and government once
+// as a policy example, which is why the lexicon marks REL-09 and REL-10
+// unsupported in this edition. The picture must not claim more than that.
+const agents = VISUALS.visuals.find((v) => v.visualId === 'agents-of-socialization-v1')
+const five = ['가족', '또래집단', '학교', '직장', '대중매체']
+for (const agent of five) ok(`${agent} 가 기관으로 들어감`, agents.nodes.includes(agent))
+ok('종교를 독립 기관으로 세우지 않음', !JSON.stringify(agents).includes('종교'))
+ok('정부를 독립 기관으로 세우지 않음', !JSON.stringify(agents).includes('정부'))
+ok('기관 개념 설명도 마찬가지', !JSON.stringify(findConcept('agents-of-socialization')).match(/종교|정부/))
+
 console.log('\n[D] 비교 도식은 선후 관계로 그리지 않는다')
 const cmp = findVisual('socialization-comparison-v1')
 ok('예기↔재사회화는 contrasts_with', cmp.edges.some((e) => e.relation === 'contrasts_with'))

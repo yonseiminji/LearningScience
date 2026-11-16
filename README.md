@@ -443,9 +443,25 @@ No backend. The plan lives in React state and is gone on reload; only "has this 
 발견됩니다. 개념이 교재에는 있는데 전사문에 없으면 화면에 뜨지 않고, 전사문에는
 있는데 교재 판본에 없으면 "이 판에서는 따로 다루지 않아요"로 표시됩니다.
 
-관계 사전(`socialization_relations.js`)은 아직 OpenStax 판 기준으로 검토된
-자료입니다. 쪽 번호가 이 판으로 옮겨지지 않으므로 관계도에서는 쪽수를 표시하지
-않고 출처만 밝힙니다.
+관계 사전(`socialization_relations.js`)도 이 판 기준입니다. BCcampus 검증본
+v2.1을 `scripts/anchor-lexicon.mjs`로 저장소 코퍼스에 다시 앵커했습니다 —
+**활성 관계 28개 전부의 `evidenceEn`이 `docs/bccampus-ch05` 영문 원문에 그대로
+존재**하고, `sourceLines`가 찾은 줄입니다.
+
+- 근거를 코퍼스에서 못 찾은 관계는 **기록하지 않습니다.**
+- 새 판에서 근거를 찾지 못한 2개(`REL-09` 종교, `REL-10` 정부)는 `isActive: false`로
+  남기고 도식에서 제외합니다. **틀렸다는 판정이 아니라 이 판에 근거가 없다는
+  뜻입니다.**
+- `REL-30`(놀이 단계 → 게임 단계)은 **이 저장소가 추가한 관계**입니다. 검증본에도
+  없습니다. 교재가 네 단계를 순서대로 서술하지만 `followed by`는 준비→놀이에만
+  붙어 있어서, `provenance: 'structural'`로 구분해 두었습니다.
+- 번들이 적어 온 인쇄 쪽수는 `claimedPrintPages`에만 남고 **코드가 읽지 않습니다.**
+  업로드된 TXT에 페이지 경계가 없어 확인할 수 없는 숫자라서, 화면에도 프롬프트에도
+  넣지 않습니다.
+
+```bash
+node scripts/anchor-lexicon.mjs <relation_lexicon.json>
+```
 
 ## 응답 캐시 (시연 전에 만들기)
 

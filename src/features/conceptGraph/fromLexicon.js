@@ -1,11 +1,14 @@
 // Turning the relation lexicon into something drawable.
 //
 // Nothing is invented here. A node exists because a relation names it, an edge
-// exists because the lexicon has that row, and the row carries the page it
-// came from. Where the lexicon is silent the picture is silent too — most
-// visibly in 미드의 자아 발달 단계, where the source review recorded 준비→놀이
-// and 게임→일반화된 타자 but no 놀이→게임, so the chain is drawn with that
-// link missing rather than closed on our say-so.
+// exists because the lexicon has that row, and the row carries the section and
+// line its evidence was found on. Where the lexicon is silent the picture is
+// silent too.
+//
+// Relations the BCcampus edition does not support are marked inactive in the
+// lexicon and never reach a diagram. They are not deleted: 'no evidence in
+// this edition' is not 'false', and an audit should still be able to see
+// what was dropped and why.
 
 import LEXICON from '../../data/socialization_relations.js'
 import { LIST_TAIL, isListed, isPart } from './relationStyle.js'
@@ -26,7 +29,9 @@ export function diagramsForConcept(conceptId) {
 }
 
 export function relationsFor(diagramId) {
-  return LEXICON.relations.filter((item) => (item.diagramIds || []).includes(diagramId))
+  return LEXICON.relations.filter(
+    (item) => item.isActive !== false && (item.diagramIds || []).includes(diagramId),
+  )
 }
 
 /**
@@ -56,7 +61,7 @@ export function graphFor(diagramId) {
       subject: row.subjectKo,
       object: row.objectKo,
       text: `${row.subjectKo} — ${row.objectKo}${LIST_TAIL[row.relationType] || ''}`,
-      pages: row.sourcePages || [],
+      lines: row.sourceLines || [],
     }))
 
   // Parts become rows inside their whole's box, so they are neither a line
@@ -64,7 +69,7 @@ export function graphFor(diagramId) {
   const parts = new Map()
   for (const row of rows.filter((row) => isPart(row.relationType))) {
     const into = parts.get(row.objectKo) || []
-    into.push({ label: row.subjectKo, relationId: row.id, pages: row.sourcePages || [] })
+    into.push({ label: row.subjectKo, relationId: row.id, lines: row.sourceLines || [] })
     parts.set(row.objectKo, into)
   }
 
@@ -75,7 +80,7 @@ export function graphFor(diagramId) {
       to: add(row.objectKo),
       type: row.relationType,
       relationKo: row.relationKo,
-      pages: row.sourcePages || [],
+      lines: row.sourceLines || [],
       relationId: row.id,
       note: row.semanticNote || '',
     }))
@@ -90,7 +95,7 @@ export function graphFor(diagramId) {
     nodes: [...seen.values()].map((node) => ({ ...node, parts: parts.get(node.id) || [] })),
     edges,
     listed,
-    pages: [...new Set(rows.flatMap((row) => row.sourcePages || []))].sort((a, b) => a - b),
+    lines: [...new Set(rows.flatMap((row) => row.sourceLines || []))].sort((a, b) => a - b),
     types: [...new Set(edges.map((edge) => edge.type))],
     listedTypes: [...new Set(listed.map((item) => item.type))],
   }
