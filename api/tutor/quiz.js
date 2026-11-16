@@ -134,7 +134,14 @@ export default handler(async (req, res, body) => {
   try {
 
   const materialId = requireString(body.materialId, 'materialId', { max: 200 })
-  const chunks = requireChunks(body.chunks)
+  // Unlike explain, every chunk here reaches the model, so this cap is a real
+  // token bound -- but it was the count doing the blocking, not the size. The
+  // chunker emits 218-354 character pieces, so the whole demo transcript is
+  // twelve chunks and 3,382 characters: a learner selecting all of it was
+  // refused at eight while sitting at half the character budget. Count raised
+  // to cover a transcript three times this one; maxChars is left alone, since
+  // that is the bound that actually protects the prompt.
+  const chunks = requireChunks(body.chunks, { maxCount: 40, maxChars: 6000 })
   const questionTypes = Array.isArray(body.questionTypes) && body.questionTypes.length
     ? body.questionTypes.map((type) => requireOneOf(type, QUESTION_TYPES, 'questionTypes'))
     : QUESTION_TYPES
