@@ -312,6 +312,28 @@
 .recall-mine { margin: 0; padding: 10px; border-radius: 8px; background: var(--hover); color: var(--text-2); font-size: 13px; line-height: 1.6; }
 .recall-mine b { display: block; margin-bottom: 3px; color: var(--muted); font-size: 11px; font-weight: 700; }
 
-/* Said on the press, not before. */
-.review-shut { margin: 0; color: var(--confuse); font-size: 14px; font-weight: 600; }
-.review-mode-card[data-shut] { opacity: 0.55; }
+/* A locked card says so by looking locked. */
+.review-mode-card:disabled { opacity: 0.45; cursor: default; }
+.review-mode-card:disabled svg { color: var(--muted); }
+.review-mode-card:disabled strong, .review-mode-card:disabled span { color: var(--muted); }
+
+/* 인출 연습: 난도 고르기 */
+.recall-bear { vertical-align: -4px; margin-right: 6px; border-radius: 50%; }
+.recall-levels { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.recall-level { display: grid; grid-template-columns: 26px 1fr; gap: 2px 10px; width: 100%; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); text-align: left; cursor: pointer; }
+.recall-level:hover { border-color: var(--accent); background: var(--hover); }
+.recall-level:focus-visible { outline: 2px solid var(--hi); outline-offset: 2px; }
+.recall-level-step { grid-row: span 2; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--chip); color: var(--text-2); font-size: 13px; font-weight: 700; }
+.recall-level b { font-size: 15px; }
+.recall-level span:last-child { color: var(--muted); font-size: 13px; }
+
+/* 빈칸 채우기 */
+.recall-cloze { display: grid; gap: 14px; margin: 0; padding-left: 20px; }
+.recall-cloze li { line-height: 1.7; }
+.recall-cloze p { margin: 0 0 6px; }
+.recall-cloze input { width: 100%; max-width: 280px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); font: inherit; }
+.recall-cloze input:focus { outline: 2px solid var(--hi); outline-offset: 1px; border-color: var(--accent); }
+.recall-blank { padding: 0 4px; border-bottom: 2px solid var(--accent); color: var(--accent); font-weight: 600; }
+.recall-cloze-answer { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; }
+.recall-cloze .is-right .recall-cloze-answer { color: var(--done); }
+.recall-cloze .is-other .recall-cloze-answer, .recall-cloze .is-empty .recall-cloze-answer { color: var(--text-2); }

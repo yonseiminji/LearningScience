@@ -10,7 +10,7 @@ import { FileText, ListChecks, Network, RefreshCw } from 'lucide-react'
 const MODES = [
   { id: 'source', title: '강의 내용 확인하기', description: '강의 원문 확인하기', Icon: FileText },
   { id: 'concept', title: '개념 이해하기', description: '개념 뜻·사례·관계도 보기', Icon: Network },
-  { id: 'quiz', title: '인출 연습하기', description: '구간을 고르고 기억에서 꺼내 보기', Icon: ListChecks },
+  { id: 'quiz', title: '인출 연습하기', description: '곰곰이에게 설명하며 기억에서 꺼내 보기', Icon: ListChecks },
   { id: 'support', title: '부족한 부분 다시 학습하기', description: '어려운 부분을 선택하고 원문 다시 보기', Icon: RefreshCw },
 ]
 
@@ -23,11 +23,9 @@ export default function ReviewModeGrid({ activeMode, onSelect, disabledModes = [
           type="button"
           className={`review-mode-card ${activeMode === id ? 'active' : ''}`}
           aria-pressed={activeMode === id}
-          // Not `disabled`: a card nobody can press cannot explain itself,
-          // and the reason it is shut is worth hearing at the moment it is
-          // reached for rather than standing under the grid all along.
-          aria-disabled={disabledModes.includes(id)}
-          data-shut={disabledModes.includes(id) ? '' : undefined}
+          // Dimmed and unresponsive. The look is the message: a sentence
+          // under the grid explaining the lock reads as a fault in the page.
+          disabled={disabledModes.includes(id)}
           onClick={() => onSelect(id)}
         >
           <Icon size={23} aria-hidden="true" />
