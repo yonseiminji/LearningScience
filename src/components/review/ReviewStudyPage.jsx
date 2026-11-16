@@ -226,7 +226,9 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
 
           {blockedHint && !error ? <p className="review-muted">{blockedHint}</p> : null}
           {busy === 'quiz' ? <p role="status">고른 구간으로 문제를 만들고 있어요…</p> : null}
-          {error ? (
+          {/* 개념 이해하기 shows its own, right under the buttons that caused
+              it. Showing both put the same sentence twice on one screen. */}
+          {error && mode !== 'concept' ? (
             <p role="alert" className="review-error">
               {error}
             </p>

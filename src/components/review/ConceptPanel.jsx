@@ -117,7 +117,11 @@ export default function ConceptPanel({ material, chunks = [], busy, error, onExp
           </div>
 
           {busy ? <p className="concept-note">{busy === 'diagram' ? '관계도를 가져오고 있어요…' : '설명을 만들고 있어요…'}</p> : null}
-          {error ? <p className="concept-error">{error}</p> : null}
+          {error ? (
+            <p role="alert" className="concept-error">
+              {error}
+            </p>
+          ) : null}
 
           {explanation && explanation.conceptId === conceptId ? (
             <article className="concept-answer">

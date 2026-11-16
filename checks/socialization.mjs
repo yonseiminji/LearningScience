@@ -141,6 +141,23 @@ ok('quiz 카드는 잠기지 않음', !page.includes("disabledModes.push('quiz')
 const service = readFileSync('/home/claude/learningscience/src/services/tutorService.js', 'utf8')
 ok('클라이언트가 material.materialId 를 보냄', !/materialId: material\.id\b/.test(service))
 
+console.log('\n[M] sendJson 은 (res, status, payload)')
+// The bug: sendJson(response, {...}) put the body in the status slot, so
+// res.status({}) threw a TypeError, which was not an ApiError, which the
+// error handler flattened into '알 수 없는 오류가 생겼어요'.
+for (const [label, text] of [['explain', explain], ['diagram', diagram]]) {
+  const calls = [...text.matchAll(/sendJson\(\s*\w+\s*,\s*([^,\s]+)/g)].map((m) => m[1])
+  ok(`${label} 의 sendJson 두 번째 인자가 숫자`, calls.length > 0 && calls.every((a) => /^\d+$/.test(a)))
+}
+const lib = readFileSync('/home/claude/learningscience/api/_lib/gemini.js', 'utf8')
+ok('예기치 못한 오류도 원인을 말함', !lib.includes("'알 수 없는 오류가 생겼어요.'"))
+ok('오류 이름과 메시지를 담음', lib.includes('error?.name') && lib.includes('error?.message'))
+ok('스택은 디버그에서만', lib.includes('error?.stack'))
+
+console.log('\n[N] 오류는 한 번만 보인다')
+ok('페이지 오류는 concept 모드에서 숨김', page.includes("error && mode !== 'concept'"))
+ok('개념 패널이 자기 오류를 알림', panel.includes('role="alert"'))
+
 console.log('\n[K] 기존 API 계약은 그대로')
 const api = JSON.parse(readFileSync('/home/claude/learningscience/vercel.json', 'utf8'))
 for (const path of ['api/tutor/quiz.js', 'api/tutor/answer.js', 'api/tutor/support.js', 'api/planner/chunk.js']) {

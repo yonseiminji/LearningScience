@@ -121,7 +121,7 @@ export default handler(async (request, response) => {
   const generated = supportType === 'example' || supportType === 'analogy'
   if (generated && data.isGeneratedExample === false) warnings.push('생성한 예시로 표시했어요.')
 
-  sendJson(response, {
+  sendJson(response, 200, {
     conceptId,
     supportType,
     status: data.status,

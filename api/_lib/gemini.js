@@ -204,9 +204,25 @@ export function sendJson(res, status, payload) {
   res.end(JSON.stringify(payload))
 }
 
+/**
+ * An unexpected error still has to say what went wrong.
+ *
+ * This used to answer '알 수 없는 오류가 생겼어요' for anything that was not an
+ * ApiError, which turned a plain TypeError in our own code into a dead end:
+ * the screen said nothing, the log line was the only copy, and on Vercel's
+ * Hobby plan that line is gone in an hour. The name and message of the error
+ * are short and already safe to show — they name a bug in this code, not
+ * anything the learner typed. The stack stays behind the debug flag.
+ */
+function reasonOf(error) {
+  const name = error?.name || 'Error'
+  const text = String(error?.message || '').slice(0, 200)
+  return text ? `서버 오류가 생겼어요. (${name}: ${text})` : `서버 오류가 생겼어요. (${name})`
+}
+
 export function fail(res, error) {
   const status = error instanceof ApiError ? error.status : 500
-  const message = error instanceof ApiError ? error.message : '알 수 없는 오류가 생겼어요.'
+  const message = error instanceof ApiError ? error.message : reasonOf(error)
   // detail is for the server log, not the learner
   if (!(error instanceof ApiError)) console.error('[tutor]', error)
   else if (error.detail) console.error('[tutor]', error.message, error.detail)
