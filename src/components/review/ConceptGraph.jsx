@@ -144,19 +144,58 @@ export default function ConceptGraph({ graph, caveat }) {
         </ul>
       ) : null}
 
+      {/* Each key draws the line it is naming, so 'dotted' does not have to
+          be matched to a line somewhere above by memory. */}
+      <svg width="0" height="0" aria-hidden="true" focusable="false" className="concept-graph-defs">
+        <defs>
+          {Object.values(HEADS).map((head) => (
+            <marker
+              key={head.id}
+              id={`${head.id}-key`}
+              viewBox="0 0 10 10"
+              refX="9"
+              refY="5"
+              markerWidth="6"
+              markerHeight="6"
+              orient="auto-start-reverse"
+            >
+              <path d="M 0 0 L 10 5 L 0 10 z" fill={head.fill} stroke="var(--accent)" strokeWidth="1" />
+            </marker>
+          ))}
+        </defs>
+      </svg>
+
       <ul className="concept-graph-key">
         {graph.nodes.some((node) => node.parts?.length) ? (
           <li>
-            <b>부분</b>
-            상자 안의 칸은 그 개념을 이루는 부분이에요
+            <svg width="34" height="14" aria-hidden="true" className="concept-graph-swatch">
+              <rect x="1" y="1" width="32" height="5.5" rx="1.5" className="concept-graph-box" />
+              <rect x="1" y="7" width="32" height="6" rx="1.5" className="concept-graph-part" />
+            </svg>
+            상자 안의 칸은 그 개념을 이루는 <b>부분</b>이에요
           </li>
         ) : null}
-        {graph.types.map((type) => (
-          <li key={type}>
-            <b>{STYLE[type]?.label || type}</b>
-            {TYPE_WORDS[type] || type}
-          </li>
-        ))}
+        {graph.types.map((type) => {
+          const style = STYLE[type] || STYLE.FACILITATES
+          return (
+            <li key={type}>
+              <svg width="34" height="14" aria-hidden="true" className="concept-graph-swatch">
+                <line
+                  x1="1"
+                  y1="7"
+                  x2={style.head === 'none' ? 33 : 26}
+                  y2="7"
+                  stroke={TONE[style.tone] || TONE.ink}
+                  strokeWidth={style.width}
+                  strokeDasharray={style.dash || undefined}
+                  markerEnd={style.head === 'none' ? undefined : `url(#${HEADS[style.head].id}-key)`}
+                />
+              </svg>
+              <b>{STYLE[type]?.label || type}</b>
+              {TYPE_WORDS[type] || type}
+            </li>
+          )
+        })}
       </ul>
 
       {caveat ? <p className="concept-watch">{caveat}</p> : null}

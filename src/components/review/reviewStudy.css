@@ -267,3 +267,19 @@
 /* A part sits inside its whole, in its own row, in its own colour. */
 .concept-graph-part { fill: var(--chip); stroke: var(--line); stroke-width: 1; }
 .concept-graph-part-label { fill: var(--text-2); font-size: 12px; }
+
+/* The key draws the line it names. */
+.concept-graph-defs { position: absolute; width: 0; height: 0; }
+.concept-graph-key li { display: flex; align-items: center; gap: 6px; }
+.concept-graph-swatch { flex: none; overflow: visible; }
+
+/* 강의 원문 찾기 */
+.lecture-search { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.lecture-search svg { flex: none; color: var(--muted); }
+.lecture-search input { flex: 1; min-width: 0; border: none; background: none; color: var(--ink); font: inherit; }
+.lecture-search input:focus { outline: none; }
+.lecture-search:focus-within { border-color: var(--accent); }
+.lecture-search-clear { display: grid; place-items: center; padding: 2px; border: none; border-radius: 6px; background: none; color: var(--muted); cursor: pointer; }
+.lecture-search-clear:hover { background: var(--hover); }
+.review-chunk-text mark { padding: 0 1px; border-radius: 3px; background: var(--hi); color: inherit; }
+.review-chunk-list li.is-hit .review-chunk-meta { color: var(--accent); font-weight: 600; }
