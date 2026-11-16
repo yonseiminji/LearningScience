@@ -181,8 +181,8 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
     }
   }
 
-  async function checkRecall(attempt, conceptId) {
-    const data = await run('recall', () => tutorService.checkRecall({ material, attempt, conceptId }))
+  async function checkRecall(attempt, conceptId, rubricId) {
+    const data = await run('recall', () => tutorService.checkRecall({ material, attempt, conceptId, rubricId }))
     if (!data) return
     // Whichever level ran, what 부족한 부분 다시 학습하기 needs is the same
     // list: concepts to shore up, each with the words to ask about. For a

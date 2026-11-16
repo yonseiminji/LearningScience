@@ -97,8 +97,8 @@ export const tutorService = {
    * none: a made-up reading of what the learner wrote would be worse than
    * saying the check could not run.
    */
-  checkRecall({ material, attempt, conceptId }) {
-    return tutorApi.recall({ materialId: material.materialId, attempt, conceptId })
+  checkRecall({ material, attempt, conceptId, rubricId }) {
+    return tutorApi.recall({ materialId: material.materialId, attempt, conceptId, rubricId })
   },
 
   /** 관계도. template mode calls no model, so there is nothing to mock. */
