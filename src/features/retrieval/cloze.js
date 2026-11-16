@@ -28,12 +28,22 @@ export function termsToBlank() {
   return out.sort((a, b) => b.term.length - a.term.length)
 }
 
+/**
+ * The sentences a blank can be cut from.
+ *
+ * The file opens with a header — 과목:, 주제:, 참고 교재: — and blanking a word
+ * out of a subject line asks the learner to recall the syllabus, not the
+ * lecture. A spoken sentence closes with a sentence ending; a label and its
+ * value does not, so that is the line between them.
+ */
 function sentencesOf(text) {
   return String(text || '')
     .replace(/^교수자:\s*/gm, '')
-    .split(/(?<=[.?!])\s+/)
+    .split(/(?<=[.?!])\s+|\n+/)
     .map((line) => line.replace(/^교수자:\s*/, '').trim())
     .filter(Boolean)
+    .filter((line) => /(다|요|까|죠)[.?!]$/.test(line))
+    .filter((line) => !line.includes('[') && !/^[^.?!]{1,12}:/.test(line))
 }
 
 /**
