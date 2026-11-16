@@ -36,6 +36,32 @@ const SCHEMA = {
   required: ['status', 'response'],
 }
 
+/**
+ * Exactly what the model is sent for one support request.
+ *
+ * Exported for the same reason explainRequest is: the cache build has to ask
+ * the question the handler asks, character for character.
+ */
+export function supportRequest({ supportType, questionText, chunks, userAnswer = '', isCorrect = false }) {
+  const passage = chunks.map((chunk) => `[${chunk.chunkId}]\n${chunk.text}`).join('\n\n')
+  const asked = {
+    term: '이 문제에 나온 낱말의 뜻을 모르겠다고 합니다.',
+    comparison: '이 문제에 나온 두 개념의 차이가 헷갈린다고 합니다.',
+    question: '이 문제가 무엇을 묻는지 모르겠다고 합니다.',
+  }[supportType]
+  return {
+    systemInstruction: PROMPTS[supportType],
+    prompt: `문제: ${questionText}
+학생의 답: ${userAnswer || '(답하지 않음)'} (${isCorrect ? '정답' : '오답'})
+학생의 어려움: ${asked}
+
+강의 원문:
+${passage}`,
+    responseSchema: SCHEMA,
+    maxOutputTokens: 600,
+  }
+}
+
 export default handler(async (req, res, body) => {
   const slot = await checkRate(req)
   try {
@@ -47,24 +73,9 @@ export default handler(async (req, res, body) => {
   const userAnswer = typeof body.userAnswer === 'string' ? body.userAnswer.slice(0, 500) : ''
   const isCorrect = body.isCorrect === true
 
-  const passage = chunks.map((chunk) => `[${chunk.chunkId}]\n${chunk.text}`).join('\n\n')
-  const asked = {
-    term: '이 문제에 나온 낱말의 뜻을 모르겠다고 합니다.',
-    comparison: '이 문제에 나온 두 개념의 차이가 헷갈린다고 합니다.',
-    question: '이 문제가 무엇을 묻는지 모르겠다고 합니다.',
-  }[supportType]
-
-  const data = await generateJson({
-    systemInstruction: PROMPTS[supportType],
-    prompt: `문제: ${questionText}
-학생의 답: ${userAnswer || '(답하지 않음)'} (${isCorrect ? '정답' : '오답'})
-학생의 어려움: ${asked}
-
-강의 원문:
-${passage}`,
-    responseSchema: SCHEMA,
-    maxOutputTokens: 600,
-  })
+  const data = await generateJson(
+    supportRequest({ supportType, questionText, chunks, userAnswer, isCorrect }),
+  )
 
   const sent = new Set(chunks.map((chunk) => chunk.chunkId))
   const usedChunkIds = (data.usedChunkIds || []).filter((id) => sent.has(id))

@@ -29,6 +29,39 @@ const SCHEMA = {
   required: ['status', 'title', 'explanation', 'isGeneratedExample', 'sourceChunkIds', 'sourceConceptIds'],
 }
 
+/**
+ * Exactly what the model is sent for one request.
+ *
+ * Exported so the cache build asks the same question the handler asks. If it
+ * rebuilt the prompt itself the two would drift, and a drifted prompt is a
+ * cache that never hits — or worse, hits on a question nobody asked.
+ */
+export function explainRequest({ conceptId, supportType, chunks, userQuestion = '' }) {
+  const concept = findConcept(conceptId)
+  if (!concept) return null
+  const { chunks: kept, truncated } = limitChunks(chunks)
+  const evidence = conceptEvidence(conceptId)
+  const prompt = [
+    `[교재 개념 항목]\n${JSON.stringify(evidence, null, 2)}`,
+    `[강의 전사문]\n${kept.map((item) => `(${item.chunkId}) ${item.text}`).join('\n\n')}`,
+    userQuestion ? `[학생의 질문]\n${userQuestion}` : '',
+  ]
+    .filter(Boolean)
+    .join('\n\n')
+  return {
+    concept,
+    evidence,
+    kept,
+    truncated,
+    call: {
+      systemInstruction: `${COMMON}\n\n${BY_TYPE[supportType]}`,
+      prompt,
+      responseSchema: SCHEMA,
+      maxOutputTokens: 1200,
+    },
+  }
+}
+
 export default handler(async (request, response) => {
   const slot = await checkRate(request)
   try {
@@ -43,26 +76,11 @@ export default handler(async (request, response) => {
   const chunks = requireChunks(body.lectureChunks)
   const userQuestion = body.userQuestion ? requireString(body.userQuestion, 'userQuestion', { max: 400 }) : ''
 
-  const concept = findConcept(conceptId)
-  if (!concept) throw new ApiError(400, `다루지 않는 개념이에요: ${conceptId}`)
+  const built = explainRequest({ conceptId, supportType, chunks, userQuestion })
+  if (!built) throw new ApiError(400, `다루지 않는 개념이에요: ${conceptId}`)
+  const { concept, evidence, kept, truncated } = built
 
-  const { chunks: kept, truncated } = limitChunks(chunks)
-  const evidence = conceptEvidence(conceptId)
-
-  const prompt = [
-    `[교재 개념 항목]\n${JSON.stringify(evidence, null, 2)}`,
-    `[강의 전사문]\n${kept.map((item) => `(${item.chunkId}) ${item.text}`).join('\n\n')}`,
-    userQuestion ? `[학생의 질문]\n${userQuestion}` : '',
-  ]
-    .filter(Boolean)
-    .join('\n\n')
-
-  const data = await generateJson({
-    systemInstruction: `${COMMON}\n\n${BY_TYPE[supportType]}`,
-    prompt,
-    responseSchema: SCHEMA,
-    maxOutputTokens: 1200,
-  })
+  const data = await generateJson(built.call)
 
   // Ids are checked rather than trusted: a returned id the request never
   // contained is a citation to something that was not read.
