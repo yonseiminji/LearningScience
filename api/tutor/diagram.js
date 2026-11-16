@@ -48,7 +48,7 @@ export default handler(async (request, response) => {
     ? body.lectureChunks.map((item) => item?.chunkId).filter((id) => typeof id === 'string')
     : []
 
-  sendJson(response, {
+  sendJson(response, 200, {
     conceptId,
     visualId: visual.visualId,
     mode: 'template',
