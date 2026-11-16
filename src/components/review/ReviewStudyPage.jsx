@@ -181,8 +181,8 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
     }
   }
 
-  async function checkRecall(attempt) {
-    const data = await run('recall', () => tutorService.checkRecall({ material, attempt }))
+  async function checkRecall(attempt, conceptId) {
+    const data = await run('recall', () => tutorService.checkRecall({ material, attempt, conceptId }))
     if (data) {
       // The learner's own words stay on screen beside the reading of them;
       // nothing is stored beyond this session.
@@ -216,11 +216,8 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
   const disabledModes = []
   if (!quiz && !recall) disabledModes.push('support')
 
-  // A greyed-out card with no reason reads as a fault. Name the step that
-  // would turn it on.
-  const blockedHint = disabledModes.includes('support')
-    ? '인출 연습을 한 번 하면 ‘부족한 부분 다시 학습하기’를 쓸 수 있어요.'
-    : ''
+  // No sentence explains the lock. The card is dimmed and does not respond,
+  // which says it on sight and needs no reading.
 
   return (
     <section className="review-study">
@@ -239,7 +236,6 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
             }}
           />
 
-          {blockedHint && !error ? <p className="review-muted">{blockedHint}</p> : null}
           {busy === 'quiz' ? <p role="status">고른 구간으로 문제를 만들고 있어요…</p> : null}
           {/* 개념 이해하기 shows its own, right under the buttons that caused
               it. Showing both put the same sentence twice on one screen. */}
@@ -256,6 +252,7 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
               quiz machinery below is kept for them. */}
           {mode === 'quiz' ? (
             <RecallPanel
+              chunks={chunks}
               busy={busy === 'recall'}
               error={error}
               result={recall}

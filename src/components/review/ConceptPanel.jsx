@@ -63,7 +63,7 @@ export default function ConceptPanel({
 
   return (
     <section className="concept-panel">
-      <h3 className="concept-head">강의에서 다룬 개념</h3>
+      <h3 className="concept-head">교과서 개념</h3>
       <div className="concept-picker" role="group" aria-label="개념 선택">
         {found.map((item) => {
           const entry = byId.get(item.conceptId)

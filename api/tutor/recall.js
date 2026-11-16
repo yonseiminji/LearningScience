@@ -19,6 +19,7 @@ import { ApiError, generateJson, handler, sendJson } from '../_lib/gemini.js'
 import { SYSTEM, prompt } from '../_lib/prompts/recall.js'
 import { checkRate, requireString } from '../_lib/limit.js'
 import RUBRIC from '../../src/data/socialization_rubric.js'
+import { findConcept } from '../_lib/socialization.js'
 
 const MAX_ATTEMPT = 4000
 
@@ -47,26 +48,47 @@ export default handler(async (request, response) => {
   requireString(body.materialId, 'materialId', { max: 120 })
   const attempt = requireString(body.attempt, 'attempt', { max: MAX_ATTEMPT })
 
-  const rubricId = body.rubricId || RUBRIC.rubricId
-  if (rubricId !== RUBRIC.rubricId) {
+  // Two scopes, one reading. The whole lecture is checked against the rubric;
+  // a single concept against its own key points. Same shape of task either
+  // way — membership of a closed, numbered list — so the same prompt and the
+  // same validation serve both.
+  const scope = body.conceptId ? 'concept' : 'lecture'
+  let title = RUBRIC.title
+  let items = RUBRIC.items
+  let note = RUBRIC.note
+
+  if (scope === 'concept') {
+    const concept = findConcept(body.conceptId)
+    if (!concept) throw new ApiError(400, `다루지 않는 개념이에요: ${body.conceptId}`)
+    if (!concept.keyPoints?.length) throw new ApiError(409, '이 개념에는 아직 대조할 항목이 없어요.')
+    title = concept.termKo
+    note = `${concept.termKo}에 대해 교재가 짚는 내용이에요.`
+    items = concept.keyPoints.map((point, at) => ({
+      id: `K${at + 1}`,
+      statement: point,
+      conceptId: concept.conceptId,
+      weight: 'core',
+      cues: [concept.termKo],
+    }))
+  } else if ((body.rubricId || RUBRIC.rubricId) !== RUBRIC.rubricId) {
     throw new ApiError(400, '이 강의에는 아직 대조할 항목이 없어요.')
   }
 
   const data = await generateJson({
     systemInstruction: SYSTEM,
-    prompt: prompt({ rubricTitle: RUBRIC.title, items: RUBRIC.items, attempt }),
+    prompt: prompt({ rubricTitle: title, items, attempt }),
     responseSchema: SCHEMA,
     maxOutputTokens: 1400,
   })
 
-  const byId = new Map(RUBRIC.items.map((item) => [item.id, item]))
+  const byId = new Map(items.map((item) => [item.id, item]))
   const keep = (ids) => [...new Set(ids || [])].filter((id) => byId.has(id))
 
   const covered = keep(data.covered)
   // A statement cannot be both reached and half-reached; the fuller reading
   // of the learner's own words wins.
   const partial = keep(data.partial).filter((id) => !covered.includes(id))
-  const missing = RUBRIC.items.map((item) => item.id).filter((id) => !covered.includes(id) && !partial.includes(id))
+  const missing = items.map((item) => item.id).filter((id) => !covered.includes(id) && !partial.includes(id))
 
   const out = (ids) =>
     ids.map((id) => {
@@ -75,9 +97,11 @@ export default handler(async (request, response) => {
     })
 
   sendJson(response, 200, {
-    rubricId: RUBRIC.rubricId,
-    title: RUBRIC.title,
-    note: RUBRIC.note,
+    scope,
+    rubricId: scope === 'lecture' ? RUBRIC.rubricId : null,
+    conceptId: scope === 'concept' ? body.conceptId : null,
+    title,
+    note,
     covered: out(covered),
     partial: out(partial),
     missing: out(missing),

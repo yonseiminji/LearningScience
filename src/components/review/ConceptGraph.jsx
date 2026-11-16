@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { layoutGraph } from '../../features/conceptGraph/layout.js'
-import { LIST_PREFIX, STYLE } from '../../features/conceptGraph/relationStyle.js'
+import { LIST_PREFIX, STYLE, edgeLabel } from '../../features/conceptGraph/relationStyle.js'
 import { describeGraph } from '../../features/conceptGraph/fromLexicon.js'
 
 const HEADS = {
@@ -73,14 +73,17 @@ export default function ConceptGraph({ graph, caveat }) {
                     markerEnd={head}
                     opacity={edge.type === 'DEFINED_AS' ? 0.55 : 0.85}
                   />
-                  {style.label ? (
+                  {/* The relation's own wording when it fits, in full on
+                      hover when it does not. */}
+                  {edge.relationKo ? <title>{edge.relationKo}</title> : null}
+                  {edgeLabel(edge) ? (
                     <text
                       x={edge.label.x}
                       y={edge.label.y}
                       textAnchor={edge.label.anchor}
                       className={style.tone === 'warn' ? 'concept-graph-edge-label is-contrast' : 'concept-graph-edge-label'}
                     >
-                      {style.label}
+                      {edgeLabel(edge)}
                     </text>
                   ) : null}
                 </g>
@@ -204,13 +207,18 @@ export default function ConceptGraph({ graph, caveat }) {
   )
 }
 
+// What the line style means. The word on each line comes from the relation
+// itself, so these describe the kind rather than repeat the label.
 const TYPE_WORDS = {
   IS_A: '상위 개념에 속해요',
   PART_OF: '전체의 한 부분이에요',
   EXAMPLE_OF: '개념의 사례예요',
-  PRECEDES: '순서가 뒤예요. 원인이 아니에요',
+  // Two of the three are a next step; the last is what the steps arrive at.
+  PRECEDES: '앞뒤 순서나 결과예요. 원인이 아니에요',
   CAUSES: '원인과 결과예요',
   FACILITATES: '기여하거나 매개해요',
-  DEFINED_AS: '뜻을 풀어 설명해요',
+  // Not always a definition. Mostly it is what the concept takes as its
+  // object — 준비 단계 → 타인의 행동 is what gets imitated, not a gloss.
+  DEFINED_AS: '그 개념이 다루는 내용이에요',
   CONTRASTS_WITH: '나란히 두고 비교해요',
 }

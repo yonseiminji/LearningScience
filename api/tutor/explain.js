@@ -45,7 +45,7 @@ export default handler(async (request, response) => {
   const concept = findConcept(conceptId)
   if (!concept) throw new ApiError(400, `다루지 않는 개념이에요: ${conceptId}`)
 
-  const { chunks: kept, droppedChunks, truncated } = limitChunks(chunks)
+  const { chunks: kept, truncated } = limitChunks(chunks)
   const evidence = conceptEvidence(conceptId)
 
   const prompt = [
@@ -73,7 +73,9 @@ export default handler(async (request, response) => {
   const sourceConceptIds = (data.sourceConceptIds || []).filter((id) => sentConceptIds.has(id))
   if (sourceChunkIds.length !== (data.sourceChunkIds || []).length) warnings.push('입력에 없는 전사문 출처를 걸러냈어요.')
   if (sourceConceptIds.length !== (data.sourceConceptIds || []).length) warnings.push('입력에 없는 개념 출처를 걸러냈어요.')
-  if (droppedChunks > 0) warnings.push(`강의 내용 ${droppedChunks}개는 길이 제한으로 빼고 답했어요.`)
+  // How many chunks fitted is our plumbing, not the learner's business; it
+  // told them a number they could do nothing with. Dropping a chunk is still
+  // worth knowing about in the log, which generateJson already records.
   if (truncated) warnings.push('강의 내용이 길어 앞부분만 보고 답했어요.')
 
   // An example or analogy that comes back unflagged gets flagged here. The
