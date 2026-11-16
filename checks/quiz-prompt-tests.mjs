@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { verifyQuestions } from '/home/claude/learningscience/api/tutor/quiz.js'
 import { FEW_SHOTS } from '/home/claude/learningscience/api/_lib/prompts/quizFewShots.js'
 
@@ -35,18 +35,34 @@ check('SCHEMA 속성이 7개 그대로', (schemaBlock.match(/^\s{10}\w+: \{/gm) 
   `${(schemaBlock.match(/^\s{10}\w+: \{/gm) || []).map((s) => s.trim().split(':')[0]).join(', ')}`)
 
 console.log('\n[C] few-shot 예시가 현행 검증을 통과하는지')
-const data = JSON.parse(readFileSync(process.argv[2], 'utf8'))
-for (const example of data.positiveExamples) {
-  const { kept } = verifyQuestions(example.expectedOutput.questions, example.input.chunks)
-  check(`positive: ${example.id}`, kept.length === 1)
+// The example set arrived as an upload and was never committed, so this
+// section runs only when its path is given:
+//   node checks/quiz-prompt-tests.mjs <few-shots.json>
+// Without it the section is skipped out loud. Crashing the whole file on a
+// missing one-off fixture hides the sections that can still run.
+const fixture = process.argv[2]
+const data = fixture && existsSync(fixture) ? JSON.parse(readFileSync(fixture, 'utf8')) : null
+let skipped = 0
+const skip = (section) => {
+  console.log(`  SKIP  예시 파일을 주지 않아 건너뜀 — ${section} (경로를 인자로 주면 검증합니다)`)
+  skipped += 1
 }
 
+if (!data) skip('few-shot 통과 검증')
+else
+  for (const example of data.positiveExamples) {
+    const { kept } = verifyQuestions(example.expectedOutput.questions, example.input.chunks)
+    check(`positive: ${example.id}`, kept.length === 1)
+  }
+
 console.log('\n[D] 금지 패턴 — 코드가 잡는지 (명세가 예상한 대로 못 잡아야 정상)')
-for (const example of data.rejectedExamples) {
-  const { kept, dropped } = verifyQuestions([example.badCandidate], example.input.chunks)
-  console.log(`  ${kept.length > 0 ? '코드 통과' : '코드 차단'}  ${example.id}` +
-    `${dropped.length ? ` (${dropped[0].reason})` : ''}`)
-}
+if (!data) skip('금지 패턴 검증')
+else
+  for (const example of data.rejectedExamples) {
+    const { kept, dropped } = verifyQuestions([example.badCandidate], example.input.chunks)
+    console.log(`  ${kept.length > 0 ? '코드 통과' : '코드 차단'}  ${example.id}` +
+      `${dropped.length ? ` (${dropped[0].reason})` : ''}`)
+  }
 
 console.log('\n[E] 프롬프트 크기')
 console.log(`  SYSTEM(few-shot 포함): ${SYSTEM.length}자`)
@@ -54,5 +70,5 @@ console.log(`  그중 few-shot       : ${FEW_SHOTS.length}자`)
 console.log(`  baseline            : 385자`)
 console.log(`  증가                : ${(SYSTEM.length / 385).toFixed(1)}배`)
 
-console.log(`\n요약: ${pass} PASS / ${fail} FAIL`)
+console.log(`\n요약: ${pass} PASS / ${fail} FAIL${skipped ? ` / ${skipped} SKIP` : ''}`)
 process.exit(fail > 0 ? 1 : 0)

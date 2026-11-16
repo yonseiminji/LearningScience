@@ -155,9 +155,9 @@ export async function generateJson({
   // Checking here rather than in each handler means the key is computed from
   // what is actually sent, so a handler cannot drift away from its own cache.
   if (!noCache) {
-    const hit = await lookup(cacheKey(systemInstruction, prompt))
+    const hit = await lookup(cacheKey(systemInstruction, prompt, model))
     if (hit) {
-      if (debugEnabled()) logLine('[tutor:cache]', { hit: true, chars: JSON.stringify(hit).length })
+      if (debugEnabled()) logLine('[tutor:cache]', { hit: true, model, chars: JSON.stringify(hit).length })
       return hit
     }
   }

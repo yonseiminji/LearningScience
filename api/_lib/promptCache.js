@@ -11,6 +11,12 @@
 // together — no field list to keep in step, and no way to serve the answer to
 // a nearly-identical question. Change a word of either and every key changes,
 // which turns a stale cache into a cold one rather than a lying one.
+//
+// The model name is part of the key for the same reason. An answer recorded
+// from one Flash model and served while another is deployed is still a real
+// answer, but not the deployed model's answer, and nothing on the screen
+// would say so. Keyed this way, a model swap empties the cache instead of
+// quietly changing who is speaking.
 
 import { createHash } from 'node:crypto'
 
@@ -28,9 +34,9 @@ async function load() {
   return entries
 }
 
-export function cacheKey(systemInstruction, prompt) {
+export function cacheKey(systemInstruction, prompt, model) {
   return createHash('sha256')
-    .update(`${systemInstruction ?? ''}\u0000${prompt ?? ''}`, 'utf8')
+    .update(`${model ?? ''}\u0000${systemInstruction ?? ''}\u0000${prompt ?? ''}`, 'utf8')
     .digest('hex')
     .slice(0, 24)
 }

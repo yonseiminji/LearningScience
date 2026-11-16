@@ -25,6 +25,12 @@ ok('프롬프트가 바뀌면 키가 바뀜', cacheKey('sys', 'prompt!') !== a)
 // different questions and must not share an answer.
 ok('경계가 섞이지 않음', cacheKey('ab', 'c') !== cacheKey('a', 'bc'))
 is('키 길이', a.length, 24)
+// A recorded answer belongs to the model that gave it. Serving one Flash
+// model's answer while another is deployed is a provenance hole nothing on
+// the screen would show, so the model name is part of the key.
+ok('모델이 바뀌면 키가 바뀜', cacheKey('sys', 'prompt', 'm1') !== cacheKey('sys', 'prompt', 'm2'))
+is('같은 모델 → 같은 키', cacheKey('sys', 'prompt', 'm1'), cacheKey('sys', 'prompt', 'm1'))
+ok('모델 경계도 섞이지 않음', cacheKey('b', 'c', 'a') !== cacheKey('', 'c', 'ab'))
 
 console.log('\n[B] 캐시가 없어도 동작한다')
 is('빈 캐시에서 조회', await lookup('없는키'), null)
@@ -79,7 +85,7 @@ is('두 번 세워도 같은 계획', plan().join(), first.join())
 
 console.log('\n[F] 캐시를 읽는 곳이 한 군데다')
 const gem = readFileSync('/home/claude/learningscience/api/_lib/gemini.js','utf8')
-ok('generateJson 안에서 조회', gem.includes('await lookup(cacheKey(systemInstruction, prompt))'))
+ok('generateJson 안에서 조회', gem.includes('await lookup(cacheKey(systemInstruction, prompt, model))'))
 ok('빌드는 noCache 로 우회', gem.includes('noCache = false'))
 const script = readFileSync('/home/claude/learningscience/scripts/build-prompt-cache.mjs','utf8')
 ok('빌드가 noCache: true 를 씀', script.includes('noCache: true'))
@@ -87,6 +93,11 @@ ok('성공할 때마다 저장', script.includes('save()'))
 ok('이미 있는 키는 건너뜀', script.includes('Object.hasOwn(entries, key)'))
 ok('호출 사이에 쉼', script.includes('await sleep(PAUSE_MS)'))
 ok('키가 없으면 실행 거부', script.includes('GEMINI_API_KEY 가 없어요'))
+// Recording against the code default while Vercel runs something else builds
+// a cache that is never read, and says nothing. Make it ask.
+ok('모델을 밝히지 않으면 실행 거부', script.includes("if (!process.env.GEMINI_MODEL)"))
+ok('키에 모델을 넣고 기록', script.includes('cacheKey(job.call.systemInstruction, job.call.prompt, MODEL)'))
+ok('--dry-run 으로 호출 없이 점검', script.includes("process.argv.includes('--dry-run')"))
 
 console.log(`\n요약: ${pass} PASS / ${fail} FAIL`)
 process.exitCode = fail ? 1 : 0
