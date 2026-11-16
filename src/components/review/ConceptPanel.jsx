@@ -82,9 +82,18 @@ export default function ConceptPanel({ material, chunks = [], busy, error, onExp
             <p className="concept-def">{concept.definitionKo}</p>
             {concept.keyPoints?.length ? (
               <ul className="concept-points">
-                {concept.keyPoints.map((point) => (
-                  <li key={point}>{point}</li>
-                ))}
+                {concept.keyPoints.map((point) => {
+                  // '준비 단계: 타인의 행동을…' — lead with the term.
+                  const at = point.indexOf(':')
+                  return at > 0 ? (
+                    <li key={point}>
+                      <b>{point.slice(0, at)}</b>
+                      {point.slice(at)}
+                    </li>
+                  ) : (
+                    <li key={point}>{point}</li>
+                  )
+                })}
               </ul>
             ) : null}
             {concept.misconceptions?.length ? (
@@ -144,7 +153,7 @@ export default function ConceptPanel({ material, chunks = [], busy, error, onExp
               ) : null}
               <p>{explanation.explanation}</p>
               {explanation.status !== 'ok' ? (
-                <p className="concept-watch">
+                <p className="concept-watch is-plain">
                   <AlertTriangle aria-hidden="true" size={14} />
                   {explanation.status === 'conflicting_sources'
                     ? '강의 설명과 교재 정의가 달라요. 위의 교재 정의를 함께 봐 주세요.'
