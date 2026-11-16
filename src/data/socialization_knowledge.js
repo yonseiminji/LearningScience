@@ -50,8 +50,7 @@ export default {
           1
         ],
         "inEdition": true
-      },
-      "visualId": "agents-of-socialization-v1"
+      }
     },
     {
       "conceptId": "self",
@@ -81,8 +80,7 @@ export default {
           7
         ],
         "inEdition": true
-      },
-      "visualId": "mead-self-development-v1"
+      }
     },
     {
       "conceptId": "looking-glass-self",
@@ -110,8 +108,7 @@ export default {
           60
         ],
         "inEdition": true
-      },
-      "visualId": null
+      }
     },
     {
       "conceptId": "generalized-other",
@@ -137,8 +134,7 @@ export default {
           122
         ],
         "inEdition": true
-      },
-      "visualId": "mead-self-development-v1"
+      }
     },
     {
       "conceptId": "mead-stages",
@@ -171,8 +167,7 @@ export default {
           109
         ],
         "inEdition": true
-      },
-      "visualId": "mead-self-development-v1"
+      }
     },
     {
       "conceptId": "nature-nurture",
@@ -204,8 +199,7 @@ export default {
           194
         ],
         "inEdition": true
-      },
-      "visualId": null
+      }
     },
     {
       "conceptId": "agents-of-socialization",
@@ -222,7 +216,7 @@ export default {
         "또래집단: 비슷한 연령·지위의 구성원과 상호작용하며 기대와 규범을 익힘",
         "학교: 공식 교육뿐 아니라 규칙 준수, 협력, 경쟁, 차례 기다리기 등을 학습",
         "직장: 조직문화와 직업적 행동 방식에 적응",
-        "종교·정부·미디어: 제도와 매체를 통해 가치와 규범이 전달·강화됨"
+        "대중매체: 광고·방송·온라인 매체에 노출되며 가치와 규범을 접함"
       ],
       "misconceptions": [
         "한 기관이 언제나 하나의 방식으로만 사회화하지는 않음. 사회와 문화에 따라 달라질 수 있음"
@@ -238,8 +232,7 @@ export default {
           16
         ],
         "inEdition": true
-      },
-      "visualId": "agents-of-socialization-v1"
+      }
     },
     {
       "conceptId": "peer-group",
@@ -262,8 +255,7 @@ export default {
           18
         ],
         "inEdition": true
-      },
-      "visualId": "agents-of-socialization-v1"
+      }
     },
     {
       "conceptId": "hidden-curriculum",
@@ -294,8 +286,7 @@ export default {
           319
         ],
         "inEdition": true
-      },
-      "visualId": "hidden-curriculum-v1"
+      }
     },
     {
       "conceptId": "anticipatory-socialization",
@@ -321,8 +312,7 @@ export default {
           401
         ],
         "inEdition": true
-      },
-      "visualId": "socialization-comparison-v1"
+      }
     },
     {
       "conceptId": "resocialization",
@@ -348,8 +338,7 @@ export default {
           23
         ],
         "inEdition": true
-      },
-      "visualId": "socialization-comparison-v1"
+      }
     },
     {
       "conceptId": "total-institution",
@@ -374,8 +363,7 @@ export default {
           235
         ],
         "inEdition": true
-      },
-      "visualId": null
+      }
     },
     {
       "conceptId": "degradation-ceremony",
@@ -399,8 +387,7 @@ export default {
           435
         ],
         "inEdition": true
-      },
-      "visualId": null
+      }
     },
     {
       "conceptId": "gender-socialization",
@@ -431,8 +418,7 @@ export default {
           165
         ],
         "inEdition": true
-      },
-      "visualId": null
+      }
     },
     {
       "conceptId": "material-culture",
@@ -456,8 +442,7 @@ export default {
           44
         ],
         "inEdition": true
-      },
-      "visualId": null
+      }
     },
     {
       "conceptId": "nonmaterial-culture",
@@ -479,8 +464,7 @@ export default {
           44
         ],
         "inEdition": true
-      },
-      "visualId": null
+      }
     },
     {
       "conceptId": "workplace-socialization",
@@ -508,8 +492,7 @@ export default {
           342
         ],
         "inEdition": true
-      },
-      "visualId": null
+      }
     },
     {
       "conceptId": "mass-media",
@@ -535,8 +518,7 @@ export default {
           19
         ],
         "inEdition": true
-      },
-      "visualId": null
+      }
     },
     {
       "conceptId": "i-and-me",
@@ -568,8 +550,7 @@ export default {
           102
         ],
         "inEdition": true
-      },
-      "visualId": null
+      }
     },
     {
       "conceptId": "rite-of-passage",
@@ -593,8 +574,7 @@ export default {
           395
         ],
         "inEdition": true
-      },
-      "visualId": null
+      }
     },
     {
       "conceptId": "individual-agency",
@@ -621,8 +601,7 @@ export default {
           233
         ],
         "inEdition": true
-      },
-      "visualId": null
+      }
     }
   ]
 }

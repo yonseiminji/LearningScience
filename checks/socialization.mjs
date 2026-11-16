@@ -1,6 +1,5 @@
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import KNOWLEDGE from '/home/claude/learningscience/src/data/socialization_knowledge.js'
-import VISUALS from '/home/claude/learningscience/src/data/socialization_visuals.js'
 import {
   LIMITS,
   SUPPORT_TYPES,
@@ -8,11 +7,9 @@ import {
   conceptIds,
   conceptsInChunks,
   findConcept,
-  findVisual,
   limitChunks,
-  toMermaid,
-  validateDiagram,
 } from '/home/claude/learningscience/api/_lib/socialization.js'
+import { DIAGRAMS, graphFor } from '/home/claude/learningscience/src/features/conceptGraph/fromLexicon.js'
 
 let pass = 0
 let fail = 0
@@ -45,51 +42,39 @@ ok('사회화 ≠ 사교', findConcept('socialization').misconceptions.some((m) 
 ok('본성/양육은 경쟁 요인이 아님', findConcept('nature-nurture').misconceptions.some((m) => m.includes('경쟁')))
 ok('미드 단계는 인과가 아님', findConcept('mead-stages').misconceptions.some((m) => m.includes('인과')))
 
-console.log('\n[C] 도식 4개가 명세대로다')
-is('도식 수', VISUALS.visuals.length, 4)
-for (const id of ['agents-of-socialization-v1', 'mead-self-development-v1', 'socialization-comparison-v1', 'hidden-curriculum-v1']) {
-  ok(`${id} 존재`, findVisual(id))
-}
-ok('노드 상한 지킴', VISUALS.visuals.every((v) => v.nodes.length <= VISUALS.limits.maxNodes))
-ok('엣지 상한 지킴', VISUALS.visuals.every((v) => v.edges.length <= VISUALS.limits.maxEdges))
-ok('모든 도식에 대체 텍스트', VISUALS.visuals.every((v) => v.altText?.length > 20))
-ok('모든 도식에 해석 주의', VISUALS.visuals.every((v) => v.caveat?.length > 10))
-ok('엣지 관계가 전부 허용 목록', VISUALS.visuals.every((v) => v.edges.every((e) => VISUALS.relations[e.relation])))
-ok('엣지 끝점이 전부 노드 목록', VISUALS.visuals.every((v) => v.edges.every((e) => v.nodes.includes(e.from) && v.nodes.includes(e.to))))
-ok('도식의 conceptIds 가 전부 실재', VISUALS.visuals.every((v) => v.conceptIds.every(findConcept)))
-ok('mermaid 에 HTML 라벨 없음', VISUALS.visuals.every((v) => !/<[a-z]/i.test(v.mermaidCode)))
-ok('mermaid 에 click 이벤트 없음', VISUALS.visuals.every((v) => !v.mermaidCode.includes('click ')))
+console.log('\n[C] 관계도 4개는 사전에서 그린다')
+// The Mermaid path is gone: the premade visuals, /api/tutor/diagram and the
+// renderer that imported mermaid. What the learner sees is SVG laid out here
+// from the relation lexicon, so these are the diagrams to check.
+is('관계도 4개', DIAGRAMS.length, 4)
+const graphs = DIAGRAMS.map((item) => graphFor(item.diagramId))
+ok('네 개 다 그려짐', graphs.every(Boolean))
+ok('모든 관계도에 제목', graphs.every((g) => g.title?.length > 1))
+ok('모든 관계도에 근거 줄번호', graphs.every((g) => g.lines.length > 0))
+ok('관계도의 conceptIds 가 전부 실재', DIAGRAMS.every((item) => item.conceptIds.every(findConcept)))
+ok('노드는 전부 어떤 관계가 이름 붙인 것', graphs.every((g) =>
+  g.nodes.every((n) => g.edges.some((e) => e.from === n.id || e.to === n.id) || n.parts.length > 0)))
+ok('mermaid 를 쓰는 코드 없음', !readFileSync('/home/claude/learningscience/src/components/review/ConceptPanel.jsx', 'utf8').includes('mermaid'))
 
-console.log('\n[D] 비교 도식은 선후 관계로 그리지 않는다')
-const cmp = findVisual('socialization-comparison-v1')
-ok('예기↔재사회화는 contrasts_with', cmp.edges.some((e) => e.relation === 'contrasts_with'))
-ok('둘 사이에 화살표 관계 없음', !cmp.edges.some((e) => e.relation === 'precedes_stage' && ['예기 사회화', '재사회화'].includes(e.from) && ['예기 사회화', '재사회화'].includes(e.to)))
-ok('금지 엣지로 등록됨', VISUALS.forbiddenEdges.length >= 2)
+console.log('\n[C2] 기관 관계도가 이 판이 다루는 범위를 넘지 않는다')
+// §5.3 gives a section each to family, peer groups, school, workplace and
+// mass media. Religion appears once as a societal factor alongside race and
+// class, government once as a Swedish parental-leave policy. Neither is an
+// agent in this edition, which is why the lexicon marks REL-09 and REL-10
+// unsupported — and why nothing else may still claim otherwise.
+const agents = JSON.stringify(graphFor('agents'))
+ok('종교를 독립 기관으로 세우지 않음', !agents.includes('종교'))
+ok('정부를 독립 기관으로 세우지 않음', !agents.includes('정부'))
+ok('기관 개념 설명도 마찬가지', !JSON.stringify(findConcept('agents-of-socialization')).match(/종교|정부/))
+ok('대중매체는 남아 있음', JSON.stringify(findConcept('agents-of-socialization')).includes('대중매체'))
 
-console.log('\n[E] 단계 도식의 순서')
-const mead = findVisual('mead-self-development-v1')
-is('단계 순서', mead.nodes.join(' → '), '준비 단계 → 놀이 단계 → 게임 단계 → 일반화된 타자 이해')
-ok('모두 precedes_stage', mead.edges.every((e) => e.relation === 'precedes_stage'))
-
-console.log('\n[F] 도식 데이터 검증기')
-is('올바른 도식은 통과', validateDiagram({ visualId: 'hidden-curriculum-v1', nodes: mead.nodes.slice(0, 0).concat(findVisual('hidden-curriculum-v1').nodes), edges: findVisual('hidden-curriculum-v1').edges }).ok, true)
-is('없는 도식은 거부', validateDiagram({ visualId: 'nope-v1', nodes: [], edges: [] }).ok, false)
-is('허용되지 않은 노드 거부', validateDiagram({ visualId: 'hidden-curriculum-v1', nodes: ['우주선'], edges: [] }).ok, false)
-is('허용되지 않은 관계 거부', validateDiagram({ visualId: 'mead-self-development-v1', nodes: mead.nodes, edges: [{ from: '준비 단계', to: '놀이 단계', relation: 'causes' }] }).ok, false)
-const banned = validateDiagram({
-  visualId: 'socialization-comparison-v1',
-  nodes: cmp.nodes,
-  edges: [{ from: '예기 사회화', to: '재사회화', relation: 'precedes_stage', fromConceptId: 'anticipatory-socialization', toConceptId: 'resocialization' }],
-})
-is('예기→재사회화 선후 관계 거부', banned.ok, false)
-ok('거부 이유를 말함', banned.problems.some((p) => p.includes('선후')))
-is('노드 11개 거부', validateDiagram({ visualId: 'hidden-curriculum-v1', nodes: Array.from({ length: 11 }, (_, i) => `n${i}`), edges: [] }).ok, false)
-
-console.log('\n[G] Mermaid 는 서버가 조립한다')
-const built = toMermaid({ visualId: 'hidden-curriculum-v1', nodes: findVisual('hidden-curriculum-v1').nodes, edges: findVisual('hidden-curriculum-v1').edges })
-ok('flowchart 로 시작', built.startsWith('flowchart'))
-ok('노드 라벨이 따옴표 안에', built.includes('["줄 서기"]'))
-is('없는 도식이면 null', toMermaid({ visualId: 'nope', nodes: [], edges: [] }), null)
+console.log('\n[E] 단계 관계도의 순서')
+is('단계 순서',
+  ['준비 단계', '놀이 단계', '게임 단계', '일반화된 타자 이해']
+    .filter((label) => graphFor('mead').nodes.some((n) => n.id === label)).join(' → '),
+  '준비 단계 → 놀이 단계 → 게임 단계 → 일반화된 타자 이해')
+ok('비교 관계도는 선후로 그리지 않음',
+  !graphFor('anticipatory_vs_resocialization').edges.some((e) => e.type === 'PRECEDES'))
 
 console.log('\n[H] 길이 제한')
 const many = Array.from({ length: 6 }, (_, i) => ({ chunkId: `c-${i}`, text: 'x'.repeat(2000) }))
@@ -115,20 +100,15 @@ is('빈 전사문', conceptsInChunks([]).hits.length, 0)
 
 console.log('\n[J] 엔드포인트 계약')
 const explain = readFileSync('/home/claude/learningscience/api/tutor/explain.js', 'utf8')
-const diagram = readFileSync('/home/claude/learningscience/api/tutor/diagram.js', 'utf8')
 is('supportType 4종', SUPPORT_TYPES.join(), 'simple,example,analogy,comparison')
 ok('explain 이 정의를 요청에서 받지 않음', !explain.includes('body.definition'))
 ok('explain 이 서버에서 개념을 조회', explain.includes('findConcept(conceptId)'))
 ok('explain 이 출처 id 를 걸러냄', explain.includes('sentChunkIds.has'))
 ok('explain 이 사례·비유를 생성물로 강제 표시', explain.includes("supportType === 'example' || supportType === 'analogy'"))
 ok('explain 이 고정 정의를 항상 동봉', explain.includes('definitionKo: concept.definitionKo'))
-ok('diagram template 은 모델을 부르지 않음', !diagram.includes('generateJson'))
-ok('diagram generated 는 501', diagram.includes('501'))
-ok('diagram 이 입력에 없는 chunkId 를 만들지 않음', diagram.includes('body.lectureChunks'))
 // The gate that broke it: materialId is a generated upload id, so pinning it
 // to the knowledge base's demo id rejected every real lecture with a 400.
 ok('explain 이 materialId 를 고정값과 대조하지 않음', !explain.includes("[MATERIAL_ID]"))
-ok('diagram 이 materialId 를 고정값과 대조하지 않음', !diagram.includes("[MATERIAL_ID]"))
 ok('explain 이 materialId 를 문자열로만 받음', explain.includes("requireString(body.materialId"))
 
 console.log('\n[L] 화면: 범위 판정은 전사문으로 한다')
@@ -152,9 +132,13 @@ console.log('\n[M] sendJson 은 (res, status, payload)')
 // The bug: sendJson(response, {...}) put the body in the status slot, so
 // res.status({}) threw a TypeError, which was not an ApiError, which the
 // error handler flattened into '알 수 없는 오류가 생겼어요'.
-for (const [label, text] of [['explain', explain], ['diagram', diagram]]) {
+// diagram.js was one of the two handlers checked here; with it gone the
+// check covers every handler instead, which is where it should have been.
+// Underscore files are helpers, not routes, and send nothing.
+for (const name of readdirSync('/home/claude/learningscience/api/tutor').filter((n) => !n.startsWith('_'))) {
+  const text = readFileSync(`/home/claude/learningscience/api/tutor/${name}`, 'utf8')
   const calls = [...text.matchAll(/sendJson\(\s*\w+\s*,\s*([^,\s]+)/g)].map((m) => m[1])
-  ok(`${label} 의 sendJson 두 번째 인자가 숫자`, calls.length > 0 && calls.every((a) => /^\d+$/.test(a)))
+  ok(`${name} 의 sendJson 두 번째 인자가 숫자`, calls.length > 0 && calls.every((a) => /^\d+$/.test(a)))
 }
 const lib = readFileSync('/home/claude/learningscience/api/_lib/gemini.js', 'utf8')
 ok('예기치 못한 오류도 원인을 말함', !lib.includes("'알 수 없는 오류가 생겼어요.'"))
@@ -171,10 +155,11 @@ for (const path of ['api/tutor/quiz.js', 'api/tutor/answer.js', 'api/tutor/suppo
   ok(`${path} 유지`, api.functions[path])
 }
 ok('explain 등록', api.functions['api/tutor/explain.js'])
-ok('diagram 등록', api.functions['api/tutor/diagram.js'])
+ok('diagram 은 등록 해제', !api.functions['api/tutor/diagram.js'])
 const client = readFileSync('/home/claude/learningscience/src/services/tutorApi.js', 'utf8')
 ok('클라이언트에 기존 4개 유지', ['quiz:', 'answer:', 'support:', 'chunk:'].every((n) => client.includes(n)))
-ok('클라이언트에 explain·diagram 추가', client.includes('explain:') && client.includes('diagram:'))
+ok('클라이언트에 explain 있음', client.includes('explain:'))
+ok('클라이언트에 diagram 없음', !client.includes('diagram:'))
 
 console.log(`\n요약: ${pass} PASS / ${fail} FAIL`)
 process.exitCode = fail ? 1 : 0

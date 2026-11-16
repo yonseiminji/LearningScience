@@ -234,9 +234,6 @@
 .concept-diagram { display: grid; gap: 8px; margin: 0; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
 .concept-diagram figcaption { display: flex; align-items: center; gap: 6px; font-weight: 600; font-size: 14px; }
 /* Scrolls sideways rather than shrinking, so labels stay readable on a phone. */
-.concept-diagram-canvas { overflow-x: auto; }
-.concept-diagram-canvas svg { max-width: none; height: auto; }
-.concept-diagram-alt { margin: 0; line-height: 1.6; }
 
 /* ─── 개념 관계도 (관계 사전에서 직접 그림) ──────────────────────────── */
 

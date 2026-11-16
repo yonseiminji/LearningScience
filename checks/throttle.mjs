@@ -29,7 +29,7 @@ ok('슬롯 반납 함수', lim.includes('export async function finishRate'))
 ok('호출자별 제한도 남아 있음', lim.includes('function checkCallerRate'))
 
 console.log('\n[C] 모든 핸들러가 슬롯을 잡고 반납한다')
-for (const p of ['tutor/quiz','tutor/answer','tutor/support','tutor/explain','tutor/recall','tutor/diagram','planner/chunk']) {
+for (const p of ['tutor/quiz','tutor/answer','tutor/support','tutor/explain','tutor/recall','planner/chunk']) {
   const t = readFileSync(`/home/claude/learningscience/api/${p}.js`,'utf8')
   ok(`${p}: await checkRate`, /const slot = await checkRate\(re/.test(t))
   ok(`${p}: finally 에서 반납`, t.includes('await finishRate(slot)'))

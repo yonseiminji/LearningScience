@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import { AlertTriangle, BookOpen, Lightbulb, Network, Sparkles } from 'lucide-react'
 import KNOWLEDGE from '../../data/socialization_knowledge.js'
-import ConceptDiagram from './ConceptDiagram.jsx'
 import ConceptGraph from './ConceptGraph.jsx'
 import { diagramsForConcept, graphFor } from '../../features/conceptGraph/fromLexicon.js'
 import { conceptsInChunks } from '../../utils/conceptSearch.js'
@@ -31,9 +30,7 @@ export default function ConceptPanel({
   busy,
   error,
   onExplain,
-  onDiagram,
   explanation,
-  diagram,
 }) {
   const [conceptId, setConceptId] = useState(null)
   const [showGraph, setShowGraph] = useState(false)
@@ -146,7 +143,7 @@ export default function ConceptPanel({
             ) : null}
           </div>
 
-          {busy ? <p className="concept-note">{busy === 'diagram' ? '관계도를 가져오고 있어요…' : '설명을 만들고 있어요…'}</p> : null}
+          {busy ? <p className="concept-note">설명을 만들고 있어요…</p> : null}
           {error ? (
             <p role="alert" className="concept-error">
               {error}
@@ -184,8 +181,8 @@ export default function ConceptPanel({
             </article>
           ) : null}
 
-          {/* Drawn here from the relation lexicon — no model, no round trip.
-              ConceptDiagram stays for a server-sent template. */}
+          {/* Drawn here from the relation lexicon — no model, no round trip,
+              nothing to go wrong when thirty people open it at once. */}
           {showGraph
             ? charts.map((chart) => (
                 <figure key={chart.diagramId} className="concept-diagram">
@@ -197,8 +194,6 @@ export default function ConceptPanel({
                 </figure>
               ))
             : null}
-
-          {diagram && diagram.conceptId === conceptId ? <ConceptDiagram diagram={diagram} /> : null}
         </>
       ) : null}
 

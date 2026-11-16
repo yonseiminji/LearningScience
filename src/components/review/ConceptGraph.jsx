@@ -202,11 +202,13 @@ export default function ConceptGraph({ graph, caveat }) {
       </ul>
 
       {caveat ? <p className="concept-watch">{caveat}</p> : null}
-      {/* The relation lexicon was anchored to the OpenStax edition and its
-          page numbers do not transfer, so the diagram cites the chapter and
-          says where its relations came from rather than printing a page that
-          no longer points anywhere. */}
-      <p className="concept-source">관계 사전 v2 · OpenStax Introduction to Sociology 3e, Ch. 5 검토본</p>
+      {/* Cited by chapter, not by page. The lexicon bundle names printed
+          pages, but the chapter text we hold carries no page boundaries, so
+          the number could not be checked against anything — it stays in the
+          data as a claim and off the screen. */}
+      <p className="concept-source">
+        관계 사전 v2.1 · William Little, Introduction to Sociology 3rd Canadian Edition, Ch. 5 (BCcampus, CC BY 4.0)
+      </p>
     </div>
   )
 }

@@ -17,9 +17,6 @@
     "api/tutor/explain.js": {
       "maxDuration": 30
     },
-    "api/tutor/diagram.js": {
-      "maxDuration": 10
-    },
     "api/tutor/recall.js": {
       "maxDuration": 30
     }

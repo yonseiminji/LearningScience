@@ -443,9 +443,42 @@ No backend. The plan lives in React state and is gone on reload; only "has this 
 발견됩니다. 개념이 교재에는 있는데 전사문에 없으면 화면에 뜨지 않고, 전사문에는
 있는데 교재 판본에 없으면 "이 판에서는 따로 다루지 않아요"로 표시됩니다.
 
-관계 사전(`socialization_relations.js`)은 아직 OpenStax 판 기준으로 검토된
-자료입니다. 쪽 번호가 이 판으로 옮겨지지 않으므로 관계도에서는 쪽수를 표시하지
-않고 출처만 밝힙니다.
+관계 사전(`socialization_relations.js`)도 이 판 기준입니다. BCcampus 검증본
+v2.1을 `scripts/anchor-lexicon.mjs`로 저장소 코퍼스에 다시 앵커했습니다 —
+**활성 관계 28개 전부의 `evidenceEn`이 `docs/bccampus-ch05` 영문 원문에 그대로
+존재**하고, `sourceLines`가 찾은 줄입니다.
+
+- 근거를 코퍼스에서 못 찾은 관계는 **기록하지 않습니다.**
+- 새 판에서 근거를 찾지 못한 2개(`REL-09` 종교, `REL-10` 정부)는 `isActive: false`로
+  남기고 도식에서 제외합니다. **틀렸다는 판정이 아니라 이 판에 근거가 없다는
+  뜻입니다.**
+- `REL-30`(놀이 단계 → 게임 단계)은 **이 저장소가 추가한 관계**입니다. 검증본에도
+  없습니다. 교재가 네 단계를 순서대로 서술하지만 `followed by`는 준비→놀이에만
+  붙어 있어서, `provenance: 'structural'`로 구분해 두었습니다.
+- 번들이 적어 온 인쇄 쪽수는 `claimedPrintPages`에만 남고 **코드가 읽지 않습니다.**
+  업로드된 TXT에 페이지 경계가 없어 확인할 수 없는 숫자라서, 화면에도 프롬프트에도
+  넣지 않습니다.
+
+```bash
+node scripts/anchor-lexicon.mjs <relation_lexicon.json>
+```
+
+### 관계도는 SVG로 그립니다 (Mermaid 아님)
+
+관계도 4개(기관 · 미드 단계 · 잠재적 교육과정 · 예기↔재사회화)는
+`src/features/conceptGraph/`가 사전에서 **브라우저에서 직접 SVG로** 그립니다.
+모델 호출도, 서버 왕복도 없습니다.
+
+Mermaid 경로가 한동안 같이 있었지만 세 군데서 끊겨 있었습니다 — 패키지가
+설치되지 않았고, `@vite-ignore` 때문에 번들에 `import("mermaid")`가 bare
+specifier로 남아 설치해도 브라우저가 해석할 수 없었고, 호출하는 버튼이
+없었습니다. 호출되면 `altText`로 떨어지는 구조였습니다. 지워냈습니다:
+`ConceptDiagram.jsx`, `api/tutor/diagram.js`, `socialization_visuals.js`,
+그리고 `_lib/socialization.js`의 `findVisual`·`validateDiagram`·`toMermaid`.
+
+`relationStyle.js`·`layout.js`가 Mermaid로는 안 되는 것들을 합니다 —
+`IS_A`·`PART_OF`·`EXAMPLE_OF`를 `Ex.`로 아래에 적고, 대조를 화살표 없는 빨간
+점선으로, `PART_OF`를 상자 안 표 행으로, 간선을 직각으로 라우팅합니다.
 
 ## 응답 캐시 (시연 전에 만들기)
 

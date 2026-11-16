@@ -1,4 +1,8 @@
+import { readFileSync } from 'node:fs'
 import LEXICON from '/home/claude/learningscience/src/data/socialization_relations.js'
+import { socializationEN as EN } from '/home/claude/learningscience/docs/bccampus-ch05/bccampus_socialization_ch05_en.js'
+
+const FROM_LEXICON = '/home/claude/learningscience/src/features/conceptGraph/fromLexicon.js'
 import { DIAGRAMS, describeGraph, diagramsForConcept, graphFor } from '/home/claude/learningscience/src/features/conceptGraph/fromLexicon.js'
 import { CHAR, MAX_LINE, layerOf, layoutGraph, pickOrientation, wrap } from '/home/claude/learningscience/src/features/conceptGraph/layout.js'
 import { FAMILY, LISTED, LIST_PREFIX, MAX_EDGE_LABEL, STYLE, edgeLabel, isDirected, isListed, isNoteNode, isPart } from '/home/claude/learningscience/src/features/conceptGraph/relationStyle.js'
@@ -15,9 +19,69 @@ const ok = (label, cond) => is(label, Boolean(cond), true)
 console.log('\n[A] 사전이 그대로 들어왔다')
 is('관계 30개', LEXICON.relations.length, 30)
 is('유형 8개', LEXICON.relationTypes.length, 8)
-ok('모든 관계에 근거 쪽수', LEXICON.relations.every((r) => (r.sourcePages || []).length > 0))
+ok('활성 관계에 근거 줄번호', LEXICON.relations.filter((r) => r.isActive !== false)
+  .every((r) => (r.sourceLines || []).length > 0))
+// The bundle's printed pages could not be checked against the chapter text we
+// hold, which has no page boundaries. They stay as a claim in the data and
+// must not become something the app asserts.
+ok('쪽수를 쓰는 코드 없음', !readFileSync(FROM_LEXICON, 'utf8').includes('sourcePages'))
+ok('번들의 쪽수 주장은 감사용으로만 남음',
+  LEXICON.relations.every((r) => Object.hasOwn(r, 'claimedPrintPages')))
 ok('모든 유형이 그리거나 적히거나 표가 되거나', LEXICON.relationTypes.every((t) => STYLE[t.id] || isListed(t.id) || isPart(t.id)))
 ok('모든 유형에 가족 정의', LEXICON.relationTypes.every((t) => FAMILY[t.id]))
+
+console.log('\n[A2] 모든 근거가 교재 원문에 실제로 있다')
+// The whole point of the lexicon is that every arrow traces to a sentence in
+// the chapter. That is checkable, so it is checked here rather than trusted:
+// each evidenceEn must occur verbatim in the English corpus, on the line the
+// data claims. Quotes and dashes are flattened on both sides; the needle must
+// still occur whole.
+const flat = (text) => (text || '')
+  .replace(/[\u2018\u2019\u02bc]/g, "'").replace(/[\u201c\u201d]/g, '"')
+  .replace(/[\u2013\u2014]/g, '-').replace(/\u2026/g, '...')
+  .replace(/\s+/g, ' ').trim().toLowerCase()
+const byLine = new Map(EN.blocks.map((b) => [b.sourceLine, flat(b.originalEn)]))
+const active = LEXICON.relations.filter((r) => r.isActive !== false)
+is('활성 관계 28개', active.length, 28)
+for (const relation of active) {
+  const line = relation.sourceLines[0]
+  const text = byLine.get(line) || ''
+  ok(`${relation.id} 근거가 ${line}줄에 그대로 있음`, Boolean(relation.evidenceEn) && text.includes(flat(relation.evidenceEn)))
+  is(`${relation.id} 섹션이 그 줄의 섹션과 같음`, relation.sourceSection,
+    EN.blocks.find((b) => b.sourceLine === line)?.section)
+}
+ok('비활성 관계는 근거가 없어서 비활성', LEXICON.relations.filter((r) => r.isActive === false)
+  .every((r) => !r.evidenceEn))
+
+console.log('\n[A3] 미드 사슬이 끊기지 않는다')
+// The chain was drawn with 놀이→게임 missing once, because neither the source
+// review nor the validated bundle had that edge. It is ours, marked
+// structural, and the four lines must still ascend in the chapter's order.
+const meadGraph = graphFor('mead')
+const meadOrder = ['준비 단계', '놀이 단계', '게임 단계', '일반화된 타자 이해']
+for (const [index, from] of meadOrder.slice(0, -1).entries()) {
+  const to = meadOrder[index + 1]
+  ok(`${from} → ${to}`, meadGraph.edges.some((e) => e.from === from && e.to === to && e.type === 'PRECEDES'))
+}
+const added = LEXICON.relations.find((r) => r.id === 'REL-30')
+is('REL-30 은 저장소가 추가한 것으로 표시', added?.provenance, 'structural')
+ok('REL-30 근거 줄이 놀이 단계보다 뒤',
+  added.sourceLines[0] > LEXICON.relations.find((r) => r.id === 'REL-13').sourceLines[0])
+
+console.log('\n[A4] 쪽수는 화면에도 프롬프트에도 닿지 않는다')
+// The bundle's page numbers survive in claimedPrintPages and inside the
+// bundle's own validationNote text, because they are its claim about its own
+// work. What matters is that no field the picture or a prompt reads carries
+// one. Checked by field, not by hope.
+const READ_BY_GRAPH = ['subjectKo', 'objectKo', 'relationKo', 'relationType', 'semanticNote', 'sourceLines', 'sourceSection', 'diagramIds', 'id']
+const pageish = /\bpp?\.\s*\d/
+for (const relation of LEXICON.relations) {
+  const read = Object.fromEntries(READ_BY_GRAPH.map((key) => [key, relation[key]]))
+  ok(`${relation.id} 그려지는 필드에 쪽수 없음`, !pageish.test(JSON.stringify(read)))
+}
+const graphJson = JSON.stringify(DIAGRAMS.map((item) => graphFor(item.diagramId)))
+ok('완성된 관계도 어디에도 쪽수 없음', !pageish.test(graphJson))
+ok('관계도가 사전 metadata 를 들고 나가지 않음', !graphJson.includes('claimedPrintPages'))
 
 console.log('\n[B] 근거 없는 유형은 지어내지 않는다')
 is('CAUSES 항목', LEXICON.relations.filter((r) => r.relationType === 'CAUSES').length, 0)
@@ -101,7 +165,7 @@ for (const item of DIAGRAMS) {
   ok(`${item.diagramId} 모든 간선이 양 끝을 찾음`, laid.edges.length === graph.edges.length)
   ok(`${item.diagramId} 모든 간선이 직각`, laid.edges.every(rightAngled))
   ok(`${item.diagramId} 간선 라벨 좌표 있음`, laid.edges.every((e) => Number.isFinite(e.label.x) && Number.isFinite(e.label.y)))
-  ok(`${item.diagramId} 근거 쪽수 있음`, graph.pages.length > 0)
+  ok(`${item.diagramId} 근거 줄번호 있음`, graph.lines.length > 0)
   ok(`${item.diagramId} 그려진 엣지에 분류 관계 없음`, graph.edges.every((e) => !isListed(e.type)))
   ok(`${item.diagramId} 노드는 그려진 엣지에서만 나옴`, graph.nodes.every((n) => graph.edges.some((e) => e.from === n.id || e.to === n.id)))
 }
@@ -132,7 +196,26 @@ console.log('\n[G4] 빠졌던 단계 연결이 메워졌다')
 const chainNow = graphFor('mead').edges.filter((e) => e.type === 'PRECEDES').map((e) => `${e.from}→${e.to}`)
 is('PRECEDES 세 개', chainNow.length, 3)
 ok('놀이→게임 생김', chainNow.includes('놀이 단계→게임 단계'))
-ok('준비→놀이→게임→일반화 순서', chainNow.join() === '준비 단계→놀이 단계,놀이 단계→게임 단계,게임 단계→일반화된 타자 이해')
+// Not the order the rows happen to sit in the file — the path. REL-30 is
+// appended after the bundle's rows, and the drawing takes its order from the
+// layering, so following the edges is the property that actually holds.
+const walk = (start) => {
+  const out = [start]
+  for (let step = 0; step < 6; step += 1) {
+    const next = graphFor('mead').edges.find((e) => e.type === 'PRECEDES' && e.from === out.at(-1))
+    if (!next) break
+    out.push(next.to)
+  }
+  return out.join('→')
+}
+is('준비→놀이→게임→일반화 한 줄로 이어짐', walk('준비 단계'),
+  '준비 단계→놀이 단계→게임 단계→일반화된 타자 이해')
+ok('그려질 때도 단계마다 한 층씩 내려감', (() => {
+  const g = graphFor('mead')
+  const depth = layerOf(g.nodes.map((n) => n.id), g.edges)
+  const steps = ['준비 단계', '놀이 단계', '게임 단계', '일반화된 타자 이해'].map((id) => depth.get(id))
+  return steps.every((value, index) => index === 0 || value > steps[index - 1])
+})())
 is('mead 는 목록이 빔', graphFor('mead').listed.length, 0)
 
 // Every segment runs straight across or straight down: no diagonals.
