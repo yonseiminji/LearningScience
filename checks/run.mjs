@@ -23,7 +23,7 @@ const WORK = mkdtempSync(join(tmpdir(), 'checks-'))
 const only = process.argv[2]
 
 const files = readdirSync(HERE)
-  .filter((name) => /\.(mjs|jsx)$/.test(name) && name !== 'run.mjs')
+  .filter((name) => /\.(mjs|jsx)$/.test(name) && name !== 'run.mjs' && !name.startsWith('_'))
   .filter((name) => !only || name.includes(only))
   .sort()
 

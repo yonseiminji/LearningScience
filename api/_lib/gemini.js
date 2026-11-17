@@ -6,9 +6,17 @@
 
 import { createHash } from 'node:crypto'
 import { cacheKey, lookup, rehydrateChunkIds } from './promptCache.js'
+import { releaseModelCall, reserveModelCall } from './sharedLimit.js'
 import { GoogleGenAI } from '@google/genai'
 
 export const MODEL = process.env.GEMINI_MODEL || 'gemini-2.0-flash'
+// Across everyone, not per person. Set below the key's real RPM so the quota
+// is never the thing that fails: a queue message beats a 429 from Google.
+// Read here rather than in limit.js because this is where the quota is spent.
+const GLOBAL_PER_MINUTE = Number(process.env.GEMINI_RPM_BUDGET || 20)
+// How many model calls may be in flight at once. Holding the rest back is
+// what keeps a burst of thirty from becoming thirty simultaneous requests.
+const CONCURRENCY = Number(process.env.GEMINI_CONCURRENCY || 5)
 
 let client = null
 
@@ -185,6 +193,13 @@ export async function generateJson({
     logText('[tutor:prompt]', id, prompt)
   }
 
+  // The quota is about to be spent, so this is where the shared budget and
+  // the concurrency slot are taken -- not when the request arrived. A hit
+  // above has already returned, having cost Google nothing and the budget
+  // nothing with it.
+  const reservation = await reserveModelCall({ perMinute: GLOBAL_PER_MINUTE, concurrency: CONCURRENCY })
+  if (!reservation.ok) throw new ApiError(429, reservation.message, null, reservation.meta)
+
   let response
   try {
     response = await withRetry(() => ai.models.generateContent({
@@ -206,6 +221,10 @@ export async function generateJson({
       throw new ApiError(503, '지금 요청이 몰려 있어요. 잠시 뒤에 다시 해 주세요.', String(error?.message || error))
     }
     throw new ApiError(502, '모델 응답을 받지 못했어요.', String(error?.message || error))
+  } finally {
+    // Held for the call and no longer. Parsing below is local, and a slot
+    // kept through it would shrink the number of people served for nothing.
+    await releaseModelCall(reservation)
   }
 
   const reason = finishReasonOf(response)

@@ -6,16 +6,7 @@
 // cost; a real deployment needs a shared store.
 
 import { ApiError } from './gemini.js'
-import { bump, releaseSlot, takeSlot } from './sharedLimit.js'
 
-// Across everyone, not per person. Set below the key's real RPM so the quota
-// is never the thing that fails: a queue message is a better experience than
-// a 429 from Google.
-const GLOBAL_PER_MINUTE = Number(process.env.GEMINI_RPM_BUDGET || 20)
-// How many model calls may be in flight at once. Holding the rest back is
-// what keeps a burst of thirty from becoming thirty simultaneous requests.
-const CONCURRENCY = Number(process.env.GEMINI_CONCURRENCY || 5)
-const SLOT_KEY = 'slots:gemini'
 
 const WINDOW_MS = 60_000
 const MAX_PER_WINDOW = 20
@@ -41,29 +32,21 @@ function callerOf(req) {
  */
 export async function checkRate(req) {
   checkCallerRate(req)
-
-  const minute = Math.floor(Date.now() / 60000)
-  const used = await bump(`rpm:${minute}`, 90)
-  if (used !== null && used > GLOBAL_PER_MINUTE) {
-    throw new ApiError(429, '지금 함께 쓰는 사람이 많아요. 20초쯤 뒤에 다시 해 주세요.', null, { retryAfterMs: 20000 })
-  }
-
-  const slot = await takeSlot(SLOT_KEY, CONCURRENCY)
-  if (!slot.ok) {
-    throw new ApiError(
-      429,
-      slot.ahead > 0 ? `앞에 ${slot.ahead}명이 기다리고 있어요. 곧 순서가 와요.` : '잠시만 기다려 주세요.',
-      null,
-      { retryAfterMs: 2500 + Math.floor(Math.random() * 1500), ahead: slot.ahead },
-    )
-  }
-  return slot
+  // The shared budget and the slot used to be taken here, when a request
+  // arrived. They guard the Gemini quota, and a request answered from the
+  // prompt cache spends none of it, so they are now taken around the model
+  // call itself -- see reserveModelCall, used by generateJson. Measured
+  // before the move: thirty learners, every question already recorded, no
+  // call to Google, and ten of them were told to wait twenty seconds.
+  return null
 }
 
-/** Always call this when the handler ends, however it ends. */
-export async function finishRate(slot) {
-  if (slot?.shared) await releaseSlot(SLOT_KEY)
-}
+/**
+ * Kept so handlers can stay written as checkRate/finally-finishRate. The slot
+ * they used to hold is now held by generateJson for the length of the model
+ * call, so there is nothing left here to release.
+ */
+export async function finishRate() {}
 
 function checkCallerRate(req) {
   const caller = callerOf(req)

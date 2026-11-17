@@ -22,8 +22,21 @@ ok('과부하는 503 으로 돌려줌', gem.includes("new ApiError(503"))
 console.log('\n[B] 공유 리미터')
 ok('외부 저장소 모듈이 있음', typeof sharedStoreReady === 'function')
 is('환경변수 없으면 꺼짐', sharedStoreReady(), false)
-ok('전역 RPM 예산', lim.includes('GEMINI_RPM_BUDGET'))
-ok('동시 실행 상한', lim.includes('GEMINI_CONCURRENCY'))
+// The budget and the slot moved out of limit.js and next to the model call:
+// they guard the Gemini quota, and a request answered from the prompt cache
+// spends none of it. Measured before the move -- thirty learners, every
+// question already recorded, no call to Google, ten of them told to wait
+// twenty seconds by the limiter protecting a quota nobody was using.
+ok('전역 RPM 예산', gem.includes('GEMINI_RPM_BUDGET'))
+ok('동시 실행 상한', gem.includes('GEMINI_CONCURRENCY'))
+ok('예산을 모델 호출 직전에 잡음', gem.includes('await reserveModelCall('))
+ok('호출이 끝나면 반납', gem.includes('await releaseModelCall(reservation)'))
+ok('요청 도착 시점에는 공용 예산을 쓰지 않음',
+  !lim.includes('GEMINI_RPM_BUDGET') && !lim.includes('takeSlot'))
+// The ordering that makes it true: the cache is consulted, and returns,
+// before anything is reserved.
+ok('캐시 조회가 예약보다 먼저',
+  gem.indexOf('await lookup(cacheKey(') < gem.indexOf('await reserveModelCall('))
 ok('checkRate 가 비동기', lim.includes('export async function checkRate'))
 ok('슬롯 반납 함수', lim.includes('export async function finishRate'))
 ok('호출자별 제한도 남아 있음', lim.includes('function checkCallerRate'))
