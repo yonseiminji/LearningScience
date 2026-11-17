@@ -81,13 +81,21 @@ async function main() {
   // Same thirty, each asking something nobody recorded. Here the quota is
   // real, so the limiter has to bite -- and say how long to wait.
   process.env.GEMINI_API_KEY = 'not-a-real-key'
+  // Not 'exactly twenty pass'. Two things can turn a request away -- the
+  // minute's budget and the five concurrent slots -- and which one bites
+  // depends on how the thirty interleave, so the split moves with machine
+  // load. Asserting 20/10 passed alone and failed inside the full suite at
+  // 19/11, which is the limiter working, not breaking. The budget is a
+  // ceiling, and that is what is checked.
   const live = await Promise.all(
     Array.from({ length: 30 }, (_, at) => call(`203.0.113.${at + 1}`, 'simple', `물어볼 것 ${at}`)),
   )
   const turned = live.filter((item) => item.code === 429)
-  is('예산만큼만 통과', live.length - turned.length, 20)
-  is('나머지는 기다리라고 안내', turned.length, 10)
-  ok('언제 다시 할지 알려 줌', turned.every((item) => Number(item.body.retryAfterMs) > 0))
+  const through = live.length - turned.length
+  ok(`예산을 넘겨 보내지 않음 (통과 ${through}명 ≤ 20)`, through <= 20)
+  is('모두 응답은 받음', through + turned.length, 30)
+  ok('넘친 사람은 기다리라고 안내받음', turned.length > 0)
+  ok('언제 다시 할지 알려 줌', turned.length > 0 && turned.every((item) => Number(item.body.retryAfterMs) > 0))
   ok('부정적인 표현을 쓰지 않음', turned.every((item) => !/실패|지연|오류/.test(item.body.error)))
   await new Promise((resolve) => { setTimeout(resolve, 500) })
   is('슬롯이 모두 반납됨', fake.store.get('slots:gemini') ?? 0, 0)

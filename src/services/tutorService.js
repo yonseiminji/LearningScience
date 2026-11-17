@@ -29,7 +29,7 @@ async function withFallback(call, fallback) {
 
 export const tutorService = {
   /** Questions come back with their answers sealed, not in the clear. */
-  createQuiz({ material, chunkIds }) {
+  createQuiz({ material, chunkIds, onWait }) {
     const chunks = material.chunks.filter((chunk) => chunkIds.includes(chunk.chunkId))
     return withFallback(
       () =>
@@ -40,7 +40,7 @@ export const tutorService = {
             chunks: chunks.map(({ chunkId, text }) => ({ chunkId, text })),
             questionTypes: ['ox', 'blank'],
             questionCount: 3,
-          })
+          }, { onWait })
           .then((data) => ({ ...data, provider: 'gemini' })),
       () => mockTutorService.createQuiz({ material, chunkIds }),
     )
@@ -81,14 +81,14 @@ export const tutorService = {
    * screen already shows the checked definition, so a failure can surface as
    * a failure and still leave something correct on the page.
    */
-  explainConcept({ material, conceptId, supportType, chunks }) {
+  explainConcept({ material, conceptId, supportType, chunks, onWait }) {
     return tutorApi
       .explain({
         materialId: material.materialId,
         conceptId,
         supportType,
         lectureChunks: chunks.map(({ chunkId, text }) => ({ chunkId, text })),
-      })
+      }, { onWait })
       .then((data) => ({ ...data, provider: 'gemini' }))
   },
 
@@ -97,17 +97,17 @@ export const tutorService = {
    * none: a made-up reading of what the learner wrote would be worse than
    * saying the check could not run.
    */
-  checkRecall({ material, attempt, conceptId, rubricId }) {
-    return tutorApi.recall({ materialId: material.materialId, attempt, conceptId, rubricId })
+  checkRecall({ material, attempt, conceptId, rubricId, onWait }) {
+    return tutorApi.recall({ materialId: material.materialId, attempt, conceptId, rubricId }, { onWait })
   },
 
   /** Steps for one assignment, at the granularity the learner asked for.
    *  Nothing is stored: what comes back is a proposal for them to edit. */
-  createSteps({ subjectId, subjectName, instruction, chunkingLevel }) {
+  createSteps({ subjectId, subjectName, instruction, chunkingLevel, onWait }) {
     return withFallback(
       () =>
         tutorApi
-          .chunk({ subjectId, subjectName, instruction, chunkingLevel })
+          .chunk({ subjectId, subjectName, instruction, chunkingLevel }, { onWait })
           .then((data) => ({ ...data, provider: 'gemini' })),
       () => mockTutorService.createSteps(),
     )

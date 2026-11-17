@@ -71,5 +71,40 @@ ok('기본 상한도 축소', lim.includes('maxCount = 8, maxChars = 6000'))
 const rec = readFileSync('/home/claude/learningscience/api/tutor/recall.js','utf8')
 ok('recall 은 전사문을 보내지 않음', !/lectureChunks|retrievedChunks/.test(rec))
 
+
+console.log('\n[E] 기다리는 동안 사용자에게 말을 건다')
+// post() has taken an onWait callback all along and nobody passed one, so a
+// queued request sat silent for up to 45 seconds behind an unchanging
+// '만들고 있어요'. The file's own comment said as much: 'without it the wait
+// is silent.'
+const svc = readFileSync('/home/claude/learningscience/src/services/tutorService.js', 'utf8')
+const page = readFileSync('/home/claude/learningscience/src/components/review/ReviewStudyPage.jsx', 'utf8')
+const concept = readFileSync('/home/claude/learningscience/src/components/review/ConceptPanel.jsx', 'utf8')
+const recall = readFileSync('/home/claude/learningscience/src/components/review/RecallPanel.jsx', 'utf8')
+const chunkPanel = readFileSync('/home/claude/learningscience/src/features/taskChunking/TaskChunkingPanel.jsx', 'utf8')
+
+ok('모든 엔드포인트가 옵션을 받음',
+  ['quiz', 'answer', 'support', 'explain', 'recall', 'chunk']
+    .every((name) => api.includes(`${name}: (payload, options) =>`)))
+for (const [label, source, call] of [
+  ['설명', svc, 'explainConcept'],
+  ['인출', svc, 'checkRecall'],
+  ['문제', svc, 'createQuiz'],
+  ['과제 쪼개기', svc, 'createSteps'],
+]) ok(`${label}이 onWait 를 넘김`, new RegExp(`${call}\\({[^}]*onWait`).test(source))
+ok('페이지가 대기 상태를 들고 있음', page.includes('const [waiting, setWaiting]'))
+ok('요청이 끝나면 대기 표시를 지움', /setBusy\(null\)\s*\n\s*setWaiting\(null\)/.test(page))
+// The number comes from the server's slot count, never from a guess here.
+ok('개념 화면이 앞 사람 수를 말함', concept.includes('앞에 ${waiting.ahead}명이'))
+ok('인출 화면이 앞 사람 수를 말함', recall.includes('앞에 ${waiting.ahead}명이'))
+ok('과제 쪼개기도 말함', chunkPanel.includes('앞에 ${waiting.ahead}명이'))
+ok('대기 안내에 부정적인 표현이 없음',
+  [concept, recall, chunkPanel].every((source) => {
+    const lines = source.split('\n').filter((line) => line.includes('기다리고 있어요'))
+    return lines.length > 0 && lines.every((line) => !/실패|지연|오류|문제가/.test(line))
+  }))
+// 45초를 넘기면 기다리지 않고 바로 알린다 — 멈춘 화면보다 낫다.
+ok('무한정 기다리지 않음', api.includes('MAX_WAIT_MS') && api.includes('Date.now() + wait > until'))
+
 console.log(`\n요약: ${pass} PASS / ${fail} FAIL`)
 process.exitCode = fail ? 1 : 0
