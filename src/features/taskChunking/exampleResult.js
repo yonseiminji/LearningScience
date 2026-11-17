@@ -20,6 +20,11 @@
 // example answers the question the empty form was already asking.
 export const EXAMPLE_INSTRUCTION = `본 과제는 교육의 기본 개념을 이해하고, 현대 사회에서 교육의 목적과 교사의 역할을 비판적으로 탐색하는 것을 목표로 한다. 강의에서 학습한 교육의 목적 중 두 가지를 선정하여 핵심 내용을 요약하고, 각 목적이 실제 학교 교육에서 어떻게 구현되는지 구체적인 사례를 제시하시오. 해당 사례에서 교사가 수행해야 할 역할을 분석하고, 바람직한 교육의 방향에 대한 자신의 견해를 근거와 함께 서술하시오. 참고자료를 활용한 경우 출처를 표기한다. 제출 마감일은 2026년 11월 29일(일) 23시 59분이다.`
 
+// The subject the example is filed under. The same name the 새 과목 이름 field
+// offers as its placeholder, so the example matches what the empty form was
+// already suggesting.
+export const EXAMPLE_SUBJECT = '교육학개론'
+
 export const EXAMPLE_LEVEL = 'medium'
 
 export const EXAMPLE_RESULT = {

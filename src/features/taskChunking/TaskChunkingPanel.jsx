@@ -12,7 +12,7 @@ import {
   verifyChunkResult,
   verifyFinalSteps,
 } from './taskChunking.js'
-import { EXAMPLE_INSTRUCTION, EXAMPLE_LEVEL, EXAMPLE_RESULT } from './exampleResult.js'
+import { EXAMPLE_INSTRUCTION, EXAMPLE_LEVEL, EXAMPLE_RESULT, EXAMPLE_SUBJECT } from './exampleResult.js'
 import { data, ensureSubject, freeIdPrefix, registerAssignment } from '../../assignmentModel.js'
 import { tutorService } from '../../services/tutorService.js'
 import Modal from '../../components/Modal.jsx'
@@ -79,6 +79,11 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
       level: EXAMPLE_LEVEL,
       instruction: EXAMPLE_INSTRUCTION,
     })
+    // It skips the input screen, which is where the subject is chosen, so it
+    // has to carry one -- otherwise ensureSubject('') registers a subject with
+    // no name and the card shows a coloured dot and a blank.
+    setSubjectChoice(NEW_SUBJECT)
+    setNewSubject(EXAMPLE_SUBJECT)
     setText(EXAMPLE_INSTRUCTION)
     setLevel(EXAMPLE_LEVEL)
     setResult(checked)
@@ -153,6 +158,13 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
 
   function apply() {
     if (chosen.length === 0) return
+    // ensureSubject does not refuse an empty name: it creates a subject
+    // called nothing, and every later assignment with no name joins it.
+    if (!subjectName) {
+      setError('과목 이름을 적어 주세요.')
+      setStep('input')
+      return
+    }
     const prefix = freeIdPrefix(`tc-${slugify(result.title || subjectName).slice(0, 24)}`)
     const steps = chosen.map((row, index) => toAssignmentStep(row, { prefix, index, source: row.source }))
     const checked = verifyFinalSteps(steps)
@@ -460,7 +472,7 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
                 <RotateCcw aria-hidden="true" size={16} />
                 단계 다시 나누기
               </button>
-              <button type="button" className="btn primary" onClick={apply} disabled={chosen.length === 0}>
+              <button type="button" className="btn primary" onClick={apply} disabled={chosen.length === 0 || !subjectName}>
                 <Check aria-hidden="true" size={16} />
                 선택한 단계 적용하기
               </button>
