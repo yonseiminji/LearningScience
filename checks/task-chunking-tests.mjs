@@ -8,7 +8,7 @@ import {
 import { data, ensureSubject, assignmentsForSubject, freeIdPrefix, registerAssignment, hasStepId } from '/home/claude/learningscience/src/assignmentModel.js'
 import { findStep, buildPlan, createProposal, planCandidates } from '/home/claude/learningscience/src/weekPlan.js'
 import { validatePlan } from '/home/claude/learningscience/src/planValidation.js'
-import { EXAMPLE_INSTRUCTION, EXAMPLE_LEVEL, EXAMPLE_RESULT } from '/home/claude/learningscience/src/features/taskChunking/exampleResult.js'
+import { EXAMPLE_INSTRUCTION, EXAMPLE_LEVEL, EXAMPLE_RESULT, EXAMPLE_SUBJECT } from '/home/claude/learningscience/src/features/taskChunking/exampleResult.js'
 import { readFileSync } from 'node:fs'
 
 let pass = 0, fail = 0
@@ -231,6 +231,13 @@ check('예시로 만든 단계는 example 로 표시', panel.includes("source: '
 check('예시 화면이 예시라고 밝힘', panel.includes('예시로 만든 결과예요'))
 check('예시를 띄우면 지시문도 예시로 바뀜', panel.includes('setText(EXAMPLE_INSTRUCTION)'))
 check('실제 생성은 예시 표시를 끔', panel.includes('setIsExample(false)'))
+// The example skips the screen that asks for a subject, so it has to bring
+// one. ensureSubject('') does not refuse an empty name -- it registers a
+// subject called nothing, and the card then shows a dot beside a blank.
+check('예시가 과목명을 함께 채움', panel.includes('setNewSubject(EXAMPLE_SUBJECT)'))
+check('이름 없는 과목은 등록되지 않음', panel.includes("setError('과목 이름을 적어 주세요.')"))
+check('과목명이 없으면 완료 버튼이 꺼짐', panel.includes('chosen.length === 0 || !subjectName'))
+check('예시 과목명이 비어 있지 않음', EXAMPLE_SUBJECT.trim().length > 0)
 
 console.log(`\n요약: ${pass} PASS / ${fail} FAIL`)
 process.exit(fail > 0 ? 1 : 0)
