@@ -30,6 +30,8 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
   const [results, setResults] = useState({})
   const [support, setSupport] = useState(null)
   const [busy, setBusy] = useState(null) // null | 'quiz' | 'answer' | 'support'
+  // { ahead, message } while a request is queued behind others, null otherwise.
+  const [waiting, setWaiting] = useState(null)
   const [error, setError] = useState(null)
   const [explanation, setExplanation] = useState(null)
   const [recall, setRecall] = useState(null)
@@ -74,9 +76,15 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
   async function run(kind, work) {
     const id = ++requestId.current
     setBusy(kind)
+    setWaiting(null)
     setError(null)
     try {
-      const value = await work()
+      // A queued request can sit for up to 45 seconds. Without this the
+      // learner watches an unchanging '만들고 있어요' and has no way to tell
+      // a queue from a hang.
+      const value = await work({
+        onWait: (info) => { if (id === requestId.current) setWaiting(info) },
+      })
       if (id === requestId.current) return value
       return null
     } catch (failure) {
@@ -84,7 +92,10 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
       if (id === requestId.current) setError(failure.message || '요청을 처리하지 못했어요.')
       return null
     } finally {
-      if (id === requestId.current) setBusy(null)
+      if (id === requestId.current) {
+        setBusy(null)
+        setWaiting(null)
+      }
     }
   }
 
@@ -102,7 +113,9 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
       setError('문제로 풀어 볼 구간을 하나 이상 골라 주세요.')
       return
     }
-    const data = await run('quiz', () => tutorService.createQuiz({ material, chunkIds: selectedChunkIds }))
+    const data = await run('quiz', ({ onWait }) =>
+      tutorService.createQuiz({ material, chunkIds: selectedChunkIds, onWait }),
+    )
     if (!data) return
     setQuiz(data)
     setResults({})
@@ -170,8 +183,8 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
   async function explainConcept({ conceptId, supportType, chunkIds }) {
     setExplanation(null)
     const picked = chunksByIds(chunks, chunkIds)
-    const data = await run('explain', () =>
-      tutorService.explainConcept({ material, conceptId, supportType, chunks: picked }),
+    const data = await run('explain', ({ onWait }) =>
+      tutorService.explainConcept({ material, conceptId, supportType, chunks: picked, onWait }),
     )
     if (data) {
       setExplanation(data)
@@ -180,7 +193,9 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
   }
 
   async function checkRecall(attempt, conceptId, rubricId) {
-    const data = await run('recall', () => tutorService.checkRecall({ material, attempt, conceptId, rubricId }))
+    const data = await run('recall', ({ onWait }) =>
+      tutorService.checkRecall({ material, attempt, conceptId, rubricId, onWait }),
+    )
     if (!data) return
     // Whichever level ran, what 부족한 부분 다시 학습하기 needs is the same
     // list: concepts to shore up, each with the words to ask about. For a
@@ -246,7 +261,15 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
             }}
           />
 
-          {busy === 'quiz' ? <p role="status">고른 구간으로 문제를 만들고 있어요…</p> : null}
+          {busy === 'quiz' ? (
+            <p role="status">
+              {waiting
+                ? waiting.ahead > 0
+                  ? `앞에 ${waiting.ahead}명이 기다리고 있어요. 순서가 되면 바로 만들어 드릴게요.`
+                  : '지금 함께 쓰는 사람이 많아요. 조금만 기다려 주세요.'
+                : '고른 구간으로 문제를 만들고 있어요…'}
+            </p>
+          ) : null}
           {/* 개념 이해하기 shows its own, right under the buttons that caused
               it. Showing both put the same sentence twice on one screen. */}
           {error && mode !== 'concept' ? (
@@ -264,6 +287,7 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
             <RecallPanel
               chunks={chunks}
               busy={busy === 'recall'}
+              waiting={waiting}
               error={error}
               result={recall}
               onSubmit={checkRecall}
@@ -282,6 +306,7 @@ export default function ReviewStudyPage({ courseId, materials = [], showHeading 
               busy={busy === 'explain' ? 'explain' : null}
               error={error}
               explanation={explanation}
+              waiting={waiting}
               onExplain={explainConcept}
             />
           ) : null}

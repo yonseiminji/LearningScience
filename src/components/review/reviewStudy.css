@@ -221,6 +221,9 @@
 .concept-watch.is-plain { color: var(--text-2); font-weight: 400; }
 .concept-watch svg { flex: none; margin-top: 2px; }
 .concept-note { margin: 0; color: var(--muted); font-size: 13px; }
+/* Queued, not stuck. Darker than a plain note so it reads as news rather
+   than as the same spinner caption that was already there. */
+.concept-note.waiting { color: var(--text-2); }
 .concept-error { margin: 0; color: var(--danger, #b4504a); font-size: 14px; }
 
 .concept-actions { display: flex; flex-wrap: wrap; gap: 6px; }

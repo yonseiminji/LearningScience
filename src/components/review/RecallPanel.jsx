@@ -25,7 +25,7 @@ const LEVELS = [
   { id: 'all', label: '오늘 배운 것 전부 적어보기', hint: '기억나는 내용을 모두 적어요', Icon: Waves },
 ]
 
-export default function RecallPanel({ chunks = [], busy, error, result, onSubmit, onGraded, onAgain }) {
+export default function RecallPanel({ chunks = [], busy, waiting, error, result, onSubmit, onGraded, onAgain }) {
   const [level, setLevel] = useState(null)
   const [attempt, setAttempt] = useState('')
   const [conceptId, setConceptId] = useState(null)
@@ -188,6 +188,8 @@ export default function RecallPanel({ chunks = [], busy, error, result, onSubmit
             value={attempt}
             onChange={setAttempt}
             busy={busy}
+        waiting={waiting}
+            waiting={waiting}
             error={error}
             onSubmit={() => onSubmit(attempt, conceptId)}
             extra={back}
@@ -230,7 +232,7 @@ export default function RecallPanel({ chunks = [], busy, error, result, onSubmit
   )
 }
 
-function Writing({ title, placeholder, rows, min, value, onChange, busy, error, onSubmit, extra }) {
+function Writing({ title, placeholder, rows, min, value, onChange, busy, waiting, error, onSubmit, extra }) {
   const ready = value.trim().length >= min
   return (
     <div className="recall-ask">
@@ -246,6 +248,15 @@ function Writing({ title, placeholder, rows, min, value, onChange, busy, error, 
       {error ? (
         <p role="alert" className="concept-error">
           {error}
+        </p>
+      ) : null}
+      {/* The button already says 읽고 있어요; this says why it is taking a
+          while, with the server's own count of who is ahead. */}
+      {busy && waiting ? (
+        <p className="concept-note waiting" role="status">
+          {waiting.ahead > 0
+            ? `앞에 ${waiting.ahead}명이 기다리고 있어요. 순서가 되면 바로 읽어 드릴게요.`
+            : '지금 함께 쓰는 사람이 많아요. 조금만 기다려 주세요.'}
         </p>
       ) : null}
       <div className="recall-actions">

@@ -28,6 +28,7 @@ export default function ConceptPanel({
   material,
   chunks = [],
   busy,
+  waiting,
   error,
   onExplain,
   explanation,
@@ -143,7 +144,17 @@ export default function ConceptPanel({
             ) : null}
           </div>
 
-          {busy ? <p className="concept-note">설명을 만들고 있어요…</p> : null}
+          {/* A queued request waits up to 45 seconds. Saying how many are
+              ahead is the difference between waiting and wondering whether
+              it is broken -- and it is the server's own count, not a guess. */}
+          {busy && waiting ? (
+            <p className="concept-note waiting">
+              {waiting.ahead > 0
+                ? `앞에 ${waiting.ahead}명이 기다리고 있어요. 순서가 되면 바로 보여드릴게요.`
+                : '지금 함께 쓰는 사람이 많아요. 조금만 기다려 주세요.'}
+            </p>
+          ) : null}
+          {busy && !waiting ? <p className="concept-note">설명을 만들고 있어요…</p> : null}
           {error ? (
             <p role="alert" className="concept-error">
               {error}

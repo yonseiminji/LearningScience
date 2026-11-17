@@ -74,3 +74,41 @@ export async function releaseSlot(key) {
   // so the next window does not start with free slots it should not have.
   if (count !== null && Number(count) < 0) await command(['SET', key, '0'])
 }
+
+/**
+ * Hold the shared budget and a slot for one actual model call.
+ *
+ * These guard the Gemini quota, so they are taken where the quota is spent --
+ * around the call itself -- and not when a request arrives. A request served
+ * from the prompt cache reaches Google not at all, and used to spend a minute
+ * of budget anyway: thirty learners asking thirty questions that were all
+ * recorded got ten 429s and a 20-second wait for answers already sitting on
+ * disk. The limiter was throttling the thing built to relieve it.
+ *
+ * Returns a refusal rather than throwing, so this file stays independent of
+ * gemini.js; the caller owns ApiError and turns this into one.
+ */
+export async function reserveModelCall({ key = 'slots:gemini', perMinute, concurrency }) {
+  const minute = Math.floor(Date.now() / 60000)
+  const used = await bump(`rpm:${minute}`, 90)
+  if (used !== null && used > perMinute) {
+    return {
+      ok: false,
+      message: '지금 함께 쓰는 사람이 많아요. 20초쯤 뒤에 다시 해 주세요.',
+      meta: { retryAfterMs: 20000 },
+    }
+  }
+  const slot = await takeSlot(key, concurrency)
+  if (!slot.ok) {
+    return {
+      ok: false,
+      message: slot.ahead > 0 ? `앞에 ${slot.ahead}명이 기다리고 있어요. 곧 순서가 와요.` : '잠시만 기다려 주세요.',
+      meta: { retryAfterMs: 2500 + Math.floor(Math.random() * 1500), ahead: slot.ahead },
+    }
+  }
+  return { ok: true, slot, key }
+}
+
+export async function releaseModelCall(reservation) {
+  if (reservation?.slot?.shared) await releaseSlot(reservation.key)
+}

@@ -84,11 +84,13 @@ export class TutorApiError extends Error {
   }
 }
 
+// Every one takes the options post takes, so a caller can pass onWait and
+// turn a silent forty-five seconds into a queue position on screen.
 export const tutorApi = {
-  quiz: (payload) => post('/api/tutor/quiz', payload),
-  answer: (payload) => post('/api/tutor/answer', payload),
-  support: (payload) => post('/api/tutor/support', payload),
-  explain: (payload) => post('/api/tutor/explain', payload),
-  recall: (payload) => post('/api/tutor/recall', payload),
-  chunk: (payload) => post('/api/planner/chunk', payload),
+  quiz: (payload, options) => post('/api/tutor/quiz', payload, options),
+  answer: (payload, options) => post('/api/tutor/answer', payload, options),
+  support: (payload, options) => post('/api/tutor/support', payload, options),
+  explain: (payload, options) => post('/api/tutor/explain', payload, options),
+  recall: (payload, options) => post('/api/tutor/recall', payload, options),
+  chunk: (payload, options) => post('/api/planner/chunk', payload, options),
 }

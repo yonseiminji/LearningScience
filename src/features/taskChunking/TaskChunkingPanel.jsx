@@ -53,6 +53,10 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
   // for what the learner typed. Everything that could be mistaken for their
   // own result reads this.
   const [isExample, setIsExample] = useState(false)
+  // Chunking is the one model call with no cache behind it -- every
+  // assignment is different -- so it is the likeliest to queue, and the one
+  // where a silent wait is most likely to be read as a hang.
+  const [waiting, setWaiting] = useState(null)
 
   const isNew = subjectChoice === NEW_SUBJECT
   const subjectName = isNew ? newSubject.trim() : data.subjects.find((s) => s.id === subjectChoice)?.name || ''
@@ -100,12 +104,14 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
     setBusy(true)
     setError(null)
     setIsExample(false)
+    setWaiting(null)
     try {
       const data_ = await tutorService.createSteps({
         subjectId: isNew ? null : subjectChoice,
         subjectName,
         instruction: text.trim(),
         chunkingLevel: level,
+        onWait: setWaiting,
       })
       const checked = verifyChunkResult(data_, { level, instruction: text.trim() })
       if (!checked.ok) {
@@ -124,6 +130,7 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
       )
     } finally {
       setBusy(false)
+      setWaiting(null)
     }
   }
 
@@ -319,8 +326,16 @@ export default function TaskChunkingPanel({ onApplied, onClose }) {
             {busy ? (
               <div className="chunk-loading" role="status">
                 <span className="chunk-spinner" aria-hidden="true" />
-                <p>곰곰이가 과제를 작은 단계로 나누고 있어요…</p>
-                <p className="chunk-loading-sub">과제에서 해야 할 일과 제출 조건을 확인하고 있어요.</p>
+                <p>
+                  {waiting?.ahead > 0
+                    ? `앞에 ${waiting.ahead}명이 기다리고 있어요.`
+                    : '곰곰이가 과제를 작은 단계로 나누고 있어요…'}
+                </p>
+                <p className="chunk-loading-sub">
+                  {waiting
+                    ? '순서가 되면 바로 나눠 드릴게요.'
+                    : '과제에서 해야 할 일과 제출 조건을 확인하고 있어요.'}
+                </p>
               </div>
             ) : null}
           </div>
