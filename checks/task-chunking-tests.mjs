@@ -8,6 +8,8 @@ import {
 import { data, ensureSubject, assignmentsForSubject, freeIdPrefix, registerAssignment, hasStepId } from '/home/claude/learningscience/src/assignmentModel.js'
 import { findStep, buildPlan, createProposal, planCandidates } from '/home/claude/learningscience/src/weekPlan.js'
 import { validatePlan } from '/home/claude/learningscience/src/planValidation.js'
+import { EXAMPLE_INSTRUCTION, EXAMPLE_LEVEL, EXAMPLE_RESULT } from '/home/claude/learningscience/src/features/taskChunking/exampleResult.js'
+import { readFileSync } from 'node:fs'
 
 let pass = 0, fail = 0
 const check = (label, ok, detail = '') => {
@@ -198,6 +200,37 @@ const out = reordered.map((s, i) => toAssignmentStep(s, { prefix: p2, index: i }
 check('바뀐 순서대로 ID 가 매겨짐', out.map((s) => s.id).join(',') === `${p2}-s1,${p2}-s2,${p2}-s3`)
 check('첫 단계가 재배열한 그 단계', out[0].title === '비교 정리')
 check('순서를 바꿔도 최종 검증 통과', verifyFinalSteps(out).ok)
+
+
+console.log('\n[X] 미리 준비한 예시 결과')
+// The example has to survive every check a live answer survives, or it is a
+// demo of something the product cannot actually produce.
+const exLevel = CHUNK_LEVELS.find((item) => item.id === EXAMPLE_LEVEL)
+const ex = verifyChunkResult(EXAMPLE_RESULT, { level: EXAMPLE_LEVEL, instruction: EXAMPLE_INSTRUCTION })
+check('실제 검증을 통과', ex.ok)
+check('오류 없음', ex.errors.length === 0)
+check('경고 없음', ex.warnings.length === 0)
+check(`단계 수가 ‘${exLevel.label}’ 범위 안 (${exLevel.min}~${exLevel.max})`,
+  ex.steps.length >= exLevel.min && ex.steps.length <= exLevel.max)
+check('과제 제목을 읽어냄', ex.title.length > 0)
+check('마감이 지시문의 날짜와 같음', ex.dueAt === '2026-11-29T23:59')
+const exRows = ex.steps.map((item, index) => ({ key: `x${index}`, ...item, source: 'example' }))
+check('빠진 요구사항 없음', droppedRequirements(exRows, exRows, ex.requirements).length === 0)
+const exSteps = exRows.map((row, index) => toAssignmentStep(row, { prefix: 'tc-example', index, source: row.source }))
+check('최종 검증까지 통과', verifyFinalSteps(exSteps).ok)
+check('모든 단계에 완료 조건', exSteps.every((item) => item.completionCriteria.length > 0))
+check('모든 단계에 팁', exSteps.every((item) => item.prerequisiteTip.length > 0))
+
+// The constraint this feature is most able to break: an answer the model did
+// not give must never arrive looking like one it did.
+const panel = readFileSync('/home/claude/learningscience/src/features/taskChunking/TaskChunkingPanel.jsx', 'utf8')
+const onFailure = panel.slice(panel.indexOf('} catch (failure) {'), panel.indexOf('} finally {'))
+check('생성 실패가 예시를 대신 띄우지 않음', !onFailure.includes('showExample') && !onFailure.includes('EXAMPLE_RESULT'))
+check('예시는 사용자가 눌러야 열림', panel.includes('onClick={showExample}'))
+check('예시로 만든 단계는 example 로 표시', panel.includes("source: 'example'"))
+check('예시 화면이 예시라고 밝힘', panel.includes('예시로 만든 결과예요'))
+check('예시를 띄우면 지시문도 예시로 바뀜', panel.includes('setText(EXAMPLE_INSTRUCTION)'))
+check('실제 생성은 예시 표시를 끔', panel.includes('setIsExample(false)'))
 
 console.log(`\n요약: ${pass} PASS / ${fail} FAIL`)
 process.exit(fail > 0 ? 1 : 0)
